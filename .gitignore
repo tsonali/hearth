@@ -31,3 +31,9 @@ Thumbs.db
 models/
 *.gguf
 *.safetensors
+
+# Derived training artifacts (regenerable from data/recordings/)
+data/dataset/
+
+# Training logs
+logs/

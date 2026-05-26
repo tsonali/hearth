@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "notes": "Registry of voices for the Imagination Engine. Each speaker has a fine-tuned voice model derived from their own recordings, with their consent. Adding a speaker = add an entry here + collect their recordings + train.",
+  "speakers": [
+    {
+      "id": "sonali",
+      "display_name": "Sonali",
+      "gender": "female",
+      "consent": "founder; consents inherently"
+    },
+    {
+      "id": "julio",
+      "display_name": "Julio",
+      "gender": "male",
+      "consent": "TBD — confirm before training"
+    }
+  ]
+}

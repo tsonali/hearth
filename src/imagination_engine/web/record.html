@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Record your voice — Imagination Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/record.css">
+</head>
+<body>
+  <main class="record">
+    <header>
+      <h1>Record your voice</h1>
+      <p class="subtitle">
+        <span id="speaker-tag" hidden>recording as <strong id="speaker-name">—</strong> · <button id="switch-speaker" type="button" class="link-btn">switch</button> · </span>
+        <span id="progress-text">loading …</span>
+      </p>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </header>
+
+    <section id="speaker-picker" class="permission" hidden>
+      <h2>Who is recording?</h2>
+      <p>Each speaker's recordings are kept separate. The model that ends up in the product will be trained on whichever speaker you choose here.</p>
+      <div id="speaker-options" class="button-row"></div>
+    </section>
+
+    <section id="sentence-card" class="sentence-card" hidden>
+      <p class="sentence-meta">
+        <span id="sentence-index">—</span>
+        <span class="sep">·</span>
+        <span id="sentence-register">—</span>
+        <span class="sep">·</span>
+        <span id="sentence-id">—</span>
+      </p>
+      <p id="sentence-text" class="sentence-text">—</p>
+    </section>
+
+    <section class="controls" id="controls" hidden>
+      <div id="state-idle" class="state">
+        <button id="record-btn" type="button" class="primary big">● Record</button>
+        <p class="hint">Hold <strong>spacebar</strong> to record · release to stop · <strong>→</strong> to skip · <strong>←</strong> to go back</p>
+      </div>
+
+      <div id="state-recording" class="state" hidden>
+        <button id="stop-btn" type="button" class="primary big recording">■ Stop</button>
+        <p class="hint">Recording… release spacebar to stop</p>
+        <p id="rec-level" class="level"></p>
+      </div>
+
+      <div id="state-review" class="state" hidden>
+        <audio id="playback" controls></audio>
+        <div class="button-row">
+          <button id="redo-btn" type="button" class="secondary">↺ Redo</button>
+          <button id="keep-btn" type="button" class="primary">✓ Keep &amp; next</button>
+        </div>
+        <p class="hint">Listen before you keep. Enter to keep · R to redo.</p>
+      </div>
+    </section>
+
+    <section class="nav" id="nav" hidden>
+      <button id="prev-btn" type="button" class="ghost">← Previous</button>
+      <button id="skip-btn" type="button" class="ghost">Skip →</button>
+    </section>
+
+    <section id="mic-permission" class="permission" hidden>
+      <h2>Microphone access needed</h2>
+      <p>Click below to allow microphone access. Your browser will ask once. The audio never leaves this computer — it goes only to the local server running on your machine.</p>
+      <button id="enable-mic" type="button" class="primary">Enable microphone</button>
+      <p id="mic-error" class="error" hidden></p>
+    </section>
+
+    <section class="tips" id="tips" hidden>
+      <details>
+        <summary>Recording tips</summary>
+        <ul>
+          <li>Read in your <strong>natural, calm voice</strong> — not a "guide voice." The model will learn whatever you give it.</li>
+          <li>Sit a hand's distance from the microphone. Stay at roughly the same distance throughout.</li>
+          <li>If you stumble on a sentence, <strong>redo it</strong>. The model is faithful to its inputs — a clean dataset beats a long messy one.</li>
+          <li>Take breaks every 15–20 minutes. Voice quality drifts when you're tired and the model will hear it.</li>
+          <li>If a sentence feels wrong for your voice (a phrase you'd never say), skip it. Skipped sentences can be returned to later.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    /* ----------------------------------------------------------------------
+       Recording app — captures one sentence at a time, encodes WAV in JS,
+       posts to the local server. Speaker-aware: each session is bound to
+       a specific speaker (Sonali, Julio, ...) and recordings are saved
+       under data/recordings/<speaker_id>/. The speaker choice persists in
+       localStorage so reopening the tab picks up where you left off.
+    ---------------------------------------------------------------------- */
+
+    const SPEAKER_KEY = "imagination_engine.speaker";
+
+    const $progressText = document.getElementById("progress-text");
+    const $progressFill = document.getElementById("progress-fill");
+    const $speakerTag = document.getElementById("speaker-tag");
+    const $speakerName = document.getElementById("speaker-name");
+    const $switchSpeaker = document.getElementById("switch-speaker");
+    const $speakerPicker = document.getElementById("speaker-picker");
+    const $speakerOptions = document.getElementById("speaker-options");
+    const $sentenceCard = document.getElementById("sentence-card");
+    const $sentenceIndex = document.getElementById("sentence-index");
+    const $sentenceRegister = document.getElementById("sentence-register");
+    const $sentenceId = document.getElementById("sentence-id");
+    const $sentenceText = document.getElementById("sentence-text");
+    const $controls = document.getElementById("controls");
+    const $stateIdle = document.getElementById("state-idle");
+    const $stateRecording = document.getElementById("state-recording");
+    const $stateReview = document.getElementById("state-review");
+    const $recordBtn = document.getElementById("record-btn");
+    const $stopBtn = document.getElementById("stop-btn");
+    const $redoBtn = document.getElementById("redo-btn");
+    const $keepBtn = document.getElementById("keep-btn");
+    const $prevBtn = document.getElementById("prev-btn");
+    const $skipBtn = document.getElementById("skip-btn");
+    const $playback = document.getElementById("playback");
+    const $recLevel = document.getElementById("rec-level");
+    const $nav = document.getElementById("nav");
+    const $tips = document.getElementById("tips");
+    const $micPermission = document.getElementById("mic-permission");
+    const $enableMic = document.getElementById("enable-mic");
+    const $micError = document.getElementById("mic-error");
+
+    let speakers = [];
+    let speaker = null;       // active speaker object
+    let sentences = [];
+    let completed = new Set();
+    let index = 0;
+    let audioContext = null;
+    let mediaStream = null;
+    let recorder = null;
+    let lastBlob = null;
+
+    /* ---------- WAV encoder: float32 PCM samples → 16-bit WAV blob ---------- */
+
+    function encodeWav(samples, sampleRate) {
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+      const writeString = (off, str) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i));
+      };
+      let off = 0;
+      writeString(off, "RIFF"); off += 4;
+      view.setUint32(off, 36 + samples.length * 2, true); off += 4;
+      writeString(off, "WAVE"); off += 4;
+      writeString(off, "fmt "); off += 4;
+      view.setUint32(off, 16, true); off += 4;
+      view.setUint16(off, 1, true); off += 2;
+      view.setUint16(off, 1, true); off += 2;
+      view.setUint32(off, sampleRate, true); off += 4;
+      view.setUint32(off, sampleRate * 2, true); off += 4;
+      view.setUint16(off, 2, true); off += 2;
+      view.setUint16(off, 16, true); off += 2;
+      writeString(off, "data"); off += 4;
+      view.setUint32(off, samples.length * 2, true); off += 4;
+      for (let i = 0; i < samples.length; i++) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        off += 2;
+      }
+      return new Blob([buffer], { type: "audio/wav" });
+    }
+
+    class WavRecorder {
+      constructor(stream, audioContext) {
+        this.audioContext = audioContext;
+        this.sampleRate = audioContext.sampleRate;
+        this.source = audioContext.createMediaStreamSource(stream);
+        this.processor = audioContext.createScriptProcessor(4096, 1, 1);
+        this.chunks = [];
+        this.peak = 0;
+        this.processor.onaudioprocess = (e) => {
+          const input = e.inputBuffer.getChannelData(0);
+          this.chunks.push(new Float32Array(input));
+          for (let i = 0; i < input.length; i++) {
+            const a = Math.abs(input[i]);
+            if (a > this.peak) this.peak = a;
+          }
+        };
+        this.source.connect(this.processor);
+        this.processor.connect(audioContext.destination);
+      }
+      currentPeak() { const p = this.peak; this.peak = 0; return p; }
+      stop() {
+        try { this.processor.disconnect(); } catch (e) {}
+        try { this.source.disconnect(); } catch (e) {}
+        const length = this.chunks.reduce((sum, c) => sum + c.length, 0);
+        const samples = new Float32Array(length);
+        let offset = 0;
+        for (const c of this.chunks) {
+          samples.set(c, offset);
+          offset += c.length;
+        }
+        return encodeWav(samples, this.sampleRate);
+      }
+    }
+
+    /* ---------- speaker picker ---------- */
+
+    function renderSpeakerPicker() {
+      $speakerOptions.innerHTML = "";
+      for (const sp of speakers) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "primary";
+        btn.textContent = `${sp.display_name} (${sp.gender})`;
+        btn.addEventListener("click", () => selectSpeaker(sp.id));
+        $speakerOptions.appendChild(btn);
+      }
+      $speakerPicker.hidden = false;
+      $sentenceCard.hidden = true;
+      $controls.hidden = true;
+      $nav.hidden = true;
+      $tips.hidden = true;
+      $micPermission.hidden = true;
+      $speakerTag.hidden = true;
+      $progressText.textContent = "pick a speaker to begin";
+      $progressFill.style.width = "0%";
+    }
+
+    async function selectSpeaker(speakerId) {
+      const sp = speakers.find(s => s.id === speakerId);
+      if (!sp) return;
+      speaker = sp;
+      localStorage.setItem(SPEAKER_KEY, speakerId);
+      $speakerPicker.hidden = true;
+      $speakerName.textContent = sp.display_name;
+      $speakerTag.hidden = false;
+      await loadProgress();
+      index = findNextIndex();
+      render();
+      $tips.hidden = false;
+      // Show mic-permission prompt; the actual mic request happens on the
+      // user's first record action (browsers require a real user gesture).
+      if (!mediaStream) $micPermission.hidden = false;
+    }
+
+    function switchSpeaker() {
+      localStorage.removeItem(SPEAKER_KEY);
+      speaker = null;
+      completed = new Set();
+      lastBlob = null;
+      renderSpeakerPicker();
+    }
+
+    async function loadProgress() {
+      const res = await fetch(`/record/progress/${speaker.id}`);
+      const prog = await res.json();
+      completed = new Set(prog.completed);
+    }
+
+    /* ---------- mic permission ---------- */
+
+    async function ensureMic() {
+      if (mediaStream) return true;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            channelCount: 1,
+          },
+        });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        $micPermission.hidden = true;
+        $controls.hidden = false;
+        $nav.hidden = false;
+        return true;
+      } catch (err) {
+        $micError.hidden = false;
+        $micError.textContent = `Could not access microphone: ${err.message}. If you denied permission, click the lock icon in the URL bar and allow microphone, then reload.`;
+        return false;
+      }
+    }
+
+    /* ---------- progress + sentence rendering ---------- */
+
+    function findNextIndex() {
+      for (let i = 0; i < sentences.length; i++) {
+        if (!completed.has(sentences[i].id)) return i;
+      }
+      return sentences.length - 1;
+    }
+
+    function render() {
+      if (sentences.length === 0 || !speaker) return;
+      index = Math.max(0, Math.min(index, sentences.length - 1));
+      const s = sentences[index];
+      $sentenceCard.hidden = false;
+      $sentenceIndex.textContent = `${index + 1} / ${sentences.length}`;
+      $sentenceRegister.textContent = s.register;
+      $sentenceId.textContent = s.id;
+      $sentenceText.textContent = s.text;
+      $progressText.textContent = `${completed.size} of ${sentences.length} recorded`;
+      const pct = Math.round(100 * completed.size / sentences.length);
+      $progressFill.style.width = pct + "%";
+      toIdle();
+    }
+
+    function toIdle() {
+      $stateIdle.hidden = false;
+      $stateRecording.hidden = true;
+      $stateReview.hidden = true;
+      lastBlob = null;
+      $playback.removeAttribute("src");
+    }
+    function toRecording() {
+      $stateIdle.hidden = true;
+      $stateRecording.hidden = false;
+      $stateReview.hidden = true;
+    }
+    function toReview() {
+      $stateIdle.hidden = true;
+      $stateRecording.hidden = true;
+      $stateReview.hidden = false;
+    }
+
+    /* ---------- record / stop / keep / redo ---------- */
+
+    let levelTimer = null;
+    async function startRecording() {
+      if (!speaker) return;
+      if (!(await ensureMic())) return;
+      if (audioContext.state === "suspended") await audioContext.resume();
+      recorder = new WavRecorder(mediaStream, audioContext);
+      toRecording();
+      levelTimer = setInterval(() => {
+        if (!recorder) return;
+        const p = recorder.currentPeak();
+        const bar = "▮".repeat(Math.min(20, Math.round(p * 20)));
+        $recLevel.textContent = bar || "·";
+      }, 100);
+    }
+
+    function stopRecording() {
+      if (!recorder) return;
+      clearInterval(levelTimer);
+      lastBlob = recorder.stop();
+      recorder = null;
+      const url = URL.createObjectURL(lastBlob);
+      $playback.src = url;
+      toReview();
+    }
+
+    async function keepRecording() {
+      if (!lastBlob || !speaker) return;
+      const s = sentences[index];
+      $keepBtn.disabled = true;
+      try {
+        const res = await fetch(`/record/save/${speaker.id}/${s.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "audio/wav" },
+          body: lastBlob,
+        });
+        if (!res.ok) {
+          alert(`Save failed: ${res.status} ${res.statusText}`);
+          return;
+        }
+        completed.add(s.id);
+        index = findNextIndex();
+        render();
+      } catch (err) {
+        alert(`Save error: ${err.message}`);
+      } finally {
+        $keepBtn.disabled = false;
+      }
+    }
+
+    function redoRecording() { lastBlob = null; toIdle(); }
+    function nextSentence() { index = Math.min(index + 1, sentences.length - 1); render(); }
+    function prevSentence() { index = Math.max(index - 1, 0); render(); }
+
+    /* ---------- wiring ---------- */
+
+    $enableMic.addEventListener("click", ensureMic);
+    $recordBtn.addEventListener("click", startRecording);
+    $stopBtn.addEventListener("click", stopRecording);
+    $keepBtn.addEventListener("click", keepRecording);
+    $redoBtn.addEventListener("click", redoRecording);
+    $prevBtn.addEventListener("click", prevSentence);
+    $skipBtn.addEventListener("click", nextSentence);
+    $switchSpeaker.addEventListener("click", switchSpeaker);
+
+    let spaceDown = false;
+    document.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (!speaker) return;
+      if (e.code === "Space" && !spaceDown) {
+        spaceDown = true;
+        e.preventDefault();
+        if (!$stateIdle.hidden) startRecording();
+      } else if (e.key === "Enter" && !$stateReview.hidden) {
+        e.preventDefault();
+        keepRecording();
+      } else if ((e.key === "r" || e.key === "R") && !$stateReview.hidden) {
+        e.preventDefault();
+        redoRecording();
+      } else if (e.key === "ArrowRight" && !$stateIdle.hidden) {
+        e.preventDefault();
+        nextSentence();
+      } else if (e.key === "ArrowLeft" && !$stateIdle.hidden) {
+        e.preventDefault();
+        prevSentence();
+      }
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.code === "Space" && spaceDown) {
+        spaceDown = false;
+        e.preventDefault();
+        if (!$stateRecording.hidden) stopRecording();
+      }
+    });
+
+    /* ---------- boot ---------- */
+
+    async function boot() {
+      try {
+        const [speakersRes, scriptRes] = await Promise.all([
+          fetch("/record/speakers"),
+          fetch("/record/sentences"),
+        ]);
+        speakers = (await speakersRes.json()).speakers;
+        sentences = (await scriptRes.json()).sentences;
+      } catch (err) {
+        document.body.innerHTML = `<main class="record"><h1>Error loading</h1><p>${err.message}</p></main>`;
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        document.body.innerHTML = `<main class="record"><h1>Browser not supported</h1><p>This browser does not expose microphone access. Try Chrome, Safari, or Firefox.</p></main>`;
+        return;
+      }
+
+      const savedId = localStorage.getItem(SPEAKER_KEY);
+      const saved = savedId ? speakers.find(s => s.id === savedId) : null;
+      if (saved) {
+        await selectSpeaker(saved.id);
+      } else {
+        renderSpeakerPicker();
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

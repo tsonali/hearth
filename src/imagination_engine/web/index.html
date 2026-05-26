@@ -22,6 +22,11 @@
 
     <section class="output" aria-live="polite">
       <pre id="response"></pre>
+      <div id="audio-controls" hidden>
+        <button id="speak" type="button">▶ Read aloud</button>
+        <span id="speak-status" class="hint"></span>
+        <audio id="player" controls hidden></audio>
+      </div>
     </section>
   </main>
 
@@ -29,12 +34,22 @@
     const $prompt = document.getElementById("prompt");
     const $go = document.getElementById("go");
     const $response = document.getElementById("response");
+    const $audioControls = document.getElementById("audio-controls");
+    const $speak = document.getElementById("speak");
+    const $speakStatus = document.getElementById("speak-status");
+    const $player = document.getElementById("player");
+
+    let lastResponseText = "";
 
     async function generate() {
       const prompt = $prompt.value.trim();
       if (!prompt) return;
       $go.disabled = true;
       $response.textContent = "";
+      $audioControls.hidden = true;
+      $player.hidden = true;
+      $player.removeAttribute("src");
+      lastResponseText = "";
 
       try {
         const res = await fetch("/generate", {
@@ -51,7 +66,12 @@
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          $response.textContent += decoder.decode(value, { stream: true });
+          const chunk = decoder.decode(value, { stream: true });
+          $response.textContent += chunk;
+          lastResponseText += chunk;
+        }
+        if (lastResponseText.trim()) {
+          $audioControls.hidden = false;
         }
       } catch (err) {
         $response.textContent = `Error: ${err.message}`;
@@ -60,7 +80,35 @@
       }
     }
 
+    async function speak() {
+      if (!lastResponseText.trim()) return;
+      $speak.disabled = true;
+      $speakStatus.textContent = "rendering audio …";
+      try {
+        const res = await fetch("/speak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: lastResponseText }),
+        });
+        if (!res.ok) {
+          $speakStatus.textContent = `Error: ${res.status} ${res.statusText}`;
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        $player.src = url;
+        $player.hidden = false;
+        $speakStatus.textContent = "";
+        await $player.play();
+      } catch (err) {
+        $speakStatus.textContent = `Error: ${err.message}`;
+      } finally {
+        $speak.disabled = false;
+      }
+    }
+
     $go.addEventListener("click", generate);
+    $speak.addEventListener("click", speak);
     $prompt.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();

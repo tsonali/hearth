@@ -79,3 +79,22 @@ pre {
   min-height: 4rem;
   margin: 0;
 }
+#audio-controls {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#audio-controls button {
+  margin-top: 0;
+  align-self: flex-start;
+  background: #3a3a3a;
+}
+#audio-controls audio {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+#speak-status {
+  margin: 0;
+  color: #999;
+}

@@ -23,5 +23,21 @@ class Config:
     max_tokens: int = 512
     temperature: float = 0.7
 
+    # Local TTS — Kokoro-82M ONNX (Apache-2.0). Canonical weight files
+    # are hosted on the kokoro-onnx GitHub releases page; we cache them
+    # under ~/.cache/imagination_engine/kokoro/. `tts_voice` is the
+    # default speaker; `tts_speed` is below 1.0 because guided imagery
+    # wants spaciousness, not pace.
+    tts_model_url: str = (
+        "https://github.com/thewh1teagle/kokoro-onnx/releases/download/"
+        "model-files-v1.0/kokoro-v1.0.onnx"
+    )
+    tts_voices_url: str = (
+        "https://github.com/thewh1teagle/kokoro-onnx/releases/download/"
+        "model-files-v1.0/voices-v1.0.bin"
+    )
+    tts_voice: str = "af_heart"
+    tts_speed: float = 0.9
+
 
 config = Config()

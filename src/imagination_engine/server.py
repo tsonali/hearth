@@ -10,13 +10,14 @@ import logging
 from pathlib import Path
 from typing import Iterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from imagination_engine.config import config
 from imagination_engine.inference import Engine
+from imagination_engine.tts import Voice
 
 log = logging.getLogger("imagination_engine")
 
@@ -25,6 +26,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 app = FastAPI(title="Imagination Engine", docs_url=None, redoc_url=None)
 
 _engine: Engine | None = None
+_voice: Voice | None = None
 
 
 def get_engine() -> Engine:
@@ -36,9 +38,23 @@ def get_engine() -> Engine:
     return _engine
 
 
+def get_voice() -> Voice:
+    global _voice
+    if _voice is None:
+        log.info("Loading TTS voice (%s) ...", config.tts_voice)
+        _voice = Voice.load()
+        log.info("Voice loaded.")
+    return _voice
+
+
 class GenerateRequest(BaseModel):
     prompt: str
     max_tokens: int | None = None
+
+
+class SpeakRequest(BaseModel):
+    text: str
+    speed: float | None = None
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -55,6 +71,13 @@ def generate(req: GenerateRequest) -> StreamingResponse:
             yield chunk.encode("utf-8")
 
     return StreamingResponse(stream(), media_type="text/plain; charset=utf-8")
+
+
+@app.post("/speak")
+def speak(req: SpeakRequest) -> Response:
+    voice = get_voice()
+    wav_bytes = voice.speak(req.text, speed=req.speed)
+    return Response(content=wav_bytes, media_type="audio/wav")
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

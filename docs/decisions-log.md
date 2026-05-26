@@ -53,3 +53,21 @@ The imagery happens in the user's mind; the product generates words and voice. T
 These numbers are good enough that Task 03 (~1500-token full-session generation) will take ~85 seconds wall-clock, and Task 02 (intake conversation with streaming responses) feels responsive at human reading speed. No model swap needed for v0.
 
 A pleasant unsolicited signal: with only the protocol's voice convention given as a system prompt, Llama 3.1 8B produces output that is genuinely in the future-self register — second person, present tense, sensory, paced. The protocol-as-prompt approach in build-plan/03 looks viable without fine-tuning.
+
+---
+
+## 2026-05-26 — Voice pivot: Kokoro is not the v0 voice
+
+**Decision: stock TTS voices (Kokoro, Piper, etc.) are disqualified as the v0 production voice.** Kept Kokoro in the codebase as a development / fallback voice (fast renders, useful for quick checks), but the user-facing session voice will not be a stock speaker.
+
+**Why:** Sonali listened to `af_heart` (Kokoro's warmest default) and immediately identified it as "way too AI-y... the generic AI woman." For a product whose mechanism depends on the user closing their eyes and surrendering to a voice's guidance, the unmistakable affect of stock TTS collapses the experience back into "I'm being talked at by a chatbot." This validates the warning in `build-plan/04-voice-layer.md`: voice quality is a make-or-break gate. Found out early — exactly as the build plan intended.
+
+**New direction: full fine-tune of an open base TTS model on Sonali's own voice, ~30+ minutes of clean recorded audio.** Not voice cloning from a short reference (Level 1) — *fine-tuning* (Level 2): we produce a model whose weights are adapted to Sonali's voice, lives in this repo as our own artifact. The architectural choice and product principle is captured in [[project-voice-design]] (memory).
+
+**Base model: F5-TTS** (SWivid, MIT, late 2024). State-of-the-art small-model voice quality, active community fine-tuning recipes, supports both zero-shot cloning *and* fine-tuning so the same install is single-purpose-free.
+
+**Recording setup:** USB microphone (model TBD), a quiet room. Reading material: phonetically balanced sentences + guided-imagery register samples, ~200 sentences total, broken into 15–20 min recording sessions to avoid voice drift.
+
+**Why this matches the project's posture:** [[feedback-oss-only]] says no third-party orchestrators. [[feedback-build-properly]] says invest in a real foundation. [[project-voice-design]] says the voice is the product. All three converge on this choice — the v0's voice should be an artifact we made, voicing the founder, owned end-to-end.
+
+The Kokoro code (`src/imagination_engine/tts.py`, `/speak` endpoint, "Read aloud" button) stays in the codebase. It's useful for dev iteration and as a fallback. The fine-tuned F5-TTS model will become the production path when training completes.

@@ -25,7 +25,15 @@ class Config:
 
     # Generation defaults. Per-protocol overrides come later.
     max_tokens: int = 512
-    temperature: float = 0.7
+    temperature: float = 0.8
+    # Nucleus sampling — restrict each token choice to the top `top_p` of
+    # probability mass. Diversifies output and avoids tail-token weirdness.
+    top_p: float = 0.92
+    # Penalty for repeating tokens within `repetition_context_size`.
+    # 1.0 = no penalty, 1.1-1.2 = gentle, 1.3+ = strong. Prevents the
+    # "justice-broker justice-broker…" degenerate-loop failure mode.
+    repetition_penalty: float = 1.15
+    repetition_context_size: int = 64
 
     # Local TTS — Kokoro-82M ONNX (Apache-2.0). Canonical weight files
     # are hosted on the kokoro-onnx GitHub releases page; we cache them

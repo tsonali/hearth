@@ -11,13 +11,37 @@ happen here, without touching the protocol or server layers.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Iterator
 
+import mlx.core as mx
 from mlx_lm import load, stream_generate
-from mlx_lm.sample_utils import make_sampler
+from mlx_lm.sample_utils import apply_top_p, make_logits_processors
 
 from imagination_engine.config import config
+
+
+def _make_seeded_sampler(*, temp: float, top_p: float, seed: int):
+    """Build a sampler with an explicit per-call RNG key.
+
+    mlx-lm's stock `make_sampler` builds a sampler around `categorical_sampling`,
+    which is `@mx.compile`-decorated with `inputs=mx.random.state`. That
+    compile traces and caches at first invocation in a process, fixing the
+    RNG path — subsequent calls give identical output for identical prompts
+    no matter how often we re-seed the global state. The clean fix is to
+    skip the compiled sampler and thread an explicit key through ourselves.
+    """
+    key = mx.random.key(seed)
+
+    def sampler(logprobs):
+        nonlocal key
+        key, subkey = mx.random.split(key)
+        if 0 < top_p < 1.0:
+            logprobs = apply_top_p(logprobs, top_p)
+        return mx.random.categorical(logprobs * (1.0 / temp), key=subkey)
+
+    return sampler
 
 
 @dataclass
@@ -60,8 +84,18 @@ class Engine:
             messages, add_generation_prompt=True, tokenize=False
         )
 
-        sampler = make_sampler(
+        # Per-call sampler with an explicit RNG seed. See `_make_seeded_sampler`
+        # for why we bypass mlx-lm's stock `make_sampler` (compile-state issue).
+        sampler = _make_seeded_sampler(
             temp=temperature if temperature is not None else config.temperature,
+            top_p=config.top_p,
+            seed=time.time_ns() & 0xFFFFFFFF,
+        )
+
+        # Repetition penalty — the fix for degenerate "word word word..." loops.
+        logits_processors = make_logits_processors(
+            repetition_penalty=config.repetition_penalty,
+            repetition_context_size=config.repetition_context_size,
         )
 
         for response in stream_generate(
@@ -70,5 +104,6 @@ class Engine:
             prompt=formatted,
             max_tokens=max_tokens or config.max_tokens,
             sampler=sampler,
+            logits_processors=logits_processors,
         ):
             yield response.text

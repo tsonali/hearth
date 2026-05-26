@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imagination Engine — local</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Imagination Engine</h1>
+      <p class="subtitle">local · private · v0 foundation</p>
+    </header>
+
+    <section class="input">
+      <label for="prompt">Type something. The model runs entirely on this machine.</label>
+      <textarea id="prompt" rows="4" autofocus></textarea>
+      <button id="go" type="button">Generate</button>
+      <p class="hint">⌘/Ctrl + Enter to send</p>
+    </section>
+
+    <section class="output" aria-live="polite">
+      <pre id="response"></pre>
+    </section>
+  </main>
+
+  <script>
+    const $prompt = document.getElementById("prompt");
+    const $go = document.getElementById("go");
+    const $response = document.getElementById("response");
+
+    async function generate() {
+      const prompt = $prompt.value.trim();
+      if (!prompt) return;
+      $go.disabled = true;
+      $response.textContent = "";
+
+      try {
+        const res = await fetch("/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!res.ok || !res.body) {
+          $response.textContent = `Error: ${res.status} ${res.statusText}`;
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          $response.textContent += decoder.decode(value, { stream: true });
+        }
+      } catch (err) {
+        $response.textContent = `Error: ${err.message}`;
+      } finally {
+        $go.disabled = false;
+      }
+    }
+
+    $go.addEventListener("click", generate);
+    $prompt.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        generate();
+      }
+    });
+  </script>
+</body>
+</html>

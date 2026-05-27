@@ -55,6 +55,29 @@ The imagery happens in the user's mind; the product generates words and voice. T
 
 **Intake conversation (Task 02) starts here.** Will be designed next.
 
+---
+
+## 2026-05-27 — Distribution + positioning
+
+Decisions taken during a planning conversation while the overnight voice fine-tune was running.
+
+**Distribution: website only, no App Store.** Direct download from a website, signed with an Apple Developer ID and notarized (so Gatekeeper trusts it). Reasoning: (a) Apple's review would almost certainly object to voice-cloning of arbitrary voices + the no-guardrails content posture + the multi-gigabyte locally-running LLM outside Apple's Foundation Models framework; (b) even if approved, every update goes through review again with the same rejection risk, which is not a stable position for a product whose identity is *no guardrails*; (c) website-only means Apple doesn't even see the install graph — purer privacy. Notarization is the only Apple touchpoint, and that only sees the binary, not the user.
+
+**Marketing position: lead with privacy.** Earlier draft argued for "privacy as quiet infrastructure" (Apple's playbook). Wrong for an unknown brand pushing a privacy-radical AI download. Trust has to be *built*, not assumed. Privacy is the headline because it's the only reason a stranger would dare install this.
+
+**Privacy is verifiable, not just claimed.** The trust comes from evidence the user can check themselves:
+- The code is open source. *"Don't trust us — read the code."*
+- "Turn off your WiFi" is a verifiable claim, not a promise.
+- No account, no email, no sign-up. Nothing to leak because nothing exists.
+- A live "🟢 offline · 0 bytes transmitted" indicator in the app itself.
+- Engineering-honest "How it works" page describing the actual data flow.
+
+**Sonali Maitra is the named author of the product.** Her authorial work (*God in the Machine* on AI and unwarranted authority, *Unreality* on AI-blurred experience) is the product's positioning anchor. The product is the book's thesis made operational. Author provenance is a primary trust signal alongside the open-source code. Explicitly decided NOT to be anonymous.
+
+**Voice = the user's own voice.** No modulation toward future-self / past-self / etc. The user records their own voice; the engine renders sessions in that same voice. Different *imaginings* (future-self, character, counterfactual) are content choices in intake; the voice itself is just the user. Simpler, and closer to the deeper thesis: *we always look to others for guidance, but in the end it's only ever yourself — so why not have you talk to yourself.*
+
+**Repo: public from day 1, voice data scrubbed from history.** GitHub repo will be public; the code is the trust signal. Sonali's voice recordings and trained checkpoints stay off the public repo (they'd enable impersonation if shared). History rewrite removes the existing commit that added them before the first push to GitHub.
+
 ### Task 01 outcome — empirical numbers from the founder's M3 (16 GB)
 
 - Model: Llama 3.1 8B Instruct, 4-bit MLX. Fetched once from Hugging Face (~80 seconds, ~4.5 GB on disk).

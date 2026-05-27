@@ -37,3 +37,10 @@ data/dataset/
 
 # Training logs
 logs/
+
+# Voice training data + checkpoints — STAY OUT OF PUBLIC REPO.
+# Publishing these enables impersonation of the speaker. Each user
+# generates their own locally; nothing about anyone else's voice ever
+# belongs in this repository.
+data/recordings/
+ckpts/

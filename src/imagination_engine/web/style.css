@@ -1,100 +1,226 @@
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+/* ==========================================================================
+   Base styles — Tapestry design family.
+   Heavy condensed sans display (Archivo Black) for headlines, Inter for
+   body, pure b/w with one terracotta accent. Same conventions as the
+   Tapestry News theme; different brand, different surface.
+
+   Fonts are bundled locally (web/fonts/) so the engine doesn't depend on
+   fonts.googleapis.com — matches the local-first principle in CLAUDE.md
+   and is robust to corp networks that block Google CDNs.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/archivo-black-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/archivo-black-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/inter-var-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/inter-var-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --bg: #FFFFFF;
+  --bg-alt: #F5F4F0;
+  --text: #0A0A0A;
+  --text-mid: #555;
+  --text-soft: #888;
+  --rule: #E0E0E0;
+  --rule-strong: #0A0A0A;
+  --accent: #B85A4A;
+  --accent-dark: #944537;
+
+  --serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+  --display: 'Archivo Black', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+  --pad-x: 40px;
+}
+@media (max-width: 720px) { :root { --pad-x: 22px; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  font-family: ui-serif, Georgia, "Times New Roman", serif;
-  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
   line-height: 1.55;
-  background: #f6f5f1;
-  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-main {
-  max-width: 720px;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-}
-header { margin-bottom: 2.5rem; }
-h1 {
-  font-weight: 500;
-  font-size: 1.75rem;
-  margin: 0 0 0.25rem 0;
+
+/* All headings: heavy condensed display sans, tight leading. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--display);
+  font-weight: 400;          /* Archivo Black IS black at 400 */
+  line-height: 1.02;
+  color: var(--text);
+  margin: 0 0 0.4em;
   letter-spacing: -0.01em;
 }
-.subtitle {
-  margin: 0;
-  color: #777;
-  font-size: 0.8rem;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  letter-spacing: 0.05em;
+h1 { font-size: clamp(44px, 6vw, 76px); text-transform: uppercase; line-height: 0.95; }
+h2 { font-size: clamp(26px, 3vw, 38px); }
+h3 { font-size: clamp(20px, 2.2vw, 26px); }
+h4 { font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+p { margin: 0 0 1em; }
+
+a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
-section { margin-bottom: 2rem; }
+a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+main { min-height: 60vh; max-width: 640px; margin: 4rem auto 6rem; padding: 0 var(--pad-x); }
+
+/* Breadcrumb / kicker — tiny uppercase display sans above a headline. */
+.breadcrumb {
+  font-family: var(--display);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-mid);
+  margin: 0 0 14px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.breadcrumb a { color: var(--text-mid); text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); }
+
+/* Generic small-caps label used as a structural cue. */
+.tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  background: var(--bg-alt);
+  border-radius: 999px;
+}
+
+/* Form controls. */
 label {
   display: block;
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 0.5rem;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin-bottom: 0.55rem;
 }
-textarea {
+textarea, input[type="text"], input[type="email"] {
   width: 100%;
-  font-family: inherit;
-  font-size: 1rem;
-  padding: 0.75rem;
-  border: 1px solid #d4d2cb;
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rule);
   border-radius: 4px;
-  background: #fdfdfa;
+  background: var(--bg);
+  color: var(--text);
   resize: vertical;
+  transition: border-color 0.15s ease;
 }
-textarea:focus {
+textarea:focus, input[type="text"]:focus, input[type="email"]:focus {
   outline: none;
-  border-color: #888;
+  border-color: var(--text);
 }
+textarea:disabled, input[type="text"]:disabled { background: var(--bg-alt); color: var(--text-soft); cursor: not-allowed; }
+
+/* Buttons — Tapestry CTA: terracotta, display sans, uppercase. */
 button {
-  margin-top: 0.75rem;
-  padding: 0.5rem 1.25rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  background: #1a1a1a;
-  color: #f6f5f1;
+  margin: 0;
+  padding: 0.7rem 1.4rem;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--bg);
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-button:hover:not(:disabled) { background: #333; }
-button:disabled { opacity: 0.5; cursor: wait; }
+button:hover:not(:disabled) { background: var(--accent-dark); }
+button:disabled { opacity: 0.45; cursor: wait; }
+
+button.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--rule);
+}
+button.ghost:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); background: transparent; }
+button.secondary {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--rule);
+}
+button.secondary:hover:not(:disabled) { border-color: var(--text); color: var(--text); background: var(--bg); }
+
 .hint {
-  font-size: 0.75rem;
-  color: #999;
   margin: 0.5rem 0 0 0;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
 }
+
+/* The original /generate page's prose-output area — keep it readable in the system. */
 pre {
-  background: #fdfdfa;
-  border: 1px solid #e6e4dd;
+  background: var(--bg-alt);
+  border: 1px solid var(--rule);
   border-radius: 4px;
-  padding: 1rem;
+  padding: 1.1rem;
   white-space: pre-wrap;
   word-wrap: break-word;
-  font-family: ui-serif, Georgia, serif;
-  font-size: 1rem;
+  font-family: var(--sans);
+  font-size: 16px;
   line-height: 1.6;
   min-height: 4rem;
   margin: 0;
+  color: var(--text);
 }
+
 #audio-controls {
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-#audio-controls button {
-  margin-top: 0;
-  align-self: flex-start;
-  background: #3a3a3a;
-}
-#audio-controls audio {
-  width: 100%;
-  margin-top: 0.25rem;
-}
-#speak-status {
-  margin: 0;
-  color: #999;
-}
+#audio-controls button { align-self: flex-start; }
+#audio-controls audio { width: 100%; margin-top: 0.25rem; }
+#speak-status { margin: 0; color: var(--text-soft); }

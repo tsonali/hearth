@@ -1,136 +1,133 @@
-main.intake {
-  max-width: 720px;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-}
-main.intake header { margin-bottom: 2.5rem; }
-main.intake h1 {
-  font-weight: 500;
-  font-size: 1.75rem;
+/* Intake page — Tapestry-family editorial. Reads like a single
+   thoughtful page, not like an app. */
+
+main.intake { max-width: 640px; margin: 4rem auto 6rem; padding: 0 var(--pad-x); }
+
+main.intake header.brand { margin-bottom: 3rem; }
+main.intake header.brand h1 {
+  font-family: var(--display);
+  font-size: clamp(48px, 7vw, 88px);
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
   margin: 0;
-  letter-spacing: -0.01em;
 }
 
+/* Opening block — the page's editorial voice. */
 .opening {
-  margin-bottom: 2rem;
+  margin-bottom: 2.75rem;
 }
 .opening .lede {
-  font-size: 1.15rem;
-  line-height: 1.6;
-  margin: 0 0 1rem 0;
-  color: #1a1a1a;
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  line-height: 1.55;
+  margin: 0 0 1.5rem 0;
+  color: var(--text);
+  font-weight: 400;
 }
 .opening .lede strong {
+  color: var(--accent);
   font-weight: 600;
 }
 .opening .seeds {
   list-style: none;
   padding: 0;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1rem 0;
+  border-top: 1px solid var(--rule);
 }
 .opening .seeds li {
-  font-family: ui-serif, Georgia, serif;
-  font-size: 1.02rem;
-  line-height: 1.7;
-  color: #555;
-  padding-left: 1rem;
-  position: relative;
-}
-.opening .seeds li::before {
-  content: "—";
-  position: absolute;
-  left: 0;
-  color: #b0aea4;
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text);
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
 }
 .opening .seeds-tail {
   margin: 0;
-  color: #777;
+  color: var(--text-mid);
   font-style: italic;
   font-size: 0.95rem;
 }
 
+/* Conversation thread — short reading exchange. */
 .thread {
-  margin: 1rem 0 1.5rem 0;
+  margin: 2rem 0 2rem 0;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.75rem;
 }
 .msg {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 .msg-label {
   margin: 0;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 0.72rem;
-  color: #999;
-  letter-spacing: 0.08em;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--text-mid);
 }
+.msg-engine .msg-label { color: var(--accent); }
 .msg-body {
   margin: 0;
-  font-family: ui-serif, Georgia, serif;
-  font-size: 1.08rem;
-  line-height: 1.55;
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
+  color: var(--text);
 }
-.msg-user .msg-body { color: #1a1a1a; }
-.msg-engine .msg-body { color: #1a1a1a; }
-.msg-user .msg-label { color: #888; }
-.msg-engine .msg-label { color: #777; }
+.msg-user .msg-body { color: var(--text-mid); }
 
-.input-row {
-  margin-top: 1.5rem;
-}
+/* Input. */
+.input-row { margin-top: 1.75rem; }
 .input-row textarea {
   width: 100%;
-  font-family: inherit;
-  font-size: 1rem;
-  line-height: 1.5;
-  padding: 0.75rem;
-  border: 1px solid #d4d2cb;
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rule);
   border-radius: 4px;
-  background: #fdfdfa;
+  background: var(--bg);
+  color: var(--text);
   resize: vertical;
 }
-.input-row textarea:focus { outline: none; border-color: #888; }
-.input-row textarea:disabled { background: #f4f3ee; }
+.input-row textarea:focus { outline: none; border-color: var(--text); }
+.input-row textarea:disabled { background: var(--bg-alt); color: var(--text-soft); }
 .input-controls {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: 0.65rem;
+  margin-top: 0.7rem;
+  flex-wrap: wrap;
 }
-button.ghost {
-  padding: 0.5rem 0.9rem;
-  font-family: inherit;
-  font-size: 0.9rem;
-  background: transparent;
-  color: #555;
-  border: 1px solid #d4d2cb;
-  border-radius: 4px;
-  cursor: pointer;
-}
-button.ghost:hover:not(:disabled) { color: #1a1a1a; border-color: #aaa; }
-button.ghost:disabled { opacity: 0.5; cursor: wait; }
 
+/* Ready card — transition moment. */
 .ready-card {
-  margin-top: 2rem;
-  background: #f6f5f1;
-  border: 1px solid #e0dcc8;
-  border-radius: 6px;
-  padding: 1.5rem 1.75rem;
+  margin-top: 2.5rem;
+  padding: 1.85rem 1.85rem;
+  background: var(--bg-alt);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
 }
 .ready-title {
-  margin: 0 0 0.5rem 0;
-  font-family: ui-serif, Georgia, serif;
-  font-size: 1.15rem;
+  margin: 0 0 0.7rem 0;
+  font-family: var(--display);
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  color: var(--text);
 }
 .ready-body {
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.55;
+  margin: 0 0 1.25rem 0;
+  font-family: var(--sans);
+  font-size: 0.96rem;
+  color: var(--text-mid);
+  line-height: 1.6;
 }

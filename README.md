@@ -58,7 +58,7 @@ Requires an Apple Silicon Mac (M1 / M2 / M3 / etc.) running macOS 13 or later.
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/USERNAME/imagination-engine.git
+git clone https://github.com/tsonali/imagination-engine.git
 cd imagination-engine
 
 # 2. Install uv (Python project manager — Apache-2.0 / MIT)

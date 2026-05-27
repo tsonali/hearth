@@ -62,6 +62,9 @@ def main() -> int:
                    help="save full checkpoint every N updates")
     p.add_argument("--last-every", type=int, default=100,
                    help="save 'last' checkpoint every N updates")
+    p.add_argument("--keep-checkpoints", type=int, default=2,
+                   help="keep this many full checkpoints (-1 = keep all). Use -1 for long "
+                        "runs where you want to A/B different training points later.")
     p.add_argument("--mixed-precision", default="fp16",
                    choices=["no", "fp16", "bf16"],
                    help="mixed-precision mode for accelerate (fp16 ~halves activation memory)")
@@ -122,7 +125,7 @@ def main() -> int:
         learning_rate=args.lr,
         num_warmup_updates=args.warmup,
         save_per_updates=args.save_every,
-        keep_last_n_checkpoints=2,
+        keep_last_n_checkpoints=args.keep_checkpoints,
         checkpoint_path=checkpoint_path,
         batch_size_per_gpu=args.batch,
         batch_size_type="frame",

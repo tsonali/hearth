@@ -8,9 +8,11 @@ This file is read automatically at the start of every Claude Code session. It is
 
 A local-first, privacy-first desktop application that generates personalized **guided imagination sessions** as audio. The user has an open conversation about something they want to work toward; the app generates a personalized, paced visualization script; local text-to-speech renders it to a calm guided-audio session; the user listens with eyes closed and does the imagining themselves; the app captures a short reflection afterward and remembers it.
 
-**v0 is ONE template only: future-self visualization.** Other protocols (performance rehearsal, grief, exposure, etc.) come later and are explicitly out of scope for v0.
+**v0 is one universal scaffold, not one template.** The protocol shape is `settle → user's chosen imagining → return → reflection`. The intake conversation is open-ended: the user describes what they want to imagine (themselves succeeding, being a different character, their life differently, being a real or fictional figure — anything). The same architectural shape produces the session; the content is the user's. See `docs/decisions-log.md` entry "Scope reframe: imagination engine, not future-self engine" (2026-05-26).
 
-The longer-term vision is a flexible engine where many protocols ("templates") share a common core. That platform is NOT built first. It is *extracted* later, after two or three concrete templates exist. Build concrete; abstract later. Do not build for protocols that don't exist yet.
+This is still "build concrete, abstract later" — one protocol scaffold, built concretely. We just no longer pretend it only serves future-self visualization. Trauma- / grief- / exposure-adjacent protocols with different safety profiles remain deferred; those would be different *scaffolds*, not different *contents*.
+
+**No content guardrails.** Adults only, small beta. The engine helps people imagine whatever they want. See `memory: project-no-guardrails` and `docs/decisions-log.md`. The single hard floor (sexual content involving minors) is already law and base-model behavior; we don't relax that. Beyond that floor, we don't filter, refuse, or topic-block.
 
 ## Founder context
 

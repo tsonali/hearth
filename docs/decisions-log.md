@@ -41,6 +41,20 @@ The imagery happens in the user's mind; the product generates words and voice. T
 
 **Python 3.13 via `uv`-managed venv.** The system Python is 3.14.2 — too new for current MLX-LM wheels (March 2026: mlx-lm 0.31.x targets 3.10–3.13). `uv` installs 3.13 side-by-side without touching system Python.
 
+---
+
+## 2026-05-26 — Scope reframe: imagination engine, not future-self engine. No guardrails.
+
+**The protocol is one universal scaffold: settle → user's chosen imagining → return → reflection.** What used to be called "future-self visualization" was actually the universal shape of guided imagination, applied to one specific framing. The product is now correctly framed as an **imagination engine** that lets the user choose *what* to imagine — themselves succeeding, themselves as a different character, their life differently, being Abraham Lincoln, being Taylor Swift, anything else they describe. The structure stays constant; the content is the user's.
+
+**This does NOT violate "build concrete, abstract later."** We're still building one protocol scaffold concretely. We're just acknowledging that the scaffold is more general than the original "future-self" framing implied — and that the intake should be open-ended rather than forcing a single mode. No new protocol docs needed; one architecture, infinite content.
+
+**Audience: adults, small beta.** Not strangers downloading it off the internet (yet). Reflective people Sonali would actually hand it to.
+
+**No content guardrails.** Adults have sovereignty over their own imagination. The engine doesn't filter, refuse, or topic-block — it helps the user imagine whatever they want. Decision and reasoning logged in [[project-no-guardrails]] (memory). One legal floor (sexual content involving minors) stands not because we impose it but because it's already law and the base model refuses it. Llama 3.1's trained-in RLHF refusals are the only friction; we'll write the generation system prompts to grant permissive posture, and if those refusals become a real blocker we'll swap to an uncensored base model (separate decision).
+
+**Intake conversation (Task 02) starts here.** Will be designed next.
+
 ### Task 01 outcome — empirical numbers from the founder's M3 (16 GB)
 
 - Model: Llama 3.1 8B Instruct, 4-bit MLX. Fetched once from Hugging Face (~80 seconds, ~4.5 GB on disk).

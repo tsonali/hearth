@@ -64,21 +64,28 @@ class Engine:
 
     def stream(
         self,
-        prompt: str,
+        prompt: str | None = None,
         *,
+        messages: list[dict[str, str]] | None = None,
         max_tokens: int | None = None,
         temperature: float | None = None,
         system: str | None = None,
     ) -> Iterator[str]:
-        """Stream the model's response to `prompt`, yielding text chunks.
+        """Stream the model's response, yielding text chunks.
 
-        Applies the tokenizer's chat template so the instruction-tuned model
-        receives a properly formatted conversation, not a raw string.
+        Two calling conventions:
+          - Single-turn: pass `prompt` (and optionally `system`).
+          - Multi-turn: pass `messages` — a list of {role, content} dicts
+            in the chat-completion format. Used by the intake conversation
+            layer to feed full history each turn.
         """
-        messages: list[dict[str, str]] = []
-        if system:
-            messages.append({"role": "system", "content": system})
-        messages.append({"role": "user", "content": prompt})
+        if messages is None and prompt is None:
+            raise ValueError("pass either `prompt` or `messages`")
+        if messages is None:
+            messages = []
+            if system:
+                messages.append({"role": "system", "content": system})
+            messages.append({"role": "user", "content": prompt})
 
         formatted = self.tokenizer.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=False

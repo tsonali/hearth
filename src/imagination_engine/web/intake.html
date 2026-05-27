@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imagination Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/intake.css">
+</head>
+<body>
+  <main class="intake">
+    <header>
+      <h1>Imagination Engine</h1>
+    </header>
+
+    <section id="opening" class="opening">
+      <p class="lede">Tell me what you want to imagine. <strong>The world is open.</strong> You could:</p>
+      <ul class="seeds">
+        <li>visualize yourself meeting a hard-fought goal</li>
+        <li>imagine being a different character — someone braver, calmer, more curious</li>
+        <li>imagine your life if you'd taken a different path</li>
+        <li>imagine being Abraham Lincoln the night before Gettysburg</li>
+        <li>imagine being Taylor Swift backstage before a show</li>
+      </ul>
+      <p class="seeds-tail">Or anything else.</p>
+    </section>
+
+    <section id="thread" class="thread" hidden aria-live="polite"></section>
+
+    <section id="input-row" class="input-row">
+      <textarea id="prompt" rows="3" autofocus
+                placeholder="What do you want to imagine?"></textarea>
+      <div class="input-controls">
+        <button id="send" type="button" class="primary">Send</button>
+        <button id="skip" type="button" class="ghost" hidden>Just start now →</button>
+        <span id="status" class="hint"></span>
+      </div>
+      <p class="hint">⌘/Ctrl + Enter to send</p>
+    </section>
+
+    <section id="ready-card" class="ready-card" hidden>
+      <p class="ready-title">Settle in.</p>
+      <p class="ready-body">The audio session is the next thing — but the script-and-voice pipeline isn't wired up yet. For now you're seeing the intake working end-to-end. The transcript above is what gets handed off to the generator (Task 03), which renders to your voice (Task 04).</p>
+      <button id="new-session" type="button" class="secondary">Start over</button>
+    </section>
+  </main>
+
+  <script>
+    const $opening = document.getElementById("opening");
+    const $thread = document.getElementById("thread");
+    const $inputRow = document.getElementById("input-row");
+    const $prompt = document.getElementById("prompt");
+    const $send = document.getElementById("send");
+    const $skip = document.getElementById("skip");
+    const $status = document.getElementById("status");
+    const $ready = document.getElementById("ready-card");
+    const $newSession = document.getElementById("new-session");
+
+    let sessionId = null;
+
+    async function startSession() {
+      const res = await fetch("/intake/start", { method: "POST" });
+      if (!res.ok) throw new Error(`start: ${res.status}`);
+      const data = await res.json();
+      sessionId = data.session_id;
+    }
+
+    function addMessage(role, text) {
+      $thread.hidden = false;
+      const div = document.createElement("div");
+      div.className = `msg msg-${role}`;
+      const label = document.createElement("p");
+      label.className = "msg-label";
+      label.textContent = role === "user" ? "you" : "engine";
+      const body = document.createElement("p");
+      body.className = "msg-body";
+      body.textContent = text;
+      div.appendChild(label);
+      div.appendChild(body);
+      $thread.appendChild(div);
+      div.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+
+    async function send(messageOverride) {
+      const text = (messageOverride !== undefined ? messageOverride : $prompt.value).trim();
+      if (!text || !sessionId) return;
+      $send.disabled = true;
+      $skip.disabled = true;
+      $prompt.disabled = true;
+      $status.textContent = "thinking …";
+      // First send: hide the opening so the thread takes over.
+      $opening.hidden = true;
+
+      addMessage("user", text);
+      $prompt.value = "";
+
+      try {
+        const res = await fetch("/intake/turn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, message: text }),
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          $status.textContent = `Error: ${err}`;
+          return;
+        }
+        const data = await res.json();
+        addMessage("engine", data.response);
+        $status.textContent = "";
+
+        if (data.ready) {
+          $inputRow.hidden = true;
+          $ready.hidden = false;
+          $ready.scrollIntoView({ behavior: "smooth", block: "end" });
+        } else {
+          // Once the conversation has at least one turn, expose the skip
+          // affordance — the user can bail to the session at any point.
+          $skip.hidden = false;
+        }
+      } catch (err) {
+        $status.textContent = `Error: ${err.message}`;
+      } finally {
+        $send.disabled = false;
+        $skip.disabled = false;
+        $prompt.disabled = false;
+        $prompt.focus();
+      }
+    }
+
+    function skip() {
+      // Synthetic user message the system prompt is trained to short-circuit on.
+      send("just start now");
+    }
+
+    function reset() {
+      sessionId = null;
+      $thread.innerHTML = "";
+      $thread.hidden = true;
+      $ready.hidden = true;
+      $opening.hidden = false;
+      $inputRow.hidden = false;
+      $skip.hidden = true;
+      $prompt.value = "";
+      $prompt.focus();
+      startSession();
+    }
+
+    $send.addEventListener("click", () => send());
+    $skip.addEventListener("click", skip);
+    $newSession.addEventListener("click", reset);
+    $prompt.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    startSession().catch((err) => {
+      $status.textContent = `Failed to start session: ${err.message}`;
+    });
+  </script>
+</body>
+</html>

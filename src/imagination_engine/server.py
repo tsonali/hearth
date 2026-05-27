@@ -23,6 +23,7 @@ from imagination_engine.config import (
     SPEAKERS_REGISTRY,
 )
 from imagination_engine.inference import Engine
+from imagination_engine.intake import IntakeManager
 from imagination_engine.tts import Voice
 
 log = logging.getLogger("imagination_engine")
@@ -33,6 +34,7 @@ app = FastAPI(title="Imagination Engine", docs_url=None, redoc_url=None)
 
 _engine: Engine | None = None
 _voice: Voice | None = None
+_intake_manager: IntakeManager | None = None
 
 
 def get_engine() -> Engine:
@@ -51,6 +53,13 @@ def get_voice() -> Voice:
         _voice = Voice.load()
         log.info("Voice loaded.")
     return _voice
+
+
+def get_intake_manager() -> IntakeManager:
+    global _intake_manager
+    if _intake_manager is None:
+        _intake_manager = IntakeManager(get_engine())
+    return _intake_manager
 
 
 class GenerateRequest(BaseModel):
@@ -161,6 +170,47 @@ def record_delete(speaker_id: str, sentence_id: str) -> JSONResponse:
         log.info("Deleted recording: %s", out_path)
         return JSONResponse({"deleted": sentence_id, "speaker": speaker_id})
     raise HTTPException(status_code=404, detail="not found")
+
+
+# ---------------------------------------------------------------------------
+# Intake conversation — Task 02. The doorway into a session.
+# ---------------------------------------------------------------------------
+
+
+class IntakeTurnRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+@app.get("/intake", response_class=HTMLResponse)
+def intake_page() -> HTMLResponse:
+    return HTMLResponse((WEB_DIR / "intake.html").read_text(encoding="utf-8"))
+
+
+@app.post("/intake/start")
+def intake_start() -> JSONResponse:
+    session = get_intake_manager().start()
+    return JSONResponse({"session_id": session.id})
+
+
+@app.post("/intake/turn")
+def intake_turn(req: IntakeTurnRequest) -> JSONResponse:
+    try:
+        response, ready = get_intake_manager().turn(req.session_id, req.message)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    return JSONResponse({"response": response, "ready": ready})
+
+
+@app.get("/intake/{session_id}")
+def intake_get(session_id: str) -> JSONResponse:
+    try:
+        session = get_intake_manager().get(session_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return JSONResponse(session.to_dict())
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

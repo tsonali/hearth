@@ -107,27 +107,52 @@ main.intake header.brand h1 {
   flex-wrap: wrap;
 }
 
-/* Ready card — transition moment. */
-.ready-card {
+/* Session card — multi-state transition from intake into the audio session. */
+.session-card {
   margin-top: 2.5rem;
-  padding: 1.85rem 1.85rem;
+  padding: 2rem 2rem;
   background: var(--bg-alt);
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
 }
-.ready-title {
-  margin: 0 0 0.7rem 0;
-  font-family: var(--display);
-  font-size: 22px;
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  color: var(--text);
+.session-state {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: flex-start;
 }
-.ready-body {
-  margin: 0 0 1.25rem 0;
+.session-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.session-detail {
+  margin: 0;
   font-family: var(--sans);
-  font-size: 0.96rem;
-  color: var(--text-mid);
-  line-height: 1.6;
+  font-size: 1.05rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+.session-state audio {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.session-state button.primary.big {
+  margin-top: 0.5rem;
+  padding: 0.95rem 2rem;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+
+/* Subtle pulse for the "preparing" detail line — quiet life during the wait. */
+.pulse {
+  animation: pulse-opacity 2.4s ease-in-out infinite;
+}
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }

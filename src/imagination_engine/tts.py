@@ -111,3 +111,52 @@ class Voice:
 
     def list_voices(self) -> list[str]:
         return self.engine.get_voices()
+
+    def render_session(
+        self,
+        script: str,
+        *,
+        pause_between_paragraphs: float = 2.0,
+        speed: float | None = None,
+    ) -> bytes:
+        """Render a full session script to a single WAV file.
+
+        The script is split at blank-line paragraph breaks. Each paragraph
+        is rendered separately, and a real silence (default 2.0 s) is
+        inserted between them. That silence is what gives the spoken
+        session its breathing room — TTS engines compress pauses inside a
+        single render, so we get the spacing by rendering in chunks and
+        concatenating.
+
+        Returns a complete WAV file as bytes.
+        """
+        import numpy as np  # local: tts module already imports soundfile
+
+        paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
+        if not paragraphs:
+            raise ValueError("empty script")
+
+        effective_speed = speed if speed is not None else self.speed
+
+        rendered: list[np.ndarray] = []
+        sample_rate = 24000  # Kokoro outputs 24 kHz
+        for i, paragraph in enumerate(paragraphs):
+            audio, sr = self.engine.create(
+                paragraph,
+                voice=self.voice_name,
+                speed=effective_speed,
+                lang="en-us",
+            )
+            sample_rate = sr
+            rendered.append(np.asarray(audio, dtype=np.float32))
+            if i < len(paragraphs) - 1:
+                silence = np.zeros(
+                    int(pause_between_paragraphs * sample_rate),
+                    dtype=np.float32,
+                )
+                rendered.append(silence)
+
+        full = np.concatenate(rendered)
+        buf = io.BytesIO()
+        sf.write(buf, full, sample_rate, format="WAV")
+        return buf.getvalue()

@@ -22,6 +22,7 @@ from imagination_engine.config import (
     RECORDING_SCRIPT,
     SPEAKERS_REGISTRY,
 )
+from imagination_engine.generator import generate_session
 from imagination_engine.inference import Engine
 from imagination_engine.intake import IntakeManager
 from imagination_engine.tts import Voice
@@ -211,6 +212,34 @@ def intake_get(session_id: str) -> JSONResponse:
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return JSONResponse(session.to_dict())
+
+
+@app.post("/intake/{session_id}/generate")
+def intake_generate(session_id: str) -> Response:
+    """Run the full intake → script → audio pipeline and return the WAV.
+
+    This is the cool-experience endpoint. Heavy: ~60-90 seconds on M3
+    (model generation + per-paragraph TTS render). The client shows a
+    "preparing" state during the wait.
+
+    The generated script text itself is NEVER returned over the wire —
+    per [[project-voice-design]] it stays as the hidden thinking layer.
+    The user hears the audio; that's the only delivery surface.
+    """
+    intake = get_intake_manager()
+    try:
+        session = intake.get(session_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    if not session.ready:
+        raise HTTPException(status_code=409, detail="intake not yet finalized")
+
+    log.info("Generating session for %s ...", session_id)
+    script = generate_session(get_engine(), session.messages)
+    log.info("Rendering audio for %s (%d-word script) ...", session_id, len(script.split()))
+    wav_bytes = get_voice().render_session(script)
+    log.info("Session for %s ready (%.1f KB)", session_id, len(wav_bytes) / 1024)
+    return Response(content=wav_bytes, media_type="audio/wav")
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

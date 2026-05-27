@@ -39,10 +39,34 @@
       <p class="hint">⌘/Ctrl + Enter to send</p>
     </section>
 
-    <section id="ready-card" class="ready-card" hidden>
-      <p class="ready-title">Settle in.</p>
-      <p class="ready-body">The audio session is the next thing — but the script-and-voice pipeline isn't wired up yet. For now you're seeing the intake working end-to-end. The transcript above is what gets handed off to the generator (Task 03), which renders to your voice (Task 04).</p>
-      <button id="new-session" type="button" class="secondary">Start over</button>
+    <section id="session-card" class="session-card" hidden>
+      <div id="session-preparing" class="session-state">
+        <p class="session-label">PREPARING YOUR SESSION</p>
+        <p class="session-detail pulse">Building the words. Finding the voice. About a minute.</p>
+      </div>
+
+      <div id="session-ready" class="session-state" hidden>
+        <p class="session-label">YOUR SESSION IS READY</p>
+        <p class="session-detail">Find somewhere comfortable. Close your eyes when you hear the voice begin.</p>
+        <button id="begin-btn" type="button" class="primary big">▶  Begin</button>
+      </div>
+
+      <div id="session-playing" class="session-state" hidden>
+        <p class="session-label">LISTENING</p>
+        <audio id="player" controls></audio>
+      </div>
+
+      <div id="session-complete" class="session-state" hidden>
+        <p class="session-label">WELCOME BACK</p>
+        <p class="session-detail">Carry what came back with you.</p>
+        <button id="new-session" type="button" class="secondary">Start another →</button>
+      </div>
+
+      <div id="session-error" class="session-state" hidden>
+        <p class="session-label">SOMETHING WENT WRONG</p>
+        <p class="session-detail" id="error-detail"></p>
+        <button id="retry-btn" type="button" class="secondary">Try again</button>
+      </div>
     </section>
   </main>
 
@@ -54,8 +78,51 @@
     const $send = document.getElementById("send");
     const $skip = document.getElementById("skip");
     const $status = document.getElementById("status");
-    const $ready = document.getElementById("ready-card");
+    const $sessionCard = document.getElementById("session-card");
+    const $sPreparing = document.getElementById("session-preparing");
+    const $sReady = document.getElementById("session-ready");
+    const $sPlaying = document.getElementById("session-playing");
+    const $sComplete = document.getElementById("session-complete");
+    const $sError = document.getElementById("session-error");
+    const $errorDetail = document.getElementById("error-detail");
+    const $beginBtn = document.getElementById("begin-btn");
+    const $retryBtn = document.getElementById("retry-btn");
     const $newSession = document.getElementById("new-session");
+    const $player = document.getElementById("player");
+
+    function showSessionState(name) {
+      $sessionCard.hidden = false;
+      for (const el of [$sPreparing, $sReady, $sPlaying, $sComplete, $sError]) {
+        el.hidden = true;
+      }
+      const map = {
+        preparing: $sPreparing, ready: $sReady, playing: $sPlaying,
+        complete: $sComplete, error: $sError,
+      };
+      if (map[name]) map[name].hidden = false;
+    }
+
+    async function buildSession() {
+      showSessionState("preparing");
+      $inputRow.hidden = true;
+      try {
+        const res = await fetch(`/intake/${sessionId}/generate`, { method: "POST" });
+        if (!res.ok) {
+          const detail = await res.text().catch(() => `${res.status} ${res.statusText}`);
+          $errorDetail.textContent = detail.slice(0, 240);
+          showSessionState("error");
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        $player.src = url;
+        $player.addEventListener("ended", () => showSessionState("complete"), { once: true });
+        showSessionState("ready");
+      } catch (err) {
+        $errorDetail.textContent = err.message;
+        showSessionState("error");
+      }
+    }
 
     let sessionId = null;
 
@@ -111,9 +178,8 @@
         $status.textContent = "";
 
         if (data.ready) {
-          $inputRow.hidden = true;
-          $ready.hidden = false;
-          $ready.scrollIntoView({ behavior: "smooth", block: "end" });
+          buildSession();   // kick off generation + render; UI handles states
+          $sessionCard.scrollIntoView({ behavior: "smooth", block: "end" });
         } else {
           // Once the conversation has at least one turn, expose the skip
           // affordance — the user can bail to the session at any point.
@@ -138,11 +204,12 @@
       sessionId = null;
       $thread.innerHTML = "";
       $thread.hidden = true;
-      $ready.hidden = true;
+      $sessionCard.hidden = true;
       $opening.hidden = false;
       $inputRow.hidden = false;
       $skip.hidden = true;
       $prompt.value = "";
+      try { $player.pause(); $player.removeAttribute("src"); } catch (e) {}
       $prompt.focus();
       startSession();
     }
@@ -150,6 +217,14 @@
     $send.addEventListener("click", () => send());
     $skip.addEventListener("click", skip);
     $newSession.addEventListener("click", reset);
+    $beginBtn.addEventListener("click", () => {
+      showSessionState("playing");
+      $player.play().catch((err) => {
+        $errorDetail.textContent = "Couldn't start audio: " + err.message;
+        showSessionState("error");
+      });
+    });
+    $retryBtn.addEventListener("click", buildSession);
     $prompt.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();

@@ -43,20 +43,21 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 DEFAULT_HER_URL = (
-    # Elizabeth Klett — Jane Eyre, Chapter 1
-    # LibriVox catalog: https://librivox.org/jane-eyre-by-charlotte-bronte/
-    # NOTE: confirm this URL is still live; archive.org rehashes filenames.
-    "https://www.archive.org/download/jane_eyre_ce_librivox/janeeyre_01_bronte_64kb.mp3"
+    # Jane Eyre, Chapter 1 — the canonical jane_eyre_librivox item on
+    # archive.org (the earliest/most-popular LibriVox edition; widely
+    # attributed to Elizabeth Klett). Verified live 2026-05-28.
+    "https://archive.org/download/jane_eyre_librivox/jane_eyre_01_bronte_64kb.mp3"
 )
-DEFAULT_HER_START = 90.0       # seconds into the chapter
+DEFAULT_HER_START = 110.0      # seconds into the chapter — skip LibriVox intro
 DEFAULT_HER_DURATION = 13.0    # seconds of clip
 
 DEFAULT_HIM_URL = (
-    # Mark F. Smith — The Call of the Wild, Chapter 1
-    # LibriVox catalog: https://librivox.org/the-call-of-the-wild-by-jack-london/
-    "https://www.archive.org/download/call_of_the_wild_librivox/callofwild_01_london_64kb.mp3"
+    # Call of the Wild, Chapter 1 — the canonical call_of_the_wild item
+    # on archive.org (earliest/most-popular LibriVox edition; widely
+    # attributed to Mark F. Smith). Verified live 2026-05-28.
+    "https://archive.org/download/call_of_the_wild/call_of_the_wild_1_london_64kb.mp3"
 )
-DEFAULT_HIM_START = 75.0
+DEFAULT_HIM_START = 95.0       # seconds in — skip LibriVox intro
 DEFAULT_HIM_DURATION = 13.0
 
 

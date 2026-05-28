@@ -40,9 +40,26 @@
     </section>
 
     <section id="session-card" class="session-card" hidden>
-      <div id="session-preparing" class="session-state">
+      <div id="session-choose-voice" class="session-state">
+        <p class="session-label">CHOOSE THE VOICE FOR THIS SESSION</p>
+        <p class="session-detail">Two options:</p>
+        <div class="voice-choice">
+          <button id="voice-kokoro" type="button" class="secondary">
+            <span class="vc-title">Quick voice</span>
+            <span class="vc-time">~1 minute wait</span>
+            <span class="vc-note">Placeholder voice (not yours). For when you don't want to wait.</span>
+          </button>
+          <button id="voice-f5" type="button" class="primary">
+            <span class="vc-title">Your own voice</span>
+            <span class="vc-time">~20 minute wait</span>
+            <span class="vc-note">The fine-tuned model speaking in your voice. Start the session, walk away, come back to listen.</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="session-preparing" class="session-state" hidden>
         <p class="session-label">PREPARING YOUR SESSION</p>
-        <p class="session-detail pulse">Building the words. Finding the voice. About a minute.</p>
+        <p class="session-detail pulse" id="preparing-detail">Building the words. Finding the voice.</p>
       </div>
 
       <div id="session-ready" class="session-state" hidden>
@@ -79,7 +96,11 @@
     const $skip = document.getElementById("skip");
     const $status = document.getElementById("status");
     const $sessionCard = document.getElementById("session-card");
+    const $sChooseVoice = document.getElementById("session-choose-voice");
     const $sPreparing = document.getElementById("session-preparing");
+    const $preparingDetail = document.getElementById("preparing-detail");
+    const $voiceKokoro = document.getElementById("voice-kokoro");
+    const $voiceF5 = document.getElementById("voice-f5");
     const $sReady = document.getElementById("session-ready");
     const $sPlaying = document.getElementById("session-playing");
     const $sComplete = document.getElementById("session-complete");
@@ -92,21 +113,24 @@
 
     function showSessionState(name) {
       $sessionCard.hidden = false;
-      for (const el of [$sPreparing, $sReady, $sPlaying, $sComplete, $sError]) {
+      for (const el of [$sChooseVoice, $sPreparing, $sReady, $sPlaying, $sComplete, $sError]) {
         el.hidden = true;
       }
       const map = {
-        preparing: $sPreparing, ready: $sReady, playing: $sPlaying,
-        complete: $sComplete, error: $sError,
+        choose: $sChooseVoice, preparing: $sPreparing, ready: $sReady,
+        playing: $sPlaying, complete: $sComplete, error: $sError,
       };
       if (map[name]) map[name].hidden = false;
     }
 
-    async function buildSession() {
+    async function buildSession(voice) {
       showSessionState("preparing");
       $inputRow.hidden = true;
+      $preparingDetail.textContent = voice === "f5"
+        ? "Writing the words, then rendering your voice. About twenty minutes. You can walk away."
+        : "Writing the words. Rendering the audio. About a minute.";
       try {
-        const res = await fetch(`/intake/${sessionId}/generate`, { method: "POST" });
+        const res = await fetch(`/intake/${sessionId}/generate?voice=${encodeURIComponent(voice)}`, { method: "POST" });
         if (!res.ok) {
           const detail = await res.text().catch(() => `${res.status} ${res.statusText}`);
           $errorDetail.textContent = detail.slice(0, 240);
@@ -178,7 +202,9 @@
         $status.textContent = "";
 
         if (data.ready) {
-          buildSession();   // kick off generation + render; UI handles states
+          // Show the voice picker first; user clicks one and that kicks off buildSession(voice).
+          showSessionState("choose");
+          $inputRow.hidden = true;
           $sessionCard.scrollIntoView({ behavior: "smooth", block: "end" });
         } else {
           // Once the conversation has at least one turn, expose the skip
@@ -224,7 +250,9 @@
         showSessionState("error");
       });
     });
-    $retryBtn.addEventListener("click", buildSession);
+    $retryBtn.addEventListener("click", () => buildSession(window._lastVoice || "kokoro"));
+    $voiceKokoro.addEventListener("click", () => { window._lastVoice = "kokoro"; buildSession("kokoro"); });
+    $voiceF5.addEventListener("click", () => { window._lastVoice = "f5"; buildSession("f5"); });
     $prompt.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();

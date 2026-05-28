@@ -148,6 +148,51 @@ main.intake header.brand h1 {
   letter-spacing: 0.06em;
 }
 
+/* Voice choice — two cards stacked. */
+.voice-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.voice-choice button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  text-align: left;
+  padding: 1rem 1.25rem;
+  font-family: var(--sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1rem;
+}
+.voice-choice .vc-title {
+  font-family: var(--display);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.voice-choice .vc-time {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  margin-top: 0.15rem;
+}
+.voice-choice .vc-note {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  color: var(--text-mid);
+  font-weight: 400;
+  margin-top: 0.45rem;
+  line-height: 1.45;
+}
+.voice-choice button.primary .vc-time,
+.voice-choice button.primary .vc-note {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 /* Subtle pulse for the "preparing" detail line — quiet life during the wait. */
 .pulse {
   animation: pulse-opacity 2.4s ease-in-out infinite;

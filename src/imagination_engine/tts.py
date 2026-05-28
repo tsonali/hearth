@@ -112,6 +112,14 @@ class Voice:
     def list_voices(self) -> list[str]:
         return self.engine.get_voices()
 
+    @property
+    def backend(self) -> str:
+        return "kokoro"
+
+    @property
+    def display_name(self) -> str:
+        return "Quick"
+
     def render_session(
         self,
         script: str,
@@ -160,3 +168,156 @@ class Voice:
         buf = io.BytesIO()
         sf.write(buf, full, sample_rate, format="WAV")
         return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# F5-TTS Voice — the user's own fine-tuned voice.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class F5Voice:
+    """The user's own voice, via a fine-tuned F5-TTS checkpoint.
+
+    Loaded lazily; the model weights are several GB. Each generation needs
+    a reference clip (a short recording from the speaker) and the text of
+    that recording — F5-TTS conditions on both. Pace is roughly 1/4× to
+    1/8× real-time on M3 (so a 12-min session takes ~15-20 min to render).
+    """
+
+    engine: object
+    speaker: str
+    ref_file: Path
+    ref_text: str
+    speed: float
+    cfg_strength: float
+    nfe_step: int
+
+    @classmethod
+    def load(cls, *, speaker: str | None = None) -> "F5Voice":
+        # Import lazily — F5-TTS imports are heavy (torch, vocos, etc.)
+        # and we don't want them paid unless the user actually picks
+        # "your voice" at intake.
+        from importlib.resources import files as _files
+        from f5_tts.api import F5TTS
+        from imagination_engine.config import PROJECT_ROOT
+
+        spk = speaker or config.f5_speaker
+        ckpt = Path(str(_files("f5_tts").joinpath(
+            f"../../ckpts/{spk}/{config.f5_checkpoint}"
+        ))).resolve()
+        vocab = Path(str(_files("f5_tts").joinpath(
+            "../../data/Emilia_ZH_EN_pinyin/vocab.txt"
+        ))).resolve()
+        ref_file = PROJECT_ROOT / "data" / "dataset" / spk / "wavs" / f"{config.f5_ref_id}.wav"
+
+        if not ckpt.is_file():
+            raise FileNotFoundError(f"F5-TTS checkpoint not found: {ckpt}")
+        if not ref_file.is_file():
+            raise FileNotFoundError(f"reference clip not found: {ref_file}")
+
+        log.info("Loading F5-TTS model (%s, %s) ...", spk, config.f5_checkpoint)
+        engine = F5TTS(
+            model="F5TTS_v1_Base",
+            ckpt_file=str(ckpt),
+            vocab_file=str(vocab),
+            use_ema=False,         # use the actually fine-tuned online weights
+            device="mps",
+        )
+        log.info("F5-TTS loaded.")
+
+        return cls(
+            engine=engine,
+            speaker=spk,
+            ref_file=ref_file,
+            ref_text=config.f5_ref_text,
+            speed=config.f5_speed,
+            cfg_strength=config.f5_cfg_strength,
+            nfe_step=config.f5_nfe_step,
+        )
+
+    @property
+    def backend(self) -> str:
+        return "f5"
+
+    @property
+    def display_name(self) -> str:
+        return self.speaker.capitalize()
+
+    def speak(self, text: str, *, speed: float | None = None) -> bytes:
+        """Render a single short utterance to WAV bytes."""
+        import numpy as np
+        audio, sample_rate, _ = self.engine.infer(
+            ref_file=str(self.ref_file),
+            ref_text=self.ref_text,
+            gen_text=text,
+            speed=speed if speed is not None else self.speed,
+            seed=None,                # vary per call
+            cfg_strength=self.cfg_strength,
+            nfe_step=self.nfe_step,
+        )
+        buf = io.BytesIO()
+        sf.write(buf, np.asarray(audio, dtype="float32"), sample_rate, format="WAV")
+        return buf.getvalue()
+
+    def render_session(
+        self,
+        script: str,
+        *,
+        pause_between_paragraphs: float = 2.0,
+        speed: float | None = None,
+    ) -> bytes:
+        """Render a full session script — paragraph-by-paragraph, with real silence between."""
+        import numpy as np
+
+        paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
+        if not paragraphs:
+            raise ValueError("empty script")
+
+        eff_speed = speed if speed is not None else self.speed
+        sample_rate = 24000  # F5-TTS Vocos vocoder outputs 24 kHz
+
+        rendered: list[np.ndarray] = []
+        for i, paragraph in enumerate(paragraphs):
+            log.info("F5 render paragraph %d/%d (%d chars)", i + 1, len(paragraphs), len(paragraph))
+            audio, sr, _ = self.engine.infer(
+                ref_file=str(self.ref_file),
+                ref_text=self.ref_text,
+                gen_text=paragraph,
+                speed=eff_speed,
+                seed=None,
+                cfg_strength=self.cfg_strength,
+                nfe_step=self.nfe_step,
+            )
+            sample_rate = sr
+            rendered.append(np.asarray(audio, dtype="float32"))
+            if i < len(paragraphs) - 1:
+                silence = np.zeros(
+                    int(pause_between_paragraphs * sample_rate),
+                    dtype="float32",
+                )
+                rendered.append(silence)
+
+        full = np.concatenate(rendered)
+        buf = io.BytesIO()
+        sf.write(buf, full, sample_rate, format="WAV")
+        return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# Factory — picks the backend by name.
+# ---------------------------------------------------------------------------
+
+
+def make_voice(backend: str = "kokoro"):
+    """Return a loaded Voice instance for the requested backend.
+
+    backend = "kokoro" → KokoroVoice (fast, generic — placeholder voice)
+    backend = "f5"     → F5Voice (the speaker's own fine-tuned voice)
+    """
+    b = backend.lower().strip()
+    if b == "kokoro":
+        return Voice.load()
+    if b in ("f5", "f5-tts", "sonali"):
+        return F5Voice.load()
+    raise ValueError(f"unknown voice backend: {backend!r}")

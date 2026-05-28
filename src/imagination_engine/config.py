@@ -51,5 +51,18 @@ class Config:
     tts_voice: str = "af_heart"
     tts_speed: float = 0.9
 
+    # Production voice: F5-TTS fine-tuned on the speaker's own recordings.
+    # Used when the user picks "your voice" at intake. Checkpoint lives in
+    # the f5_tts ckpts directory; reference clip lives in data/dataset/.
+    f5_speaker: str = "sonali"
+    f5_checkpoint: str = "model_3000.pt"
+    f5_ref_id: str = "g021"
+    f5_ref_text: str = (
+        "The dog dropped the rope at her feet and looked up, plainly waiting."
+    )
+    f5_speed: float = 1.0
+    f5_cfg_strength: float = 2.0
+    f5_nfe_step: int = 32
+
 
 config = Config()

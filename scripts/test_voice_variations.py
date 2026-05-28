@@ -61,7 +61,7 @@ COMBINATIONS = [
 ]
 
 CKPT_DIR = Path(str(files("f5_tts").joinpath("../../ckpts/sonali"))).resolve()
-CKPT_FILE = CKPT_DIR / "model_200.pt"
+CKPT_FILE = CKPT_DIR / "model_3000.pt"  # bumped from model_200 after the v2 training run
 VOCAB_FILE = Path(str(files("f5_tts").joinpath("../../data/Emilia_ZH_EN_pinyin/vocab.txt"))).resolve()
 
 

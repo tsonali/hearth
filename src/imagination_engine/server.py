@@ -25,7 +25,7 @@ from imagination_engine.config import (
 from imagination_engine.generator import generate_session
 from imagination_engine.inference import Engine
 from imagination_engine.intake import IntakeManager
-from imagination_engine.tts import Voice
+from imagination_engine.tts import Voice, make_voice
 
 log = logging.getLogger("imagination_engine")
 
@@ -34,7 +34,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 app = FastAPI(title="Imagination Engine", docs_url=None, redoc_url=None)
 
 _engine: Engine | None = None
-_voice: Voice | None = None
+_voices: dict[str, object] = {}
 _intake_manager: IntakeManager | None = None
 
 
@@ -47,13 +47,14 @@ def get_engine() -> Engine:
     return _engine
 
 
-def get_voice() -> Voice:
-    global _voice
-    if _voice is None:
-        log.info("Loading TTS voice (%s) ...", config.tts_voice)
-        _voice = Voice.load()
-        log.info("Voice loaded.")
-    return _voice
+def get_voice(backend: str = "kokoro"):
+    """Return a cached voice instance for the given backend ("kokoro" or "f5")."""
+    b = backend.lower().strip()
+    if b not in _voices:
+        log.info("Loading voice backend: %s", b)
+        _voices[b] = make_voice(b)
+        log.info("Voice backend ready: %s", b)
+    return _voices[b]
 
 
 def get_intake_manager() -> IntakeManager:
@@ -91,7 +92,8 @@ def generate(req: GenerateRequest) -> StreamingResponse:
 
 @app.post("/speak")
 def speak(req: SpeakRequest) -> Response:
-    voice = get_voice()
+    # /speak is the "read aloud" surface on the bare engine page — fast voice always.
+    voice = get_voice("kokoro")
     wav_bytes = voice.speak(req.text, speed=req.speed)
     return Response(content=wav_bytes, media_type="audio/wav")
 
@@ -215,12 +217,12 @@ def intake_get(session_id: str) -> JSONResponse:
 
 
 @app.post("/intake/{session_id}/generate")
-def intake_generate(session_id: str) -> Response:
+def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     """Run the full intake → script → audio pipeline and return the WAV.
 
-    This is the cool-experience endpoint. Heavy: ~60-90 seconds on M3
-    (model generation + per-paragraph TTS render). The client shows a
-    "preparing" state during the wait.
+    Query param `voice` picks the backend:
+      voice=kokoro  →  fast generic placeholder voice (~3-4 min audio render)
+      voice=f5      →  the user's own fine-tuned voice (~15-25 min audio render)
 
     The generated script text itself is NEVER returned over the wire —
     per [[project-voice-design]] it stays as the hidden thinking layer.
@@ -234,10 +236,10 @@ def intake_generate(session_id: str) -> Response:
     if not session.ready:
         raise HTTPException(status_code=409, detail="intake not yet finalized")
 
-    log.info("Generating session for %s ...", session_id)
+    log.info("Generating session for %s (voice=%s) ...", session_id, voice)
     script = generate_session(get_engine(), session.messages)
-    log.info("Rendering audio for %s (%d-word script) ...", session_id, len(script.split()))
-    wav_bytes = get_voice().render_session(script)
+    log.info("Rendering audio for %s (%d-word script, voice=%s) ...", session_id, len(script.split()), voice)
+    wav_bytes = get_voice(voice).render_session(script)
     log.info("Session for %s ready (%.1f KB)", session_id, len(wav_bytes) / 1024)
     return Response(content=wav_bytes, media_type="audio/wav")
 

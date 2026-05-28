@@ -16,6 +16,12 @@ SPEAKERS_REGISTRY = DATA_DIR / "speakers.json"
 # See data/system_voices/README.md for sourcing notes.
 SYSTEM_VOICES_DIR = DATA_DIR / "system_voices"
 
+# Rendered session audio — WAV + MP3 written here after generation.
+# WAV is the source-of-truth (lossless, plays inline in the browser);
+# MP3 is the smaller download/share artifact (AirDrop, save to phone).
+# Gitignored — these are derived artifacts, regenerable from the script.
+SESSIONS_DIR = DATA_DIR / "sessions"
+
 # Local memory store — SQLite, on-disk, gitignored, NEVER transmitted.
 # Holds one row per completed session. Used by the intake to weave in
 # light references to recent imaginings. The user does NOT see a

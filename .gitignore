@@ -56,3 +56,8 @@ data/system_voices/*.wav
 # committed to git. Lives only on the user's own machine.
 data/memory.sqlite
 data/memory.sqlite-*
+
+# Rendered session audio (WAV + MP3) — same privacy posture as memory:
+# local-only, never transmitted, never committed. Regenerable from the
+# script stored in memory.sqlite if anyone really wanted to.
+data/sessions/

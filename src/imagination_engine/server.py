@@ -27,6 +27,7 @@ from imagination_engine.config import (
     SPEAKERS_REGISTRY,
     SYSTEM_VOICES_DIR,
 )
+from imagination_engine.audio import persist_session_audio, session_mp3_path
 from imagination_engine.generator import generate_session
 from imagination_engine.inference import Engine
 from imagination_engine.intake import IntakeManager
@@ -392,6 +393,16 @@ async def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     # Done — flip progress to its terminal state so the client can stop polling.
     update(stage="done", detail="Your session is ready.", step=0, total=0, eta_seconds=0)
 
+    # Persist the audio to disk so the user can download an MP3 to save /
+    # AirDrop / carry to their phone. WAV is the source-of-truth for
+    # inline playback; MP3 is the smaller share artifact.
+    try:
+        await run_in_threadpool(persist_session_audio, session_id, wav_bytes)
+    except Exception as e:
+        # Audio download is nice-to-have, not load-bearing — log and
+        # continue. The user still gets the inline WAV stream below.
+        log.warning("session-audio persist failed for %s: %s", session_id, e)
+
     # Persist to local memory so future intakes can reference this session.
     try:
         speaker = getattr(voice_obj, "speaker", None)
@@ -406,6 +417,33 @@ async def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
         log.warning("memory save failed for %s: %s", session_id, e)
 
     return Response(content=wav_bytes, media_type="audio/wav")
+
+
+@app.get("/intake/{session_id}/download")
+def intake_download(session_id: str) -> Response:
+    """Return the rendered session as MP3 for download.
+
+    Used by the Save button in the UI. The Content-Disposition header
+    triggers a browser download (and on iOS/macOS, makes the file
+    available to the Share sheet for AirDrop). Filename includes today's
+    date so saved sessions don't collide.
+    """
+    from datetime import datetime
+
+    mp3_path = session_mp3_path(session_id)
+    if not mp3_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="audio not yet rendered for this session",
+        )
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    filename = f"imagination-engine-{today}-{session_id[:8]}.mp3"
+    return Response(
+        content=mp3_path.read_bytes(),
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.get("/intake/{session_id}/status")

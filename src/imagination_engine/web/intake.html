@@ -55,13 +55,16 @@
             <span class="vc-time">~4 minute wait</span>
             <span class="vc-note">A slow, measured man. Low and quiet.</span>
           </button>
-          <button id="voice-own" type="button" class="voice-card" hidden>
+          <!-- Third card is always shown. If a trained voice exists, clicking
+               starts generation. If not, clicking routes to /record so the
+               user knows training-your-own is a path that exists. -->
+          <button id="voice-own" type="button" class="voice-card">
             <span class="vc-title">Your own voice</span>
-            <span class="vc-time">~20 minute wait</span>
-            <span class="vc-note">Trained from your recordings. Start the session, walk away, come back to listen.</span>
+            <span class="vc-time" id="voice-own-time">~20 minute wait</span>
+            <span class="vc-note" id="voice-own-note">Trained from your recordings. Start the session, walk away, come back to listen.</span>
           </button>
         </div>
-        <p id="no-voices-hint" class="state-hint" hidden>No voices set up yet — see <code>data/system_voices/README.md</code>.</p>
+        <p id="no-voices-hint" class="state-hint" hidden>No system voices set up yet — see <code>data/system_voices/README.md</code>.</p>
       </div>
 
       <div id="session-preparing" class="session-state" hidden>
@@ -82,6 +85,7 @@
       <div id="session-playing" class="session-state" hidden>
         <p class="state-label">Listening</p>
         <audio id="player" controls></audio>
+        <a id="download-mp3-playing" class="button dim download-link" href="#" download hidden>↓ Save MP3</a>
       </div>
 
       <div id="session-reflect" class="session-state" hidden>
@@ -91,6 +95,7 @@
         <div class="button-row">
           <button id="reflect-save" type="button" class="primary">Save reflection</button>
           <button id="reflect-skip" type="button" class="dim">Skip</button>
+          <a id="download-mp3-reflect" class="button dim download-link" href="#" download hidden>↓ Save MP3</a>
         </div>
         <p id="reflect-status" class="hint"></p>
       </div>
@@ -98,7 +103,11 @@
       <div id="session-complete" class="session-state" hidden>
         <p class="state-label">Carry it with you</p>
         <p class="state-detail">Live your day.</p>
-        <button id="new-session" type="button" class="dim">Start another →</button>
+        <div class="button-row">
+          <a id="download-mp3-complete" class="button download-link" href="#" download hidden>↓ Save MP3</a>
+          <button id="new-session" type="button" class="dim">Start another →</button>
+        </div>
+        <p class="state-hint">The MP3 lives on this machine. AirDrop or copy it to your phone if you want to listen later, somewhere quiet.</p>
       </div>
 
       <div id="session-error" class="session-state" hidden>
@@ -127,6 +136,13 @@
     const $voiceHer = document.getElementById("voice-her");
     const $voiceHim = document.getElementById("voice-him");
     const $voiceOwn = document.getElementById("voice-own");
+    const $voiceOwnTime = document.getElementById("voice-own-time");
+    const $voiceOwnNote = document.getElementById("voice-own-note");
+    const $downloadLinks = [
+      document.getElementById("download-mp3-playing"),
+      document.getElementById("download-mp3-reflect"),
+      document.getElementById("download-mp3-complete"),
+    ];
     const $sReady = document.getElementById("session-ready");
     const $sPlaying = document.getElementById("session-playing");
     const $sReflect = document.getElementById("session-reflect");
@@ -253,6 +269,8 @@
         const url = URL.createObjectURL(blob);
         $player.src = url;
         $player.addEventListener("ended", () => showSessionState("reflect"), { once: true });
+        // The server persisted the MP3 alongside; expose the save link now.
+        enableDownloadLinks();
         showSessionState("ready");
       } catch (err) {
         $errorDetail.textContent = err.message;
@@ -348,6 +366,7 @@
       $skip.hidden = true;
       $prompt.value = "";
       try { $player.pause(); $player.removeAttribute("src"); } catch (e) {}
+      disableDownloadLinks();
       $prompt.focus();
       startSession();
     }
@@ -365,26 +384,68 @@
     $retryBtn.addEventListener("click", () => buildSession(window._lastVoice || "her"));
     $voiceHer.addEventListener("click", () => { window._lastVoice = "her"; buildSession("her"); });
     $voiceHim.addEventListener("click", () => { window._lastVoice = "him"; buildSession("him"); });
-    $voiceOwn.addEventListener("click", () => { window._lastVoice = "f5"; buildSession("f5"); });
 
-    // All three voice cards start hidden. The server checks for the
-    // reference clips (system voices) and the F5 checkpoint (own voice)
-    // on disk — we only un-hide the cards that actually work. No point
-    // offering an option that would fail on click.
+    // The own-voice card is always visible. Behavior depends on whether
+    // a trained voice exists — set up in gateVoiceCards() below.
+    let ownVoiceAvailable = false;
+    $voiceOwn.addEventListener("click", () => {
+      if (ownVoiceAvailable) {
+        window._lastVoice = "f5";
+        buildSession("f5");
+      } else {
+        // No trained voice yet — route the user to the recording flow so
+        // they understand "your own voice" is possible, just needs setup.
+        window.location.href = "/record";
+      }
+    });
+
+    // The her/him cards start hidden — the server checks for the reference
+    // clips on disk and only those become clickable. The own-voice card
+    // stays visible regardless; its copy and click target adapt.
     (async function gateVoiceCards() {
       try {
         const res = await fetch("/voices/options");
         if (!res.ok) return;
         const opts = await res.json();
-        let anyAvailable = false;
-        if (opts.her && opts.her.available) { $voiceHer.hidden = false; anyAvailable = true; }
-        if (opts.him && opts.him.available) { $voiceHim.hidden = false; anyAvailable = true; }
-        if (opts.own && opts.own.available) { $voiceOwn.hidden = false; anyAvailable = true; }
-        if (!anyAvailable) {
+        let anySystemVoice = false;
+        if (opts.her && opts.her.available) { $voiceHer.hidden = false; anySystemVoice = true; }
+        if (opts.him && opts.him.available) { $voiceHim.hidden = false; anySystemVoice = true; }
+        if (opts.own && opts.own.available) {
+          ownVoiceAvailable = true;
+          // Default copy already says "Trained from your recordings…" —
+          // nothing to update.
+        } else {
+          ownVoiceAvailable = false;
+          $voiceOwnTime.textContent = "Not yet trained";
+          $voiceOwnNote.textContent = "Record about 30 minutes of your voice and the engine learns to read in it. Click here to start recording.";
+        }
+        // Only complain about missing system voices if neither system
+        // voice AND no trained own voice exist — otherwise the user has
+        // something usable and the hint is just noise.
+        if (!anySystemVoice && !ownVoiceAvailable) {
           document.getElementById("no-voices-hint").hidden = false;
         }
       } catch (e) { /* defaults are fine */ }
     })();
+
+    // ---- Download-MP3 affordance ------------------------------------------
+    // After a session has been generated, the server has the MP3 on disk
+    // and exposes it at /intake/{id}/download. Wire the three download
+    // anchors (one per state where saving makes sense) to that URL.
+    function enableDownloadLinks() {
+      if (!sessionId) return;
+      const url = `/intake/${sessionId}/download`;
+      for (const a of $downloadLinks) {
+        a.href = url;
+        a.hidden = false;
+      }
+    }
+    function disableDownloadLinks() {
+      for (const a of $downloadLinks) {
+        a.removeAttribute("href");
+        a.hidden = true;
+      }
+    }
 
     async function saveReflection() {
       const text = ($reflection.value || "").trim();

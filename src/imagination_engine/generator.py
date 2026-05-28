@@ -123,6 +123,14 @@ CONTENT POSTURE
 # ---------------------------------------------------------------------------
 # Stage 1: OPEN — attentional capture + hard cut into scene.
 # Receives intake. Target ~150-200 words / 90-120 spoken seconds.
+#
+# v4 change from v3: stripped the four worked-example sentences. v3 testing
+# showed the model was copying them verbatim across unrelated scenarios
+# ("The Tuesday morning has no shape" appeared in both retire-young AND
+# Harry-Styles scripts). Replaced with abstract pattern descriptions plus
+# one structurally-different example (a kitchen scene) that doesn't match
+# any of the test scenarios — the model can't overfit to a pattern it
+# never sees applied to a target scene.
 # ---------------------------------------------------------------------------
 OPEN_PROMPT = COMMON_POSTURE + """
 
@@ -133,28 +141,18 @@ This is NOT a body-settle. It is an immersion induction. PETTLEP, Ericksonian in
 THE OPENING HAS THREE MOVES:
 
 MOVE 1 — UTILIZATION (2-3 short sentences, ~20 spoken seconds).
-Open by naming what is already TRUE for the listener right now. These are present-moment statements they cannot disagree with — an Ericksonian yes-set. Example:
-    "You're hearing my voice. Your eyes are closed. There is a chair under you, or a couch, or a floor. Wherever you are, you're there."
-Do NOT lecture. Do NOT philosophize about imagination. State present truths simply.
+Open by naming what is already TRUE for the listener right now. These are present-moment statements they cannot disagree with — an Ericksonian yes-set. Pattern: name the voice they hear, name that their eyes are closed, name something about where they are physically. Do NOT lecture. Do NOT philosophize about imagination. State present truths simply.
 
 MOVE 2 — SINGLE-POINT SENSORY ANCHOR (1-2 sentences, ~10 spoken seconds).
 Direct the listener to ONE specific sensory anchor that's available to them right now: the weight of their hands, the sound just outside the room, the breath at the tip of their nose. PICK ONE. This narrows attention — the audio analogue of eye fixation.
 
 MOVE 3 — HARD CUT INTO THE SCENE (~60 spoken seconds, the rest of the opening).
-Read the intake transcript. Find the first concrete sensory anchor of the SCENE THE USER WANTS. Cut directly to it. Do NOT transition with "and now imagine..." or "let the room fall away." HARD CUT.
+Read the intake transcript. Find a concrete sensory detail of the SCENE THE USER WANTS — a temperature, an object position, a sound, a smell, the way a body part is held. Open with that. Do NOT transition with "and now imagine..." or "let the room fall away." HARD CUT.
 
-Examples of correct hard cuts:
-    User asked for Harry Styles in love with them:
-    → "He's already in the room. Late afternoon light through the window behind him, the kind of orange that comes right before it goes."
+Example pattern (for a SCENE THE USER DID NOT ASK FOR — a kitchen mid-cooking; this is given so you understand the shape, NOT to copy):
+    "The pan is on the heat. You hear the oil snap once when the onion lands in it. Your right hand is loose on the handle of the wooden spoon."
 
-    User asked for being on a stage:
-    → "The mic is in your right hand. Heavier than it looks. A faint tackiness on the grip from earlier."
-
-    User asked for being a different personality:
-    → "Her shoulders sit wider than yours. Her breath sits lower in her chest."
-
-    User asked for retiring young and wealthy:
-    → "The Tuesday morning has no shape. The light comes in from one wall, no obligation in it."
+That's the structure: present-tense concrete sensory details, second person, no hedging, no transition lines. Build your hard cut for THE USER'S ACTUAL SCENE using the same structural pattern but ENTIRELY DIFFERENT WORDS rooted in what they asked for. Do NOT recycle the example's phrases.
 
 THE HARD CUT IS THE MOST IMPORTANT MOMENT IN THE WHOLE SCRIPT. It locks in the immersion. Spend real care here. Use the user's specific intake details. Make it concrete.
 
@@ -173,27 +171,48 @@ Output the opening text only, with blank lines between paragraphs. Nothing else.
 # ---------------------------------------------------------------------------
 IMAGINING_PROMPT = COMMON_POSTURE + """
 
-YOUR JOB RIGHT NOW: produce the BODY of the imagining — 1800-2500 words of committed, concrete, sensory experience inside the scene the user requested.
+YOUR JOB RIGHT NOW: produce the BODY of the imagining — committed, concrete, sensory experience inside the scene the user requested.
 
 The opening just dropped the listener INTO the scene. You stay there. Build it. Layer in detail across many paragraphs. Do NOT zoom out. Do NOT commentate. Do NOT coach. STAY INSIDE.
 
+══════════════════════════════════════════════════════════
+EMBODIMENT DIRECTION — READ THIS BEFORE WRITING ANYTHING.
+══════════════════════════════════════════════════════════
+
+Look at the user's intake. Their phrasing tells you who the listener IS in this script. Get this wrong and the whole script is wrong.
+
+CASE A — Listener IS [X]. The script is written FROM INSIDE [X]'s body.
+Triggers — when the user says:
+    "imagine me AS [X]" → listener IS [X]
+    "imagine being [X]" → listener IS [X]
+    "imagine me with [X capability/state]" → listener HAS [X]
+    "imagine me [achievement]" → listener IS the person who did/has the achievement
+    Examples: "imagine me as Taylor Swift" (you ARE Taylor), "imagine being a different character" (you ARE that character), "imagine me with a photographic memory" (you HAVE the memory), "imagine me retiring young" (you ARE the retired one).
+In CASE A: write [X]'s body. [X]'s posture. [X]'s sensory experience. [X]'s hands, breath, eyes. "You" refers to [X] throughout. The listener inhabits [X] for the duration of the script.
+
+CASE B — Listener is themselves, [X] is PRESENT in the scene.
+Triggers — when the user says:
+    "imagine [X] is [doing something to/with] me" → listener is themselves, [X] present
+    "imagine being with [X]" → listener is themselves, [X] present
+    "imagine [X] tells me / loves me / etc." → listener is themselves, [X] present
+    Examples: "imagine Harry Styles is in love with me" (you are yourself, Harry is there), "imagine being with my soulmate" (you are yourself, soulmate is there), "imagine my parents are proud of me" (you are yourself, parents are there).
+In CASE B: write the LISTENER's own body. [X] is another physical presence in the scene — write [X]'s behavior, voice, manner, hands, face — but the script is anchored in the LISTENER's body. "You" refers to the listener throughout.
+
+If the user's phrasing is ambiguous, default to CASE A unless the intake explicitly names another person doing something TO the listener.
+
+══════════════════════════════════════════════════════════
+
 ENGAGE THE USER'S PROMPT — THIS IS THE NON-NEGOTIABLE RULE.
-The intake transcript names something specific the user wants to imagine. EVERY 3 OR 4 PARAGRAPHS must make CONCRETE reference to that specific imagining — the named person, the named situation, the named scene. The user asked for THIS, not for generic peaceful content. Examples of what engagement looks like:
-    - User asked for Harry Styles: write Harry's actual presence — his voice, the way he stands, his hands, his manner of being in the room.
-    - User asked for being a Nobel laureate: write the lectern, the rows of faces, the weight of the medal, the feeling of having earned this.
-    - User asked for a different personality: write her body specifically — her posture, her gait, the way she takes a beat before answering.
-    - User asked for retiring young: write the unstructured Tuesday morning, the absence of obligation, the kind of food in the fridge, the people who don't expect anything of you.
+The intake transcript names something specific the user wants to imagine. EVERY 3 OR 4 PARAGRAPHS must make CONCRETE reference to that specific imagining. The user asked for THIS, not for generic peaceful content.
+
+If the user asked to BE someone (CASE A), write the felt experience of being them. Their body. Their posture. The view from inside them.
+If the user asked for someone to be present (CASE B), write that person's specific presence. Their voice, their manner, what their hands are doing right now.
 
 WHAT THIS SCRIPT IS NOT:
     - Not a meditation about peaceful imagery
     - Not a vague abstraction about "the experience of [thing]"
     - Not a Hallmark template with the user's prompt name search-replaced in
 The script IS the specific scene. Concretely. In sensory detail.
-
-EMBODY THE IMAGINED CHARACTER:
-If the user asked to BE someone (Taylor Swift, a different personality, their future self, a billionaire), they are inhabiting that body now. Write THAT body. Their posture, their breath, their hands, the way they take up space. The listener IS them.
-
-If the user asked for ANOTHER PERSON to be present (a partner, a celebrity, a parent), write what THAT person is doing in this exact moment. Where they're looking. What their hands are doing. Their specific physical presence.
 
 REAL LIVING PEOPLE — A SPECIAL CONSTRAINT:
 When invoking a real living person, the model's knowledge of their current biography has a cutoff. So:
@@ -205,15 +224,18 @@ PACE:
 - Include moments of stillness — paragraphs where nothing "happens," just the felt sense of being there.
 - Use silence (blank lines between paragraphs) to give the listener time to render each image in their own mind.
 
-LENGTH: 1800-2500 words. 15-25 paragraphs. THIS IS THE LONG STAGE. The user is here for the immersion.
-
-CRITICAL: previous versions of this generator bailed at ~470 words because the model stopped early. DO NOT STOP EARLY. If you find yourself wrapping up at 500 or 800 or 1200 words, YOU ARE NOT DONE. Continue. Add more layers of sensory detail. Add more moments. Stay in the scene. The user came for a long immersive session, not a vignette.
-
-When in doubt about whether to keep going: keep going. Add one more paragraph of sensory texture. Add another moment in the scene. Build it richer.
+LENGTH: write as long as the imagining can sustain. The body of a session is long — many paragraphs of sensory texture. After this prompt the calling code may ask you to CONTINUE if more length is needed; do not bring the listener back in this call. STAY IN THE SCENE.
 
 DO NOT bring them back yet. Do NOT mention "opening eyes" or "returning to the room" or "and now slowly" — the return is the next stage. STAY in the imagining.
 
-Output the body text only, with blank lines between paragraphs. Nothing else. AT LEAST 15 PARAGRAPHS. AT LEAST 1800 WORDS."""
+══════════════════════════════════════════════════════════
+FORBIDDEN IMAGERY REMINDER (re-stating from COMMON_POSTURE):
+NO candlelight. NO candles. NO meadows. NO rolling hills. NO wildflowers. NO blooming lavender. NO gurgling brooks. NO babbling streams. NO nightingales. NO songbirds. NO dappled light. NO twinkling stars. NO soft glow. NO warm bath. NO shimmering. NO gentle breeze.
+
+If the user explicitly named one of these, you may use that one. Otherwise REJECT each one and find specific texture rooted in the user's actual scene.
+══════════════════════════════════════════════════════════
+
+Output the body text only, with blank lines between paragraphs. Nothing else."""
 
 
 # ---------------------------------------------------------------------------
@@ -221,6 +243,13 @@ Output the body text only, with blank lines between paragraphs. Nothing else. AT
 # Receives intake + open + imagining. ~150-200 words.
 # ---------------------------------------------------------------------------
 BACK_PROMPT = COMMON_POSTURE + """
+
+══════════════════════════════════════════════════════════
+FORBIDDEN IMAGERY REMINDER (re-stating from COMMON_POSTURE):
+NO candlelight. NO candles. NO meadows. NO rolling hills. NO wildflowers. NO blooming lavender. NO gurgling brooks. NO nightingales. NO dappled light. NO twinkling stars. NO soft glow. NO warm bath. NO shimmering.
+
+If the user named one of these, you may use it. Otherwise REJECT and use the specific texture from the body of the script above.
+══════════════════════════════════════════════════════════
 
 YOUR JOB RIGHT NOW: produce the RETURN — the gentle, gradual exit from the imagining.
 
@@ -298,6 +327,44 @@ def _generate(engine: Engine, system: str, user: str, max_tokens: int) -> str:
     return "".join(chunks).strip()
 
 
+# The body length floor enforced in code (not in prompt instructions, which
+# v3 testing showed the model ignores). If the first body call returns
+# fewer than this many words, the generator re-calls with a continuation
+# prompt — up to MAX_BODY_ITERATIONS times — until the floor is reached
+# or we give up.
+BODY_LENGTH_FLOOR = 1500
+MAX_BODY_ITERATIONS = 3  # ~ one primary call + up to two continuations
+
+
+def _extend_body(
+    engine: Engine,
+    intake_context: str,
+    open_text: str,
+    body_so_far: str,
+) -> str:
+    """Ask the model to continue the body. Used by the continuation loop.
+
+    The model is given the open + body-so-far and explicitly told to
+    pick up where it left off, not restart, not wrap up.
+    """
+    cont_user = (
+        intake_context
+        + "\n\n----- THE OPENING (already spoken to the user) -----\n"
+        + open_text
+        + "\n----- END OPENING -----\n\n"
+        "----- THE BODY SO FAR (already spoken to the user) -----\n"
+        + body_so_far
+        + "\n----- END BODY SO FAR -----\n\n"
+        "CONTINUE THE BODY. Pick up RIGHT where the body-so-far leaves "
+        "off. Do NOT restart. Do NOT recap. Do NOT bring the listener "
+        "back. Add 8-10 more paragraphs of concrete sensory detail. "
+        "Stay INSIDE the scene. Build it richer. New moments, new "
+        "objects, new sensations. Same forbidden phrases / forbidden "
+        "imagery rules apply."
+    )
+    return _generate(engine, IMAGINING_PROMPT, cont_user, max_tokens=2048)
+
+
 # ---------------------------------------------------------------------------
 # Public API.
 # ---------------------------------------------------------------------------
@@ -348,8 +415,10 @@ def generate_session(
     open_text = _generate(engine, OPEN_PROMPT, open_user, max_tokens=600)
     log.info("  open: %.1fs, %d words", time.time() - t0, len(open_text.split()))
 
-    # Stage 2: the imagining body — the long one.
-    emit("writing_body", "Writing the imagining — the heart of the session.", 2, eta=90.0)
+    # Stage 2: the imagining body — the long one. Continuation pattern
+    # enforces the length floor in code, since v3 testing showed the
+    # model ignores in-prompt length instructions and bails at ~470 words.
+    emit("writing_body", "Writing the imagining — the heart of the session.", 2, eta=120.0)
     log.info("generating imagining (stage 2/3) ...")
     t0 = time.time()
     body_user = (
@@ -358,12 +427,26 @@ def generate_session(
         + open_text
         + "\n----- END OPENING -----\n\n"
         "Now produce the imagining body. The user is INSIDE THE SCENE. "
-        "Stay there. Build it. 1800-2500 words. AT LEAST 15 PARAGRAPHS. "
-        "Do not stop early. If you find yourself wrapping up at 500-800 "
-        "words, you are not done — keep adding sensory detail."
+        "Stay there. Build it. Many paragraphs of concrete sensory texture. "
+        "Do not bring the listener back in this call."
     )
     body = _generate(engine, IMAGINING_PROMPT, body_user, max_tokens=4096)
-    log.info("  imagining: %.1fs, %d words", time.time() - t0, len(body.split()))
+    log.info("  imagining (initial): %.1fs, %d words", time.time() - t0, len(body.split()))
+
+    # Continuation loop — keep asking for more until the floor is hit or
+    # we've tried MAX_BODY_ITERATIONS times. Each continuation is given the
+    # body-so-far and instructed to pick up exactly where it left off.
+    for i in range(MAX_BODY_ITERATIONS - 1):
+        if len(body.split()) >= BODY_LENGTH_FLOOR:
+            break
+        log.info("  body at %d words, below floor %d — continuing (iter %d)",
+                 len(body.split()), BODY_LENGTH_FLOOR, i + 1)
+        t_cont = time.time()
+        more = _extend_body(engine, intake_context, open_text, body)
+        log.info("  continuation %d: %.1fs, +%d words",
+                 i + 1, time.time() - t_cont, len(more.split()))
+        body = body + "\n\n" + more
+    log.info("  imagining (final): %d words", len(body.split()))
 
     # Stage 3: back — receives both open and body so the carry-back is specific.
     emit("writing_return", "Writing the return — what you'll carry back.", 3, eta=15.0)

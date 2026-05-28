@@ -1,0 +1,186 @@
+/* Welcome — the front door. Same Tapestry family as the intake page, but
+   composed as a landing rather than a working surface: a strong opening
+   block, two large clickable path cards, a collapsible About section. */
+
+main.welcome {
+  max-width: 720px;
+  margin: 4rem auto 6rem;
+  padding: 0 var(--pad-x);
+}
+
+main.welcome header.brand { margin-bottom: 2.5rem; }
+main.welcome header.brand h1 {
+  font-family: var(--display);
+  font-size: clamp(48px, 7vw, 88px);
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* Opening editorial block — same voice as the intake lede. */
+.lede-block { margin-bottom: 3rem; }
+.lede-block .lede {
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  color: var(--text);
+  font-weight: 400;
+}
+.lede-block .lede-sub {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Path cards — large clickable blocks. Whole card is the link.
+   Primary path: filled accent. Secondary path: outlined.
+   On hover the cards lift slightly — quiet, not bouncy. */
+.paths {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.path {
+  display: block;
+  padding: 1.5rem 1.75rem;
+  text-decoration: none;
+  color: var(--text);
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.path:hover {
+  transform: translateY(-1px);
+  border-color: var(--text);
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+/* Primary path — terracotta accent border + accent label, so it reads
+   as the obvious next step without using a giant filled button. */
+.path-primary {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-alt);
+}
+.path-primary:hover { background: var(--bg); }
+
+.path-label {
+  margin: 0 0 0.4rem 0;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.path-primary .path-label { color: var(--accent); }
+
+.path-title {
+  font-family: var(--display);
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.05;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  margin: 0 0 0.55rem 0;
+  color: var(--text);
+}
+
+.path-body {
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text-mid);
+  margin: 0 0 0.85rem 0;
+  max-width: 56ch;
+}
+
+.path-cta {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.path-secondary .path-cta { color: var(--text); }
+
+/* About — collapsible block, kept understated. */
+.about { margin-bottom: 3rem; }
+.about details {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.about summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.about summary::-webkit-details-marker { display: none; }
+.about summary::after {
+  content: '＋';
+  font-family: var(--display);
+  font-size: 18px;
+  color: var(--text-mid);
+  transition: transform 0.15s ease;
+}
+.about details[open] summary::after { content: '−'; }
+
+.about-label {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.about details[open] .about-label { color: var(--accent); }
+
+.about-body {
+  padding: 0.25rem 0 1.25rem 0;
+}
+.about-body h3 {
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin: 1.25rem 0 0.5rem 0;
+}
+.about-body h3:first-child { margin-top: 0.5rem; }
+.about-body p {
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 0.5rem 0;
+  max-width: 60ch;
+}
+.about-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  background: var(--bg-alt);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+}
+
+.welcome-footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.25rem;
+}
+.footer-line {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  color: var(--text-mid);
+}
+.footer-line a { color: var(--text-mid); text-decoration-color: var(--rule); }
+.footer-line a:hover { color: var(--accent); text-decoration-color: var(--accent); }

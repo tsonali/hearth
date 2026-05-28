@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imagination Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/welcome.css">
+</head>
+<body>
+  <main class="welcome">
+    <header class="brand">
+      <p class="breadcrumb">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
+      <h1>Imagination<br>Engine</h1>
+    </header>
+
+    <section class="lede-block">
+      <p class="lede">
+        This is a tool for guided imagination. You tell it what you want
+        to imagine — succeeding at something hard, being a different
+        character, your life on another path, being a real or fictional
+        person — and it writes you a ten-to-fifteen minute session and
+        reads it back. You listen with your eyes closed and do the
+        imagining yourself.
+      </p>
+      <p class="lede-sub">
+        Everything runs on this machine. Nothing leaves it.
+      </p>
+    </section>
+
+    <section class="paths">
+      <a class="path path-primary" href="/intake" id="path-start">
+        <p class="path-label">START A SESSION</p>
+        <h2 class="path-title" id="path-start-title">Begin your first session</h2>
+        <p class="path-body" id="path-start-body">Open a conversation with the engine. Tell it what you want to imagine. It takes about a minute to build the audio.</p>
+        <p class="path-cta">Begin →</p>
+      </a>
+
+      <a class="path path-secondary" href="/record">
+        <p class="path-label">YOUR OWN VOICE · OPTIONAL</p>
+        <h2 class="path-title">Set up your voice</h2>
+        <p class="path-body">About thirty minutes of recording, then a longer training step that runs overnight on this machine. After that, the engine speaks in your voice instead of a placeholder. You can skip this and use the placeholder voice for now — sessions still work.</p>
+        <p class="path-cta">Record →</p>
+      </a>
+    </section>
+
+    <section class="about" id="about">
+      <details>
+        <summary><span class="about-label">ABOUT THIS</span></summary>
+        <div class="about-body">
+          <h3>What it is</h3>
+          <p>
+            A guided imagination tool you run on your own laptop. You bring an
+            imagining; it writes a session around what you brought and reads it
+            to you. The protocol shape is the same every time — a settle, then
+            the imagining, then a gentle return. The content is yours.
+          </p>
+
+          <h3>How it works</h3>
+          <p>
+            A small language model running on this machine has a short
+            conversation with you (the "intake"). It hands what you said to a
+            longer model call that writes a 2,500-word session. A neural
+            text-to-speech model then reads it aloud, paragraph by paragraph,
+            with real pauses between thoughts. You listen.
+          </p>
+
+          <h3>Privacy</h3>
+          <p>
+            No part of this app reaches the internet during use. The model
+            weights live in a cache directory; the database lives in
+            <code>data/memory.sqlite</code>. If you record your own voice the
+            recordings live in <code>data/recordings/</code>. None of it is
+            transmitted anywhere. You own the file; deleting it deletes the
+            history.
+          </p>
+
+          <h3>What this isn't</h3>
+          <p>
+            Not a therapy app. Not a companion. There is no thread to scroll
+            back through, no streaks, no nudges to come back. It's an
+            instrument you open to do focused imagination work and then close
+            to go live your day.
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <footer class="welcome-footer">
+      <p class="footer-line">
+        Built locally by <a href="https://law.stanford.edu/sonali-maitra/" target="_blank" rel="noopener">Sonali Maitra</a>.
+        Source on <a href="https://github.com/tsonali/imagination-engine" target="_blank" rel="noopener">GitHub</a>.
+      </p>
+    </footer>
+  </main>
+
+  <script>
+    // Returning users — those with at least one completed session — get
+    // slightly different copy on the primary path. Cheap, single fetch.
+    // Failure is non-fatal: first-run copy is a sensible default either way.
+    (async function adaptCopy() {
+      try {
+        const res = await fetch("/welcome/state");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.session_count > 0) {
+          document.getElementById("path-start-title").textContent = "Begin another session";
+          document.getElementById("path-start-body").textContent =
+            "Open a new conversation. Whatever you bring tonight gets its own session.";
+        }
+      } catch (e) { /* keep defaults */ }
+    })();
+  </script>
+</body>
+</html>

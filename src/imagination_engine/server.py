@@ -89,7 +89,39 @@ class SpeakRequest(BaseModel):
 
 
 @app.get("/", response_class=HTMLResponse)
-def index() -> HTMLResponse:
+def welcome() -> HTMLResponse:
+    """Front door — the welcome page a new user lands on.
+
+    The Tapestry-style intake page itself (/intake) is the working surface;
+    the bare /generate engine (/dev) is the developer surface. This page is
+    the human-facing front door that explains what this is and routes the
+    user to the right place. See `web/welcome.html`.
+    """
+    return HTMLResponse((WEB_DIR / "welcome.html").read_text(encoding="utf-8"))
+
+
+@app.get("/welcome/state")
+def welcome_state() -> JSONResponse:
+    """Lightweight signal for the welcome page to adapt its copy.
+
+    Currently just the number of completed sessions — a returning user
+    sees "Begin another session" instead of "Begin your first session".
+    Kept deliberately small so this stays a single non-blocking fetch.
+    """
+    try:
+        n = get_memory().count()
+    except Exception:
+        n = 0
+    return JSONResponse({"session_count": n})
+
+
+@app.get("/dev", response_class=HTMLResponse)
+def dev_engine() -> HTMLResponse:
+    """The bare /generate + /speak engine — developer surface, not for end users.
+
+    Useful for sanity-checking the model and TTS without running through the
+    full intake → session flow. Kept reachable but moved off /.
+    """
     return HTMLResponse((WEB_DIR / "index.html").read_text(encoding="utf-8"))
 
 

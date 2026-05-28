@@ -16,9 +16,10 @@ env/
 # uv
 .uv-cache/
 
-# IDE
+# IDE / tooling
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 

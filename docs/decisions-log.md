@@ -108,3 +108,31 @@ A pleasant unsolicited signal: with only the protocol's voice convention given a
 **Why this matches the project's posture:** [[feedback-oss-only]] says no third-party orchestrators. [[feedback-build-properly]] says invest in a real foundation. [[project-voice-design]] says the voice is the product. All three converge on this choice — the v0's voice should be an artifact we made, voicing the founder, owned end-to-end.
 
 The Kokoro code (`src/imagination_engine/tts.py`, `/speak` endpoint, "Read aloud" button) stays in the codebase. It's useful for dev iteration and as a fallback. The fine-tuned F5-TTS model will become the production path when training completes.
+
+---
+
+## 2026-05-28 — Generator overhaul v3: immersion not meditation
+
+**Problem:** v2 (post real-living-people fix) was still producing soft, hedging, generic scripts that abandoned the user's actual creative prompt. Quantitative analysis on 87 v2 scripts:
+
+- **Body-engage rate 0.39** — only 39% of user prompt keywords made it into the body. **15+ scripts at 0.00** — the model abandoned the prompt entirely (e.g. the body of `029-retire-young` doesn't say retire, young, or wealthy anywhere; `032-husband-adore` doesn't say husband or adore).
+- **9.3 hedge phrases per script on average** ("you might notice", "perhaps", "maybe", "if you'd like"). The meditation-app sound baked in by COMMON_POSTURE's voice rules.
+- **Body median 472 words vs 1800-word target.** The model was stopping early at ~25% of the requested length.
+- **Stock peaceful imagery recurring across unrelated scenarios** — candlelight, meadows, brooks, wildflowers showing up in romantic scripts, achievement scripts, becoming-different-personality scripts. The AI's safe default for "peaceful."
+- **Qualitative read of 4 representative scripts**: Harry Styles got Generic Romantic Hero with "Harry" find-and-replaced; different-personality got Hallmark meadow + word-salad tail; mistake-never-happened got generic childhood summer with no engagement of the actual prompt.
+
+**Research check on the opening stage.** Founder asked: is the slow body-settle opening grounded in immersion research, or is it inherited meditation convention? Sub-agent surveyed four literatures: Ericksonian hypnotic induction, PETTLEP sport-psychology visualization, Green & Brock narrative transportation, lucid/hypnagogic imagery induction. Convergent finding across all four: **immersion comes from attentional capture + sensory specificity, NOT somatic relaxation.** PETTLEP literature is explicit that pre-imagery relaxation REDUCES functional equivalence with the imagined state. The slow body-settle is meditation-tradition, not immersion-tradition.
+
+**Decision: full prompt overhaul (v3) along three axes.**
+
+1. **OPEN (renamed from settle):** 90-120 seconds, NOT 3-5 minutes. Now receives the intake transcript so it can hard-cut directly into the user's scene. Three moves: (a) Ericksonian utilization — name what's already true for the listener ("you're hearing my voice, your eyes are closed"); (b) single-point sensory anchor — narrow attention to one thing; (c) HARD CUT into the scene with the first concrete sensory anchor of the imagining. Skip "release the day" entirely — it primes a therapy frame and burns the freshest attention on suppression. Target ~150-200 words.
+
+2. **IMAGINING (body):** hard rules in the prompt itself, not just suggestions. Explicit forbidden-phrase list ("you might notice", "perhaps", "maybe", "if you'd like", etc. — 15+ banned phrases). Explicit forbidden stock imagery list (candlelight, meadows, brooks, wildflowers — unless user named them). Mandatory prompt-engagement rule ("every 3-4 paragraphs make concrete reference to the user's specific imagining"). Sensory specificity rules (every paragraph names at least one concrete physical detail with body-part/object specificity). Length floor stated explicitly: "AT LEAST 15 PARAGRAPHS. AT LEAST 1800 WORDS. If you find yourself wrapping up at 500 or 800 words, YOU ARE NOT DONE."
+
+3. **BACK (renamed from return):** carry-back MUST be ONE specific concrete detail pulled from the body of the script — not generic feelings. Five-move structure: soften image / carry-back / re-room / eyes open / one final line. No "wiggle fingers and toes" boilerplate. Target ~150-200 words.
+
+**COMMON_POSTURE rewritten** to invert the hedging-as-virtue rule. Old: "Invitational language: 'you might notice,' 'perhaps,' 'if you'd like.' Never commanding." New: "FORBIDDEN PHRASES: 'you might notice'/'perhaps'/'maybe'/'allow yourself to'/... — these produce the meditation-app sound, which is the OPPOSITE of immersion. REPLACE THEM with the thing itself. Not 'perhaps her hand finds yours' but 'her hand finds yours.'"
+
+**Empirical validation:** small probe batch of 5 scenarios spanning failure modes (003-taylor-swift, 031-harry-styles, 005-different-personality, 011-photographic-memory, 029-retire-young) running into `logs/scenario-tests-v3/`. Side-by-side comparison with v2 will drive the next iteration. No more 100-scenario batches until v3 is nailed.
+
+**Citations for the research check** (in case future versions need to re-examine the opening): Holmes & Collins (2001) PETTLEP model; van Laer et al. Extended Transportation-Imagery Model meta-analysis; Green & Brock (2000) narrative transportation; Ericksonian induction; HIT/MILD lucid-imagery protocols. Full sources in the sub-agent transcript.

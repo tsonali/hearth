@@ -36,6 +36,7 @@ from imagination_engine.inference import Engine  # noqa: E402
 from imagination_engine.intake import IntakeManager  # noqa: E402
 from imagination_engine.tts import Voice  # noqa: E402
 
+# Default output directory; overridable via --out-dir for prompt-version A/B.
 OUT_DIR = PROJECT_ROOT / "logs" / "scenario-tests"
 
 
@@ -127,12 +128,18 @@ def write_index(results: list[dict]) -> None:
 
 
 def main() -> int:
+    global OUT_DIR
     p = argparse.ArgumentParser()
     p.add_argument("--only", default=None,
                    help="comma-separated scenario ids to run (default: all)")
     p.add_argument("--from", dest="start_from", type=int, default=0,
                    help="skip the first N scenarios (for resuming a partial run)")
+    p.add_argument("--out-dir", default=None,
+                   help="output directory (default: logs/scenario-tests/); "
+                        "use a different dir for A/B-ing prompt versions")
     args = p.parse_args()
+    if args.out_dir:
+        OUT_DIR = Path(args.out_dir)
 
     logging.basicConfig(level=logging.WARNING)
 

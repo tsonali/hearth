@@ -4,94 +4,64 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Imagination Engine</title>
-  <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/welcome.css">
 </head>
 <body>
-  <main class="welcome">
-    <header class="brand">
-      <p class="breadcrumb">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
+  <main>
+
+    <header class="hero">
+      <p class="kicker">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
       <h1>Imagination<br>Engine</h1>
+      <p class="lede">Welcome.</p>
+      <p class="byline">
+        This is a tool for guided imagination. Tell me what you want to imagine — succeeding at something hard, being a different character, your life on another path, being a real or fictional person. I'll write you a ten-to-fifteen minute session and read it back. You listen with your eyes closed and do the imagining yourself.
+      </p>
+      <p class="status-strip"><span class="pulse-dot"></span> Running locally · nothing leaves this machine</p>
     </header>
 
-    <section class="lede-block">
-      <p class="lede">
-        This is a tool for guided imagination. You tell it what you want
-        to imagine — succeeding at something hard, being a different
-        character, your life on another path, being a real or fictional
-        person — and it writes you a ten-to-fifteen minute session and
-        reads it back. You listen with your eyes closed and do the
-        imagining yourself.
+    <section class="block">
+      <p class="kicker">Begin</p>
+      <h2 id="path-start-title">Begin your first session.</h2>
+      <p id="path-start-body">Open a conversation with the engine. Tell it what you want to imagine. It takes about a minute to build the audio in the placeholder voice; longer if you've trained your own.</p>
+      <div class="cta">
+        <a class="button button-primary" href="/intake">Start a session →</a>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="kicker">Your own voice · optional</p>
+      <h2>Train the engine on your voice.</h2>
+      <p>About thirty minutes of recording, then a longer training step that runs overnight on this machine. After that, sessions speak in your voice instead of a placeholder. <em>Skip this if you just want to try the engine — the placeholder voice works.</em></p>
+      <div class="cta">
+        <a class="button" href="/record">Record your voice →</a>
+        <span class="button-note">Two hundred sentences. Quiet room. MacBook USB mic or better. Save and resume any time.</span>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="kicker">About</p>
+      <h2>What you should know before starting.</h2>
+
+      <h3 class="sub-h">// How it works</h3>
+      <p>
+        A small language model running on this machine has a short conversation with you (the <em>intake</em>). It hands what you said to a longer model call that writes a 2,500-word session. A neural text-to-speech model then reads it aloud, paragraph by paragraph, with real pauses between thoughts. You listen.
       </p>
-      <p class="lede-sub">
-        Everything runs on this machine. Nothing leaves it.
+
+      <h3 class="sub-h">// Privacy</h3>
+      <p>
+        No part of this app reaches the internet during use. Model weights live in <code>~/.cache/imagination_engine</code>. The session database lives in <code>data/memory.sqlite</code>. If you record your own voice, the recordings live in <code>data/recordings/</code>. None of it is transmitted anywhere. You own the file; deleting it deletes the history.
+      </p>
+
+      <h3 class="sub-h">// What this isn't</h3>
+      <p>
+        Not a therapy app. Not a companion. There is no thread to scroll back through, no streaks, no notifications, no nudges to come back. It's an instrument you open to do focused imagination work and then close to go live your day.
       </p>
     </section>
 
-    <section class="paths">
-      <a class="path path-primary" href="/intake" id="path-start">
-        <p class="path-label">START A SESSION</p>
-        <h2 class="path-title" id="path-start-title">Begin your first session</h2>
-        <p class="path-body" id="path-start-body">Open a conversation with the engine. Tell it what you want to imagine. It takes about a minute to build the audio.</p>
-        <p class="path-cta">Begin →</p>
-      </a>
-
-      <a class="path path-secondary" href="/record">
-        <p class="path-label">YOUR OWN VOICE · OPTIONAL</p>
-        <h2 class="path-title">Set up your voice</h2>
-        <p class="path-body">About thirty minutes of recording, then a longer training step that runs overnight on this machine. After that, the engine speaks in your voice instead of a placeholder. You can skip this and use the placeholder voice for now — sessions still work.</p>
-        <p class="path-cta">Record →</p>
-      </a>
-    </section>
-
-    <section class="about" id="about">
-      <details>
-        <summary><span class="about-label">ABOUT THIS</span></summary>
-        <div class="about-body">
-          <h3>What it is</h3>
-          <p>
-            A guided imagination tool you run on your own laptop. You bring an
-            imagining; it writes a session around what you brought and reads it
-            to you. The protocol shape is the same every time — a settle, then
-            the imagining, then a gentle return. The content is yours.
-          </p>
-
-          <h3>How it works</h3>
-          <p>
-            A small language model running on this machine has a short
-            conversation with you (the "intake"). It hands what you said to a
-            longer model call that writes a 2,500-word session. A neural
-            text-to-speech model then reads it aloud, paragraph by paragraph,
-            with real pauses between thoughts. You listen.
-          </p>
-
-          <h3>Privacy</h3>
-          <p>
-            No part of this app reaches the internet during use. The model
-            weights live in a cache directory; the database lives in
-            <code>data/memory.sqlite</code>. If you record your own voice the
-            recordings live in <code>data/recordings/</code>. None of it is
-            transmitted anywhere. You own the file; deleting it deletes the
-            history.
-          </p>
-
-          <h3>What this isn't</h3>
-          <p>
-            Not a therapy app. Not a companion. There is no thread to scroll
-            back through, no streaks, no nudges to come back. It's an
-            instrument you open to do focused imagination work and then close
-            to go live your day.
-          </p>
-        </div>
-      </details>
-    </section>
-
-    <footer class="welcome-footer">
-      <p class="footer-line">
-        Built locally by <a href="https://law.stanford.edu/sonali-maitra/" target="_blank" rel="noopener">Sonali Maitra</a>.
-        Source on <a href="https://github.com/tsonali/imagination-engine" target="_blank" rel="noopener">GitHub</a>.
-      </p>
+    <footer>
+      <p>Built by <a href="https://law.stanford.edu/sonali-maitra/" target="_blank" rel="noopener">Sonali Maitra</a>. Source on <a href="https://github.com/tsonali/imagination-engine" target="_blank" rel="noopener">GitHub</a>.</p>
     </footer>
+
   </main>
 
   <script>
@@ -104,7 +74,7 @@
         if (!res.ok) return;
         const data = await res.json();
         if (data.session_count > 0) {
-          document.getElementById("path-start-title").textContent = "Begin another session";
+          document.getElementById("path-start-title").textContent = "Begin another session.";
           document.getElementById("path-start-body").textContent =
             "Open a new conversation. Whatever you bring tonight gets its own session.";
         }

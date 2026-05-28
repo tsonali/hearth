@@ -11,6 +11,12 @@ RECORDINGS_DIR = DATA_DIR / "recordings"
 RECORDING_SCRIPT = DATA_DIR / "recording-script.json"
 SPEAKERS_REGISTRY = DATA_DIR / "speakers.json"
 
+# Local memory store — SQLite, on-disk, gitignored, NEVER transmitted.
+# Holds one row per completed session. Used by the intake to weave in
+# light references to recent imaginings. The user does NOT see a
+# scrollable history; the memory is the engine's, not the user's.
+MEMORY_DB = DATA_DIR / "memory.sqlite"
+
 
 @dataclass(frozen=True)
 class Config:

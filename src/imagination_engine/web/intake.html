@@ -74,9 +74,20 @@
         <audio id="player" controls></audio>
       </div>
 
-      <div id="session-complete" class="session-state" hidden>
+      <div id="session-reflect" class="session-state" hidden>
         <p class="session-label">WELCOME BACK</p>
-        <p class="session-detail">Carry what came back with you.</p>
+        <p class="session-detail">How did that land? (Optional. Whatever you write stays on this machine.)</p>
+        <textarea id="reflection" rows="4" placeholder="A word, a sentence, a paragraph. Or skip."></textarea>
+        <div class="button-row">
+          <button id="reflect-save" type="button" class="primary">Save reflection</button>
+          <button id="reflect-skip" type="button" class="ghost">Skip</button>
+        </div>
+        <p id="reflect-status" class="hint"></p>
+      </div>
+
+      <div id="session-complete" class="session-state" hidden>
+        <p class="session-label">CARRY IT WITH YOU</p>
+        <p class="session-detail">Live your day.</p>
         <button id="new-session" type="button" class="secondary">Start another →</button>
       </div>
 
@@ -104,6 +115,7 @@
     const $voiceF5 = document.getElementById("voice-f5");
     const $sReady = document.getElementById("session-ready");
     const $sPlaying = document.getElementById("session-playing");
+    const $sReflect = document.getElementById("session-reflect");
     const $sComplete = document.getElementById("session-complete");
     const $sError = document.getElementById("session-error");
     const $errorDetail = document.getElementById("error-detail");
@@ -111,15 +123,19 @@
     const $retryBtn = document.getElementById("retry-btn");
     const $newSession = document.getElementById("new-session");
     const $player = document.getElementById("player");
+    const $reflection = document.getElementById("reflection");
+    const $reflectSave = document.getElementById("reflect-save");
+    const $reflectSkip = document.getElementById("reflect-skip");
+    const $reflectStatus = document.getElementById("reflect-status");
 
     function showSessionState(name) {
       $sessionCard.hidden = false;
-      for (const el of [$sChooseVoice, $sPreparing, $sReady, $sPlaying, $sComplete, $sError]) {
+      for (const el of [$sChooseVoice, $sPreparing, $sReady, $sPlaying, $sReflect, $sComplete, $sError]) {
         el.hidden = true;
       }
       const map = {
         choose: $sChooseVoice, preparing: $sPreparing, ready: $sReady,
-        playing: $sPlaying, complete: $sComplete, error: $sError,
+        playing: $sPlaying, reflect: $sReflect, complete: $sComplete, error: $sError,
       };
       if (map[name]) map[name].hidden = false;
     }
@@ -141,7 +157,7 @@
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         $player.src = url;
-        $player.addEventListener("ended", () => showSessionState("complete"), { once: true });
+        $player.addEventListener("ended", () => showSessionState("reflect"), { once: true });
         showSessionState("ready");
       } catch (err) {
         $errorDetail.textContent = err.message;
@@ -254,6 +270,40 @@
     $retryBtn.addEventListener("click", () => buildSession(window._lastVoice || "kokoro"));
     $voiceKokoro.addEventListener("click", () => { window._lastVoice = "kokoro"; buildSession("kokoro"); });
     $voiceF5.addEventListener("click", () => { window._lastVoice = "f5"; buildSession("f5"); });
+
+    async function saveReflection() {
+      const text = ($reflection.value || "").trim();
+      if (!text) { showSessionState("complete"); return; }
+      $reflectSave.disabled = true;
+      $reflectSkip.disabled = true;
+      $reflectStatus.textContent = "saving …";
+      try {
+        const res = await fetch(`/intake/${sessionId}/reflect`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reflection: text }),
+        });
+        if (!res.ok) {
+          $reflectStatus.textContent = `Couldn't save: ${res.status} ${res.statusText}`;
+          return;
+        }
+        $reflectStatus.textContent = "";
+        showSessionState("complete");
+      } catch (err) {
+        $reflectStatus.textContent = `Error: ${err.message}`;
+      } finally {
+        $reflectSave.disabled = false;
+        $reflectSkip.disabled = false;
+      }
+    }
+    $reflectSave.addEventListener("click", saveReflection);
+    $reflectSkip.addEventListener("click", () => showSessionState("complete"));
+    $reflection.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        saveReflection();
+      }
+    });
     $prompt.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();

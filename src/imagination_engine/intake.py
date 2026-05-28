@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 
 from imagination_engine.config import config
 from imagination_engine.inference import Engine
+from imagination_engine.memory import MemoryStore
 
 log = logging.getLogger(__name__)
 
@@ -108,8 +109,9 @@ class IntakeSession:
 class IntakeManager:
     """Manages active intake sessions and drives them through the LLM."""
 
-    def __init__(self, engine: Engine):
+    def __init__(self, engine: Engine, memory: MemoryStore | None = None):
         self.engine = engine
+        self.memory = memory
         self.sessions: dict[str, IntakeSession] = {}
 
     def start(self) -> IntakeSession:
@@ -135,10 +137,15 @@ class IntakeManager:
 
         session.messages.append({"role": "user", "content": user_message.strip()})
 
+        # System prompt = base intake posture + optional past-session context.
+        system = INTAKE_SYSTEM_PROMPT
+        if self.memory is not None:
+            past_context = self.memory.format_for_intake_context(limit=2)
+            if past_context:
+                system = system + "\n\n" + past_context
+
         # Build full conversation for the model: system prompt + history.
-        llm_messages: list[dict[str, str]] = [
-            {"role": "system", "content": INTAKE_SYSTEM_PROMPT}
-        ]
+        llm_messages: list[dict[str, str]] = [{"role": "system", "content": system}]
         llm_messages.extend(session.messages)
 
         chunks: list[str] = []

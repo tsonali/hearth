@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from imagination_engine.config import (
     config,
+    MEMORY_DB,
     RECORDINGS_DIR,
     RECORDING_SCRIPT,
     SPEAKERS_REGISTRY,
@@ -25,6 +26,7 @@ from imagination_engine.config import (
 from imagination_engine.generator import generate_session
 from imagination_engine.inference import Engine
 from imagination_engine.intake import IntakeManager
+from imagination_engine.memory import MemoryStore
 from imagination_engine.tts import Voice, make_voice
 
 log = logging.getLogger("imagination_engine")
@@ -36,6 +38,7 @@ app = FastAPI(title="Imagination Engine", docs_url=None, redoc_url=None)
 _engine: Engine | None = None
 _voices: dict[str, object] = {}
 _intake_manager: IntakeManager | None = None
+_memory: MemoryStore | None = None
 
 
 def get_engine() -> Engine:
@@ -57,10 +60,19 @@ def get_voice(backend: str = "kokoro"):
     return _voices[b]
 
 
+def get_memory() -> MemoryStore:
+    global _memory
+    if _memory is None:
+        _memory = MemoryStore(MEMORY_DB)
+        log.info("Memory store ready at %s (%d sessions on disk)",
+                 MEMORY_DB, _memory.count())
+    return _memory
+
+
 def get_intake_manager() -> IntakeManager:
     global _intake_manager
     if _intake_manager is None:
-        _intake_manager = IntakeManager(get_engine())
+        _intake_manager = IntakeManager(get_engine(), memory=get_memory())
     return _intake_manager
 
 
@@ -239,9 +251,40 @@ def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     log.info("Generating session for %s (voice=%s) ...", session_id, voice)
     script = generate_session(get_engine(), session.messages)
     log.info("Rendering audio for %s (%d-word script, voice=%s) ...", session_id, len(script.split()), voice)
-    wav_bytes = get_voice(voice).render_session(script)
+    voice_obj = get_voice(voice)
+    wav_bytes = voice_obj.render_session(script)
     log.info("Session for %s ready (%.1f KB)", session_id, len(wav_bytes) / 1024)
+
+    # Persist to local memory so future intakes can reference this session.
+    try:
+        speaker = getattr(voice_obj, "speaker", None)
+        get_memory().save_session(
+            session_id=session_id,
+            intake_transcript=session.messages,
+            script=script,
+            voice_backend=voice,
+            speaker=speaker,
+        )
+    except Exception as e:
+        log.warning("memory save failed for %s: %s", session_id, e)
+
     return Response(content=wav_bytes, media_type="audio/wav")
+
+
+class ReflectRequest(BaseModel):
+    reflection: str
+
+
+@app.post("/intake/{session_id}/reflect")
+def intake_reflect(session_id: str, req: ReflectRequest) -> JSONResponse:
+    """Capture the user's post-session reflection. Stored locally only."""
+    text = (req.reflection or "").strip()
+    if not text:
+        return JSONResponse({"saved": False, "reason": "empty"})
+    updated = get_memory().capture_reflection(session_id, text)
+    if not updated:
+        raise HTTPException(status_code=404, detail="session not in memory")
+    return JSONResponse({"saved": True})
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

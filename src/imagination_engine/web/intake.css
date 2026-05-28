@@ -203,6 +203,29 @@ main.intake header.brand h1 {
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* Reflection state — textarea + save/skip. */
+#session-reflect textarea {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+}
+#session-reflect textarea:focus { outline: none; border-color: var(--text); }
+#session-reflect .button-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+#reflect-status { margin: 0; }
+
 /* Subtle pulse for the "preparing" detail line — quiet life during the wait. */
 .pulse {
   animation: pulse-opacity 2.4s ease-in-out infinite;

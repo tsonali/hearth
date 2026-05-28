@@ -44,3 +44,8 @@ logs/
 # belongs in this repository.
 data/recordings/
 ckpts/
+
+# Local memory store — per-user session history. Never transmitted, never
+# committed to git. Lives only on the user's own machine.
+data/memory.sqlite
+data/memory.sqlite-*

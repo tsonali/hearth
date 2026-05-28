@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Iterator
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -228,8 +230,30 @@ def intake_get(session_id: str) -> JSONResponse:
     return JSONResponse(session.to_dict())
 
 
+def _make_progress_updater(session):
+    """Return a callback that mutates `session.progress` in place.
+
+    Generator and TTS each accept `on_progress=...`; we wire both into the
+    same updater so the user-visible preparing line tells a single coherent
+    story: writing 1/3 → 2/3 → 3/3 → rendering 1/N → ... → done.
+    """
+    def update(*, stage: str, detail: str, step: int = 0, total: int = 0,
+               eta_seconds: float | None = None) -> None:
+        p = session.progress
+        # New stage → reset the started_at clock so elapsed is per-stage.
+        if stage != p.stage:
+            p.started_at = time.time()
+        p.stage = stage
+        p.detail = detail
+        p.step = step
+        p.total = total
+        p.eta_seconds = eta_seconds
+        p.error = None
+    return update
+
+
 @app.post("/intake/{session_id}/generate")
-def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
+async def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     """Run the full intake → script → audio pipeline and return the WAV.
 
     Query param `voice` picks the backend:
@@ -239,6 +263,11 @@ def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     The generated script text itself is NEVER returned over the wire —
     per [[project-voice-design]] it stays as the hidden thinking layer.
     The user hears the audio; that's the only delivery surface.
+
+    The heavy work runs in a threadpool so other handlers — notably the
+    /status endpoint the client polls every 2 seconds — stay responsive.
+    The session's `progress` field is updated synchronously from inside the
+    worker via callbacks; the GET /status handler just reads the dataclass.
     """
     intake = get_intake_manager()
     try:
@@ -248,12 +277,29 @@ def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     if not session.ready:
         raise HTTPException(status_code=409, detail="intake not yet finalized")
 
-    log.info("Generating session for %s (voice=%s) ...", session_id, voice)
-    script = generate_session(get_engine(), session.messages)
-    log.info("Rendering audio for %s (%d-word script, voice=%s) ...", session_id, len(script.split()), voice)
-    voice_obj = get_voice(voice)
-    wav_bytes = voice_obj.render_session(script)
-    log.info("Session for %s ready (%.1f KB)", session_id, len(wav_bytes) / 1024)
+    update = _make_progress_updater(session)
+
+    def _do_work() -> tuple[bytes, str, object]:
+        log.info("Generating session for %s (voice=%s) ...", session_id, voice)
+        script = generate_session(get_engine(), session.messages, on_progress=update)
+        log.info("Rendering audio for %s (%d-word script, voice=%s) ...",
+                 session_id, len(script.split()), voice)
+        voice_obj = get_voice(voice)
+        wav_bytes = voice_obj.render_session(script, on_progress=update)
+        log.info("Session for %s ready (%.1f KB)", session_id, len(wav_bytes) / 1024)
+        return wav_bytes, script, voice_obj
+
+    try:
+        wav_bytes, script, voice_obj = await run_in_threadpool(_do_work)
+    except Exception as e:
+        session.progress.stage = "error"
+        session.progress.error = str(e)
+        session.progress.detail = "Something went wrong while building your session."
+        log.exception("generate failed for %s", session_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # Done — flip progress to its terminal state so the client can stop polling.
+    update(stage="done", detail="Your session is ready.", step=0, total=0, eta_seconds=0)
 
     # Persist to local memory so future intakes can reference this session.
     try:
@@ -269,6 +315,20 @@ def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
         log.warning("memory save failed for %s: %s", session_id, e)
 
     return Response(content=wav_bytes, media_type="audio/wav")
+
+
+@app.get("/intake/{session_id}/status")
+def intake_status(session_id: str) -> JSONResponse:
+    """Live progress for the client's preparing-state polling loop.
+
+    Cheap read of the in-memory SessionProgress dataclass. The client polls
+    this every ~2 seconds while the long generate+render call is in flight.
+    """
+    try:
+        session = get_intake_manager().get(session_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return JSONResponse(session.progress.to_dict())
 
 
 class ReflectRequest(BaseModel):

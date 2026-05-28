@@ -11,6 +11,7 @@ Design rationale: see `docs/decisions-log.md` (Scope reframe entry,
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from dataclasses import dataclass, field
 
@@ -86,6 +87,45 @@ If the user explicitly names something current (a tour, a year, a relationship, 
 
 
 @dataclass
+class SessionProgress:
+    """Live progress state for a session being generated/rendered.
+
+    Updated by callbacks the server passes into `generate_session` and
+    `render_session`. Read by the `/intake/{id}/status` endpoint, which the
+    client polls during the preparing state so the user sees real movement.
+
+    Stages, in order:
+        queued          — session ready, generation not yet kicked off
+        writing_settle  — LLM call 1/3
+        writing_body    — LLM call 2/3 (the long one)
+        writing_return  — LLM call 3/3
+        rendering       — TTS, paragraph-by-paragraph
+        done            — audio ready
+        error           — something failed; `error` field holds the message
+    """
+
+    stage: str = "queued"
+    detail: str = ""
+    step: int = 0
+    total: int = 0
+    started_at: float = 0.0
+    eta_seconds: float | None = None
+    error: str | None = None
+
+    def to_dict(self) -> dict:
+        elapsed = time.time() - self.started_at if self.started_at else 0.0
+        return {
+            "stage": self.stage,
+            "detail": self.detail,
+            "step": self.step,
+            "total": self.total,
+            "elapsed_seconds": round(elapsed, 1),
+            "eta_seconds": round(self.eta_seconds, 1) if self.eta_seconds else None,
+            "error": self.error,
+        }
+
+
+@dataclass
 class IntakeSession:
     """One user's intake conversation, held in memory.
 
@@ -96,6 +136,7 @@ class IntakeSession:
     messages: list[dict[str, str]] = field(default_factory=list)
     turn_count: int = 0
     ready: bool = False
+    progress: SessionProgress = field(default_factory=SessionProgress)
 
     def to_dict(self) -> dict:
         return {
@@ -103,6 +144,7 @@ class IntakeSession:
             "messages": self.messages,
             "turn_count": self.turn_count,
             "ready": self.ready,
+            "progress": self.progress.to_dict(),
         }
 
 

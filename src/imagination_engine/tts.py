@@ -15,14 +15,22 @@ from __future__ import annotations
 
 import io
 import logging
+import time
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable, Optional
 
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
 from imagination_engine.config import config
+
+
+# Same callback shape as generator.ProgressFn — the server passes one in so
+# the user-visible "preparing" line gets live updates during a 20-minute F5
+# render. See `IntakeSession.progress` for the receiving end.
+ProgressFn = Callable[..., None]
 
 log = logging.getLogger(__name__)
 
@@ -126,6 +134,7 @@ class Voice:
         *,
         pause_between_paragraphs: float = 2.0,
         speed: float | None = None,
+        on_progress: Optional[ProgressFn] = None,
     ) -> bytes:
         """Render a full session script to a single WAV file.
 
@@ -135,6 +144,10 @@ class Voice:
         session its breathing room — TTS engines compress pauses inside a
         single render, so we get the spacing by rendering in chunks and
         concatenating.
+
+        If `on_progress` is supplied, it's invoked before each paragraph
+        with stage="rendering" plus a running ETA — the server pipes this
+        into the session progress so the user sees movement during the wait.
 
         Returns a complete WAV file as bytes.
         """
@@ -148,13 +161,25 @@ class Voice:
 
         rendered: list[np.ndarray] = []
         sample_rate = 24000  # Kokoro outputs 24 kHz
+        durations: list[float] = []
         for i, paragraph in enumerate(paragraphs):
+            if on_progress is not None:
+                eta = _estimate_eta(durations, total=len(paragraphs), done=i)
+                on_progress(
+                    stage="rendering",
+                    detail=_render_detail(i + 1, len(paragraphs), eta),
+                    step=i + 1,
+                    total=len(paragraphs),
+                    eta_seconds=eta,
+                )
+            t0 = time.time()
             audio, sr = self.engine.create(
                 paragraph,
                 voice=self.voice_name,
                 speed=effective_speed,
                 lang="en-us",
             )
+            durations.append(time.time() - t0)
             sample_rate = sr
             rendered.append(np.asarray(audio, dtype=np.float32))
             if i < len(paragraphs) - 1:
@@ -266,8 +291,16 @@ class F5Voice:
         *,
         pause_between_paragraphs: float = 2.0,
         speed: float | None = None,
+        on_progress: Optional[ProgressFn] = None,
     ) -> bytes:
-        """Render a full session script — paragraph-by-paragraph, with real silence between."""
+        """Render a full session script — paragraph-by-paragraph, with real silence between.
+
+        F5-TTS renders at ~1/4× to 1/8× real-time on M3, so a 12-min session
+        takes 15-20 minutes. `on_progress` (if supplied) fires before each
+        paragraph with a running ETA computed from the actual per-paragraph
+        time so far — so the user-visible "preparing" line counts down
+        honestly, not from a hardcoded guess.
+        """
         import numpy as np
 
         paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
@@ -278,8 +311,19 @@ class F5Voice:
         sample_rate = 24000  # F5-TTS Vocos vocoder outputs 24 kHz
 
         rendered: list[np.ndarray] = []
+        durations: list[float] = []
         for i, paragraph in enumerate(paragraphs):
+            if on_progress is not None:
+                eta = _estimate_eta(durations, total=len(paragraphs), done=i)
+                on_progress(
+                    stage="rendering",
+                    detail=_render_detail(i + 1, len(paragraphs), eta),
+                    step=i + 1,
+                    total=len(paragraphs),
+                    eta_seconds=eta,
+                )
             log.info("F5 render paragraph %d/%d (%d chars)", i + 1, len(paragraphs), len(paragraph))
+            t0 = time.time()
             audio, sr, _ = self.engine.infer(
                 ref_file=str(self.ref_file),
                 ref_text=self.ref_text,
@@ -289,6 +333,7 @@ class F5Voice:
                 cfg_strength=self.cfg_strength,
                 nfe_step=self.nfe_step,
             )
+            durations.append(time.time() - t0)
             sample_rate = sr
             rendered.append(np.asarray(audio, dtype="float32"))
             if i < len(paragraphs) - 1:
@@ -302,6 +347,39 @@ class F5Voice:
         buf = io.BytesIO()
         sf.write(buf, full, sample_rate, format="WAV")
         return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# Progress helpers — shared between Kokoro and F5 render paths.
+# ---------------------------------------------------------------------------
+
+
+def _estimate_eta(durations: list[float], *, total: int, done: int) -> float | None:
+    """Project the remaining render time from per-paragraph timings so far.
+
+    First paragraph: no data yet → return None. After that, average the
+    completed paragraph durations and multiply by paragraphs remaining.
+    Honest projection beats a hardcoded guess, especially on F5 where the
+    first paragraph is slow (warm-up) and later ones settle into a rhythm.
+    """
+    remaining = total - done
+    if remaining <= 0:
+        return 0.0
+    if not durations:
+        return None
+    avg = sum(durations) / len(durations)
+    return avg * remaining
+
+
+def _render_detail(current: int, total: int, eta_seconds: float | None) -> str:
+    """User-facing detail line for the rendering stage."""
+    base = f"Rendering paragraph {current} of {total}"
+    if eta_seconds is None:
+        return base + "."
+    if eta_seconds < 90:
+        return f"{base}. About {max(int(round(eta_seconds)), 5)} seconds left."
+    minutes = int(round(eta_seconds / 60))
+    return f"{base}. About {minutes} minute{'s' if minutes != 1 else ''} left."
 
 
 # ---------------------------------------------------------------------------

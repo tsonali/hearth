@@ -18,10 +18,17 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import Callable, Optional
 
 from imagination_engine.inference import Engine
 
 log = logging.getLogger(__name__)
+
+
+# A progress callback receives keyword args describing the current stage.
+# Server wires this to the SessionProgress object so the client polling
+# /intake/{id}/status sees real movement during the wait.
+ProgressFn = Callable[..., None]
 
 
 # ---------------------------------------------------------------------------
@@ -178,13 +185,26 @@ def _generate(engine: Engine, system: str, user: str, max_tokens: int) -> str:
 # Public API.
 # ---------------------------------------------------------------------------
 
-def generate_session(engine: Engine, transcript: list[dict]) -> str:
+def generate_session(
+    engine: Engine,
+    transcript: list[dict],
+    *,
+    on_progress: Optional[ProgressFn] = None,
+) -> str:
     """Generate the full session script: settle → body → return.
 
     Three separate LLM calls so the body can be long enough to be genuinely
     immersive (single-call generation caps around 1500-2000 words). Returns
     the concatenated script with blank-line paragraph breaks.
+
+    `on_progress`, if supplied, is invoked at the start of each of the three
+    stages with: stage=..., detail=..., step=..., total=3, eta_seconds=...
+    The server uses this to update the user-visible "preparing" line.
     """
+    def emit(stage: str, detail: str, step: int, eta: float) -> None:
+        if on_progress is not None:
+            on_progress(stage=stage, detail=detail, step=step, total=3, eta_seconds=eta)
+
     intake = _intake_block(transcript)
     target = (
         "Below is the intake conversation that just happened. Use it for context "
@@ -192,13 +212,15 @@ def generate_session(engine: Engine, transcript: list[dict]) -> str:
         f"{intake}"
     )
 
-    # Stage 1: settle.
+    # Stage 1: settle. Short LLM call — typically 10-20s on M3.
+    emit("writing_settle", "Writing the opening. Settling you in.", 1, eta=20.0)
     log.info("generating settle (stage 1/3) ...")
     t0 = time.time()
     settle = _generate(engine, SETTLE_PROMPT, target, max_tokens=700)
     log.info("  settle: %.1fs, %d words", time.time() - t0, len(settle.split()))
 
-    # Stage 2: the imagining body — receives the settle so it doesn't repeat orientation.
+    # Stage 2: the imagining body — the long one. 30-90s on M3.
+    emit("writing_body", "Writing the body — the heart of the imagining.", 2, eta=60.0)
     log.info("generating body (stage 2/3) ...")
     t0 = time.time()
     body_user = (
@@ -212,7 +234,8 @@ def generate_session(engine: Engine, transcript: list[dict]) -> str:
     body = _generate(engine, BODY_PROMPT, body_user, max_tokens=4096)
     log.info("  body: %.1fs, %d words", time.time() - t0, len(body.split()))
 
-    # Stage 3: return — receives both settle and body so it can carry a specific back.
+    # Stage 3: return.
+    emit("writing_return", "Writing the return — how you'll come back.", 3, eta=20.0)
     log.info("generating return (stage 3/3) ...")
     t0 = time.time()
     return_user = (

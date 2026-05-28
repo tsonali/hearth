@@ -234,3 +234,31 @@ main.intake header.brand h1 {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
 }
+
+/* Secondary line under the preparing detail — paragraph counter + ETA.
+   Kept quiet: smaller, dimmer, monospace-ish so the counter is readable. */
+.session-hint {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+/* Thin progress bar under the preparing hint — appears only during the
+   audio render stage, when we have a paragraph count to measure against. */
+.progress-bar {
+  width: 100%;
+  height: 2px;
+  background: var(--rule);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-top: 0.1rem;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.4s ease-out;
+}

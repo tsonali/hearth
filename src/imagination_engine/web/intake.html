@@ -61,6 +61,10 @@
       <div id="session-preparing" class="session-state" hidden>
         <p class="session-label">PREPARING YOUR SESSION</p>
         <p class="session-detail pulse" id="preparing-detail">Building the words. Finding the voice.</p>
+        <p class="session-hint" id="preparing-hint" hidden></p>
+        <div class="progress-bar" id="preparing-bar" hidden>
+          <div class="progress-bar-fill" id="preparing-bar-fill"></div>
+        </div>
       </div>
 
       <div id="session-ready" class="session-state" hidden>
@@ -111,6 +115,9 @@
     const $sChooseVoice = document.getElementById("session-choose-voice");
     const $sPreparing = document.getElementById("session-preparing");
     const $preparingDetail = document.getElementById("preparing-detail");
+    const $preparingHint = document.getElementById("preparing-hint");
+    const $preparingBar = document.getElementById("preparing-bar");
+    const $preparingBarFill = document.getElementById("preparing-bar-fill");
     const $voiceKokoro = document.getElementById("voice-kokoro");
     const $voiceF5 = document.getElementById("voice-f5");
     const $sReady = document.getElementById("session-ready");
@@ -138,6 +145,79 @@
         playing: $sPlaying, reflect: $sReflect, complete: $sComplete, error: $sError,
       };
       if (map[name]) map[name].hidden = false;
+      // Polling lives only inside the preparing state. Stop it on any
+      // transition out so a long-running poll never overwrites the ready
+      // state's detail line.
+      if (name !== "preparing") stopProgressPoll();
+    }
+
+    // ---- Live progress polling during the preparing state ------------------
+    // The server runs generate+render in a threadpool and updates the session's
+    // SessionProgress dataclass via callbacks from inside the generator and
+    // tts. The client polls GET /intake/{id}/status every 2s while preparing
+    // is visible, updating the detail line + a paragraph-counter hint + ETA.
+    let progressTimer = null;
+
+    function fmtEta(seconds) {
+      if (seconds == null) return "";
+      if (seconds < 5) return "almost there";
+      if (seconds < 90) return `~${Math.max(5, Math.round(seconds))}s left`;
+      const m = Math.round(seconds / 60);
+      return `~${m} min left`;
+    }
+
+    function applyProgress(p) {
+      if (!p) return;
+      if (p.error) {
+        $errorDetail.textContent = p.error;
+        showSessionState("error");
+        return;
+      }
+      if (p.detail) $preparingDetail.textContent = p.detail;
+      // Secondary hint: paragraph counter + ETA when we're in the render stage.
+      if (p.stage === "rendering" && p.total > 0) {
+        const eta = fmtEta(p.eta_seconds);
+        $preparingHint.textContent = eta
+          ? `paragraph ${p.step} of ${p.total} · ${eta}`
+          : `paragraph ${p.step} of ${p.total}`;
+        $preparingHint.hidden = false;
+        $preparingBar.hidden = false;
+        const pct = Math.max(0, Math.min(100, Math.round(100 * p.step / p.total)));
+        $preparingBarFill.style.width = pct + "%";
+      } else if (p.stage && p.stage.startsWith("writing_") && p.total > 0) {
+        $preparingHint.textContent = `step ${p.step} of ${p.total}`;
+        $preparingHint.hidden = false;
+        $preparingBar.hidden = true;
+      } else {
+        $preparingHint.hidden = true;
+        $preparingBar.hidden = true;
+      }
+    }
+
+    async function pollProgressOnce() {
+      if (!sessionId) return;
+      try {
+        const res = await fetch(`/intake/${sessionId}/status`);
+        if (!res.ok) return;
+        applyProgress(await res.json());
+      } catch (e) { /* transient — try again next tick */ }
+    }
+
+    function startProgressPoll() {
+      stopProgressPoll();
+      pollProgressOnce();
+      progressTimer = setInterval(pollProgressOnce, 2000);
+    }
+
+    function stopProgressPoll() {
+      if (progressTimer != null) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+      }
+      $preparingHint.hidden = true;
+      $preparingHint.textContent = "";
+      $preparingBar.hidden = true;
+      $preparingBarFill.style.width = "0%";
     }
 
     async function buildSession(voice) {
@@ -146,6 +226,9 @@
       $preparingDetail.textContent = voice === "f5"
         ? "Writing the words, then rendering your voice. About twenty minutes. You can walk away."
         : "Writing the words. Rendering the audio. About a minute.";
+      // Start polling the server for real progress — the line above is just
+      // the immediate placeholder until the first poll lands.
+      startProgressPoll();
       try {
         const res = await fetch(`/intake/${sessionId}/generate?voice=${encodeURIComponent(voice)}`, { method: "POST" });
         if (!res.ok) {

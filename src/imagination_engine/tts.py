@@ -383,19 +383,309 @@ def _render_detail(current: int, total: int, eta_seconds: float | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Chatterbox-TTS Voice — the two curated "system voices" (her / him).
+# ---------------------------------------------------------------------------
+
+
+# Names of the two curated voices and where their reference clips live.
+SYSTEM_VOICE_NAMES = ("her", "him")
+
+
+@dataclass
+class ChatterboxVoice:
+    """A curated system voice via Resemble AI's Chatterbox (MIT-licensed).
+
+    Zero-shot cloned from a 10-15s reference clip. Chosen by the founder as
+    the two first-class non-user voices for v0 — one warm woman, one slow
+    measured man — tuned for the "intimate audiobook narrator" feel that
+    works for a 12-minute eyes-closed session.
+
+    Two operational quirks of Chatterbox:
+      1. Single-pass generation caps at ~40 seconds of audio. We chunk at
+         paragraph boundaries first (preserving the breath-pauses the script
+         encodes via blank lines), and sub-split any long paragraph at
+         sentence boundaries with a tiny crossfade between sub-chunks.
+      2. Every output is embedded with Resemble's PerTh neural watermark.
+         Not a license restriction; documented here so it's not a surprise.
+    """
+
+    engine: object              # chatterbox.tts.ChatterboxTTS
+    name: str                   # "her" | "him"
+    ref_file: Path              # the 10-15s reference clip
+    exaggeration: float
+    cfg_weight: float
+    temperature: float
+    max_words_per_chunk: int
+    crossfade_ms: int
+    sample_rate: int            # detected at load time from the engine
+
+    @classmethod
+    def load(cls, *, name: str) -> "ChatterboxVoice":
+        from imagination_engine.config import (
+            SYSTEM_VOICES_DIR,
+        )
+
+        n = name.lower().strip()
+        if n not in SYSTEM_VOICE_NAMES:
+            raise ValueError(
+                f"unknown system voice {name!r} — must be one of {SYSTEM_VOICE_NAMES}"
+            )
+
+        ref_file = SYSTEM_VOICES_DIR / f"{n}.wav"
+        if not ref_file.is_file():
+            raise FileNotFoundError(
+                f"reference clip not found: {ref_file}. "
+                f"Run scripts/download_system_voices.py to source it, "
+                f"or drop a 10-15s WAV at that path."
+            )
+
+        # Lazy import — chatterbox pulls torch, diffusers, etc.
+        from chatterbox.tts import ChatterboxTTS
+
+        log.info("Loading Chatterbox system voice (%s) ...", n)
+        engine = ChatterboxTTS.from_pretrained(device="mps")
+        # Chatterbox exposes its native sample rate as engine.sr.
+        sr = getattr(engine, "sr", 24000)
+        log.info("Chatterbox loaded (sample_rate=%d).", sr)
+
+        return cls(
+            engine=engine,
+            name=n,
+            ref_file=ref_file,
+            exaggeration=config.chatterbox_exaggeration,
+            cfg_weight=config.chatterbox_cfg_weight,
+            temperature=config.chatterbox_temperature,
+            max_words_per_chunk=config.chatterbox_max_words_per_chunk,
+            crossfade_ms=config.chatterbox_crossfade_ms,
+            sample_rate=sr,
+        )
+
+    @property
+    def backend(self) -> str:
+        return "chatterbox"
+
+    @property
+    def speaker(self) -> str:
+        return self.name
+
+    @property
+    def display_name(self) -> str:
+        return {"her": "Her", "him": "Him"}.get(self.name, self.name.capitalize())
+
+    # ---- Chunking ---------------------------------------------------------
+
+    def _split_paragraph(self, paragraph: str) -> list[str]:
+        """Split a single paragraph into Chatterbox-safe word-budgeted chunks.
+
+        Respects sentence boundaries — never mid-sentence. Single-sentence
+        paragraphs longer than the budget are rare in our scripts but if
+        they happen, fall through to a single-element list (the engine will
+        truncate; we accept that as a known-rare failure rather than splitting
+        mid-sentence which would audibly break the listening experience).
+        """
+        import re
+
+        words = paragraph.split()
+        if len(words) <= self.max_words_per_chunk:
+            return [paragraph]
+
+        sentences = re.split(r"(?<=[.!?])\s+", paragraph)
+        chunks: list[str] = []
+        current: list[str] = []
+        current_words = 0
+        for s in sentences:
+            sw = len(s.split())
+            if current and current_words + sw > self.max_words_per_chunk:
+                chunks.append(" ".join(current))
+                current = [s]
+                current_words = sw
+            else:
+                current.append(s)
+                current_words += sw
+        if current:
+            chunks.append(" ".join(current))
+        return chunks
+
+    def _crossfade_concat(self, segments: "list", sample_rate: int):
+        """Concatenate sub-paragraph audio segments with a short crossfade.
+
+        Used only when a single paragraph had to be split for the 40-sec cap;
+        the crossfade hides the chunk boundary inside what the listener
+        experiences as one continuous paragraph. Real silence between full
+        paragraphs is handled separately, outside this helper.
+        """
+        import numpy as np
+
+        if not segments:
+            return np.zeros(0, dtype=np.float32)
+        if len(segments) == 1:
+            return segments[0]
+
+        fade_samples = int(self.crossfade_ms / 1000.0 * sample_rate)
+        if fade_samples <= 0:
+            return np.concatenate(segments)
+
+        result = segments[0].copy()
+        fade_out = np.linspace(1.0, 0.0, fade_samples, dtype=np.float32)
+        fade_in = np.linspace(0.0, 1.0, fade_samples, dtype=np.float32)
+        for nxt in segments[1:]:
+            if len(result) < fade_samples or len(nxt) < fade_samples:
+                # Too short to crossfade — just butt-join.
+                result = np.concatenate([result, nxt])
+                continue
+            result[-fade_samples:] = result[-fade_samples:] * fade_out + nxt[:fade_samples] * fade_in
+            result = np.concatenate([result, nxt[fade_samples:]])
+        return result
+
+    # ---- One-shot ---------------------------------------------------------
+
+    def speak(self, text: str, *, speed: float | None = None) -> bytes:
+        """Render a single short utterance to WAV bytes. `speed` is ignored;
+        Chatterbox doesn't expose a direct speed knob (use `temperature` for
+        natural variation). Provided for parity with the Voice interface."""
+        import numpy as np
+
+        wav = self.engine.generate(
+            text,
+            audio_prompt_path=str(self.ref_file),
+            exaggeration=self.exaggeration,
+            cfg_weight=self.cfg_weight,
+            temperature=self.temperature,
+        )
+        arr = _to_float32_mono(wav)
+        buf = io.BytesIO()
+        sf.write(buf, arr, self.sample_rate, format="WAV")
+        return buf.getvalue()
+
+    # ---- Full session -----------------------------------------------------
+
+    def render_session(
+        self,
+        script: str,
+        *,
+        pause_between_paragraphs: float = 2.0,
+        speed: float | None = None,
+        on_progress: Optional[ProgressFn] = None,
+    ) -> bytes:
+        """Render a full session script.
+
+        Two-level chunking: paragraphs are the primary boundary (preserving
+        the breath-pauses the script encoded via blank lines), and within
+        each paragraph we sub-chunk if needed to stay under Chatterbox's
+        40-sec cap. `on_progress` fires before each chunk render with a
+        running ETA computed from per-chunk durations so far.
+        """
+        import numpy as np
+
+        paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
+        if not paragraphs:
+            raise ValueError("empty script")
+
+        # First pass: pre-chunk all paragraphs so we know the total count up
+        # front for honest progress reporting (the user sees "chunk 7 of 30").
+        paragraph_chunks: list[list[str]] = [self._split_paragraph(p) for p in paragraphs]
+        total_chunks = sum(len(c) for c in paragraph_chunks)
+
+        rendered: list = []
+        durations: list[float] = []
+        completed = 0
+
+        for p_idx, chunks in enumerate(paragraph_chunks):
+            segments: list = []
+            for c_idx, chunk in enumerate(chunks):
+                if on_progress is not None:
+                    eta = _estimate_eta(durations, total=total_chunks, done=completed)
+                    detail = (
+                        f"Rendering paragraph {p_idx + 1} of {len(paragraphs)}"
+                        + (f" (part {c_idx + 1} of {len(chunks)})" if len(chunks) > 1 else "")
+                    )
+                    if eta is not None:
+                        if eta < 90:
+                            detail += f". About {max(int(round(eta)), 5)} seconds left."
+                        else:
+                            mins = int(round(eta / 60))
+                            detail += f". About {mins} minute{'s' if mins != 1 else ''} left."
+                    else:
+                        detail += "."
+                    on_progress(
+                        stage="rendering",
+                        detail=detail,
+                        step=completed + 1,
+                        total=total_chunks,
+                        eta_seconds=eta,
+                    )
+
+                log.info(
+                    "Chatterbox render p%d/%d chunk %d/%d (%d words)",
+                    p_idx + 1, len(paragraphs), c_idx + 1, len(chunks), len(chunk.split()),
+                )
+                t0 = time.time()
+                wav = self.engine.generate(
+                    chunk,
+                    audio_prompt_path=str(self.ref_file),
+                    exaggeration=self.exaggeration,
+                    cfg_weight=self.cfg_weight,
+                    temperature=self.temperature,
+                )
+                durations.append(time.time() - t0)
+                completed += 1
+                segments.append(_to_float32_mono(wav))
+
+            # Stitch sub-chunks of this paragraph (crossfade if multi-chunk).
+            paragraph_audio = self._crossfade_concat(segments, self.sample_rate)
+            rendered.append(paragraph_audio)
+
+            # Real silence between full paragraphs — the listener's breath.
+            if p_idx < len(paragraphs) - 1:
+                silence = np.zeros(
+                    int(pause_between_paragraphs * self.sample_rate),
+                    dtype="float32",
+                )
+                rendered.append(silence)
+
+        full = np.concatenate(rendered)
+        buf = io.BytesIO()
+        sf.write(buf, full, self.sample_rate, format="WAV")
+        return buf.getvalue()
+
+
+def _to_float32_mono(wav) -> "np.ndarray":
+    """Normalize a Chatterbox return value into a 1-D float32 numpy array.
+
+    Chatterbox returns a torch tensor of shape (channels, samples) — we want
+    mono float32 samples for soundfile.write. Defensive about dimensionality
+    in case the library shape ever changes.
+    """
+    import numpy as np
+
+    if hasattr(wav, "detach"):  # torch tensor
+        wav = wav.detach().cpu().numpy()
+    arr = np.asarray(wav, dtype="float32")
+    while arr.ndim > 1:
+        arr = arr.squeeze(0) if arr.shape[0] == 1 else arr.mean(axis=0)
+    return arr
+
+
+# ---------------------------------------------------------------------------
 # Factory — picks the backend by name.
 # ---------------------------------------------------------------------------
 
 
-def make_voice(backend: str = "kokoro"):
+def make_voice(backend: str = "her"):
     """Return a loaded Voice instance for the requested backend.
 
-    backend = "kokoro" → KokoroVoice (fast, generic — placeholder voice)
-    backend = "f5"     → F5Voice (the speaker's own fine-tuned voice)
+    backend = "her"     → Chatterbox curated woman voice (system voice)
+    backend = "him"     → Chatterbox curated man voice (system voice)
+    backend = "f5"      → F5Voice (the user's own fine-tuned voice)
+    backend = "kokoro"  → Legacy Kokoro, retained only for the /dev surface
     """
     b = backend.lower().strip()
+    if b in ("her", "she", "woman", "elizabeth"):
+        return ChatterboxVoice.load(name="her")
+    if b in ("him", "he", "man", "mark"):
+        return ChatterboxVoice.load(name="him")
+    if b in ("f5", "f5-tts", "sonali", "yours", "own"):
+        return F5Voice.load()
     if b == "kokoro":
         return Voice.load()
-    if b in ("f5", "f5-tts", "sonali"):
-        return F5Voice.load()
     raise ValueError(f"unknown voice backend: {backend!r}")

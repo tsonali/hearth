@@ -46,6 +46,12 @@ logs/
 data/recordings/
 ckpts/
 
+# Reference clips for the curated system voices (LibriVox-sourced, public
+# domain). Derived artifacts — regenerable from the URLs documented in
+# data/system_voices/README.md. Keep the WAVs out of git so the repo
+# stays small and we don't accidentally republish a specific narrator.
+data/system_voices/*.wav
+
 # Local memory store — per-user session history. Never transmitted, never
 # committed to git. Lives only on the user's own machine.
 data/memory.sqlite

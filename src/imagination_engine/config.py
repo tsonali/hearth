@@ -11,6 +11,11 @@ RECORDINGS_DIR = DATA_DIR / "recordings"
 RECORDING_SCRIPT = DATA_DIR / "recording-script.json"
 SPEAKERS_REGISTRY = DATA_DIR / "speakers.json"
 
+# Curated system voices — the two first-class non-user options.
+# Each is a short reference clip we feed to Chatterbox for zero-shot cloning.
+# See data/system_voices/README.md for sourcing notes.
+SYSTEM_VOICES_DIR = DATA_DIR / "system_voices"
+
 # Local memory store — SQLite, on-disk, gitignored, NEVER transmitted.
 # Holds one row per completed session. Used by the intake to weave in
 # light references to recent imaginings. The user does NOT see a
@@ -69,6 +74,19 @@ class Config:
     f5_speed: float = 1.0
     f5_cfg_strength: float = 2.0
     f5_nfe_step: int = 32
+
+    # Chatterbox (Resemble AI, MIT) — the two curated system voices.
+    # Zero-shot cloned from a ~15s reference clip per speaker. Tuned for
+    # the "relaxed, intimate, audiobook-narrator" feel that suits a 12-min
+    # eyes-closed session. See tts.py:ChatterboxVoice for the per-knob
+    # rationale; these defaults are the calm end of the dial.
+    chatterbox_exaggeration: float = 0.35   # 0.0-1.0; lower = calmer, less animated
+    chatterbox_cfg_weight: float = 0.5      # how closely it tracks the reference
+    chatterbox_temperature: float = 0.7     # sampling stochasticity; lower = steadier
+    # 40-sec per-render cap → ~75 words max. Stay well under for safety.
+    chatterbox_max_words_per_chunk: int = 55
+    # Crossfade between sub-chunks of a single paragraph, in milliseconds.
+    chatterbox_crossfade_ms: int = 40
 
 
 config = Config()

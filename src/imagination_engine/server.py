@@ -21,9 +21,11 @@ from pydantic import BaseModel
 from imagination_engine.config import (
     config,
     MEMORY_DB,
+    PROJECT_ROOT,
     RECORDINGS_DIR,
     RECORDING_SCRIPT,
     SPEAKERS_REGISTRY,
+    SYSTEM_VOICES_DIR,
 )
 from imagination_engine.generator import generate_session
 from imagination_engine.inference import Engine
@@ -113,6 +115,63 @@ def welcome_state() -> JSONResponse:
     except Exception:
         n = 0
     return JSONResponse({"session_count": n})
+
+
+def _has_own_voice() -> bool:
+    """True iff the user's own F5-fine-tuned voice is usable.
+
+    Requires both the trained checkpoint and the reference clip on disk.
+    Used by /voices/options so the intake voice picker only surfaces the
+    "Your own voice" card when there's actually one ready to use.
+    """
+    try:
+        # Mirror F5Voice.load()'s file checks but without importing torch/F5
+        # — this runs on every welcome page load and must stay cheap.
+        from importlib.resources import files as _files
+        spk = config.f5_speaker
+        ckpt = Path(str(_files("f5_tts").joinpath(
+            f"../../ckpts/{spk}/{config.f5_checkpoint}"
+        ))).resolve()
+        ref_file = PROJECT_ROOT / "data" / "dataset" / spk / "wavs" / f"{config.f5_ref_id}.wav"
+        return ckpt.is_file() and ref_file.is_file()
+    except Exception:
+        return False
+
+
+def _system_voice_available(name: str) -> bool:
+    """True iff the reference clip for the given system voice exists on disk."""
+    return (SYSTEM_VOICES_DIR / f"{name}.wav").is_file()
+
+
+@app.get("/voices/options")
+def voices_options() -> JSONResponse:
+    """Which voices the intake picker should offer.
+
+    Cheap on-disk file checks — no model loading. Called once on intake
+    page load to decide whether to show 2 or 3 voice cards.
+    """
+    own = _has_own_voice()
+    return JSONResponse({
+        "her": {
+            "available": _system_voice_available("her"),
+            "label": "Her",
+            "description": "A warm, unhurried woman.",
+            "wait": "About 4 minutes wait",
+        },
+        "him": {
+            "available": _system_voice_available("him"),
+            "label": "Him",
+            "description": "A slow, measured man.",
+            "wait": "About 4 minutes wait",
+        },
+        "own": {
+            "available": own,
+            "label": "Your own voice",
+            "description": "Your voice, trained from your recordings." if own else
+                           "Record on /record to train this. About 30 min + overnight.",
+            "wait": "About 20 minutes wait" if own else "",
+        },
+    })
 
 
 @app.get("/dev", response_class=HTMLResponse)

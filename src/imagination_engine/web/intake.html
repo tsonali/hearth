@@ -43,19 +43,25 @@
     <section id="session-card" class="session-card" hidden>
       <div id="session-choose-voice" class="session-state">
         <p class="state-label">Choose the voice for this session</p>
-        <p class="state-detail">Two options:</p>
+        <p class="state-detail">Pick who reads to you:</p>
         <div class="voice-choice">
-          <button id="voice-kokoro" type="button" class="voice-card dim">
-            <span class="vc-title">Quick voice</span>
-            <span class="vc-time">~1 minute wait</span>
-            <span class="vc-note">Placeholder voice (not yours). For when you don't want to wait.</span>
+          <button id="voice-her" type="button" class="voice-card" hidden>
+            <span class="vc-title">Her</span>
+            <span class="vc-time">~4 minute wait</span>
+            <span class="vc-note">A warm, unhurried woman. Audiobook-narrator delivery.</span>
           </button>
-          <button id="voice-f5" type="button" class="voice-card">
+          <button id="voice-him" type="button" class="voice-card" hidden>
+            <span class="vc-title">Him</span>
+            <span class="vc-time">~4 minute wait</span>
+            <span class="vc-note">A slow, measured man. Low and quiet.</span>
+          </button>
+          <button id="voice-own" type="button" class="voice-card" hidden>
             <span class="vc-title">Your own voice</span>
             <span class="vc-time">~20 minute wait</span>
-            <span class="vc-note">The fine-tuned model speaking in your voice. Start the session, walk away, come back to listen.</span>
+            <span class="vc-note">Trained from your recordings. Start the session, walk away, come back to listen.</span>
           </button>
         </div>
+        <p id="no-voices-hint" class="state-hint" hidden>No voices set up yet — see <code>data/system_voices/README.md</code>.</p>
       </div>
 
       <div id="session-preparing" class="session-state" hidden>
@@ -118,8 +124,9 @@
     const $preparingHint = document.getElementById("preparing-hint");
     const $preparingBar = document.getElementById("preparing-bar");
     const $preparingBarFill = document.getElementById("preparing-bar-fill");
-    const $voiceKokoro = document.getElementById("voice-kokoro");
-    const $voiceF5 = document.getElementById("voice-f5");
+    const $voiceHer = document.getElementById("voice-her");
+    const $voiceHim = document.getElementById("voice-him");
+    const $voiceOwn = document.getElementById("voice-own");
     const $sReady = document.getElementById("session-ready");
     const $sPlaying = document.getElementById("session-playing");
     const $sReflect = document.getElementById("session-reflect");
@@ -223,9 +230,14 @@
     async function buildSession(voice) {
       showSessionState("preparing");
       $inputRow.hidden = true;
-      $preparingDetail.textContent = voice === "f5"
-        ? "Writing the words, then rendering your voice. About twenty minutes. You can walk away."
-        : "Writing the words. Rendering the audio. About a minute.";
+      // Initial copy per voice — real progress polling will overwrite this
+      // within ~2 seconds; this just covers the first cold moment.
+      const initial = {
+        f5:  "Writing the words, then rendering your voice. About twenty minutes. You can walk away.",
+        her: "Writing the words. Rendering the audio in her voice. About four minutes.",
+        him: "Writing the words. Rendering the audio in his voice. About four minutes.",
+      };
+      $preparingDetail.textContent = initial[voice] || "Writing the words. Rendering the audio.";
       // Start polling the server for real progress — the line above is just
       // the immediate placeholder until the first poll lands.
       startProgressPoll();
@@ -350,9 +362,29 @@
         showSessionState("error");
       });
     });
-    $retryBtn.addEventListener("click", () => buildSession(window._lastVoice || "kokoro"));
-    $voiceKokoro.addEventListener("click", () => { window._lastVoice = "kokoro"; buildSession("kokoro"); });
-    $voiceF5.addEventListener("click", () => { window._lastVoice = "f5"; buildSession("f5"); });
+    $retryBtn.addEventListener("click", () => buildSession(window._lastVoice || "her"));
+    $voiceHer.addEventListener("click", () => { window._lastVoice = "her"; buildSession("her"); });
+    $voiceHim.addEventListener("click", () => { window._lastVoice = "him"; buildSession("him"); });
+    $voiceOwn.addEventListener("click", () => { window._lastVoice = "f5"; buildSession("f5"); });
+
+    // All three voice cards start hidden. The server checks for the
+    // reference clips (system voices) and the F5 checkpoint (own voice)
+    // on disk — we only un-hide the cards that actually work. No point
+    // offering an option that would fail on click.
+    (async function gateVoiceCards() {
+      try {
+        const res = await fetch("/voices/options");
+        if (!res.ok) return;
+        const opts = await res.json();
+        let anyAvailable = false;
+        if (opts.her && opts.her.available) { $voiceHer.hidden = false; anyAvailable = true; }
+        if (opts.him && opts.him.available) { $voiceHim.hidden = false; anyAvailable = true; }
+        if (opts.own && opts.own.available) { $voiceOwn.hidden = false; anyAvailable = true; }
+        if (!anyAvailable) {
+          document.getElementById("no-voices-hint").hidden = false;
+        }
+      } catch (e) { /* defaults are fine */ }
+    })();
 
     async function saveReflection() {
       const text = ($reflection.value || "").trim();

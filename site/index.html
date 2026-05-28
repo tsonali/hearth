@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Imagination Engine — a local, private tool by Sonali Maitra</title>
+  <meta name="description" content="Guided imagination, in your own voice, on your own machine. By Sonali Maitra.">
+  <meta property="og:title" content="Imagination Engine">
+  <meta property="og:description" content="Guided imagination, in your own voice, on your own machine. By Sonali Maitra.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main>
+
+    <header class="hero">
+      <p class="kicker">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
+      <h1>Imagination<br>Engine</h1>
+      <p class="lede">Guided imagination, in your own voice, on your own machine.</p>
+      <p class="byline">
+        By <strong>Sonali Maitra</strong>. I wrote <em>God in the Machine</em>, about AI claiming an authority over us it hasn't earned. I'm writing <em>Unreality</em>, about AI experience that blurs what's real and what isn't. This is the tool I built to argue the other direction.
+      </p>
+      <p class="status-strip"><span class="pulse-dot"></span> Working v0 · closed beta · Apple Silicon</p>
+    </header>
+
+    <section class="block">
+      <p class="kicker">What it is</p>
+      <h2>Tell it what you want to imagine.</h2>
+      <p>
+        A version of yourself a year from now, having done the hard thing. Lincoln the night before Gettysburg. Your mother as a girl, in a room you've never been in. The kitchen you'd be cooking in if you'd taken the other job. Anything you want. Anything legal.
+      </p>
+      <p>
+        You type that into the engine. It asks you a few warm questions — where, when, what it feels like in the body. Then it writes you a ten-minute guided session and reads it to you, in your own voice, with real silences between the paragraphs.
+      </p>
+      <p>
+        When the audio ends, the session ends. There's no thread to return to. No history to scroll. No notifications. You go live your day.
+      </p>
+    </section>
+
+    <section class="block">
+      <p class="kicker">Why local only</p>
+      <h2>Your imagination is your business.</h2>
+      <p>
+        Most AI products want to know what you're thinking. That's the business model. This one is the opposite. It exists because what you're thinking is no one else's business, including mine.
+      </p>
+      <p>
+        There is no server. No account. No email. No sign-up. No telemetry. No analytics. No "crash report." The whole product would come apart if any of it called home, so none of it does.
+      </p>
+      <p>
+        You don't have to take that on faith. You can check.
+      </p>
+      <ul class="claims">
+        <li>
+          <span class="claim-tag">Open source</span>
+          <span class="claim-body">Read the code. <a href="https://github.com/tsonali/imagination-engine">github.com/tsonali/imagination-engine</a>. Every line that runs on your machine is visible. Don't trust me. Verify.</span>
+        </li>
+        <li>
+          <span class="claim-tag">Wi‑Fi off</span>
+          <span class="claim-body">Once installed, turn off your network. Open the engine. It works, end to end. If anything needed the network, it would fail at that moment. It doesn't.</span>
+        </li>
+        <li>
+          <span class="claim-tag">No account</span>
+          <span class="claim-body">There is nothing to sign up for. Nothing to leak, because nothing exists.</span>
+        </li>
+        <li>
+          <span class="claim-tag">No middleman</span>
+          <span class="claim-body">No app store. Direct download. Apple is not in the loop. You install the binary; what it does after is between you and your machine.</span>
+        </li>
+        <li>
+          <span class="claim-tag">Your voice, yours</span>
+          <span class="claim-body">You record your own voice once. The voice model trains on your recordings, on your machine. The trained model lives in your file system. It does not leave.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <p class="kicker">How it works</p>
+      <h2>Three pieces, all on your laptop.</h2>
+      <ul class="pillars">
+        <li>
+          <h3>Language layer</h3>
+          <p>Llama 3.1 (8 billion parameters, open weights from Meta) runs locally via Apple's MLX framework. It runs the intake conversation and writes the guided-session script. No external API calls. About 4.5 GB on disk.</p>
+        </li>
+        <li>
+          <h3>Voice layer</h3>
+          <p>F5-TTS, fine-tuned on roughly thirty minutes of your recorded voice. You record once. The model learns your voice on your machine. The trained file lives on your disk. About 1.5 GB on disk.</p>
+        </li>
+        <li>
+          <h3>App layer</h3>
+          <p>A small FastAPI server bound to <code>127.0.0.1</code> — loopback only, never network-reachable. It serves a single HTML page. The audio streams to your browser and is discarded after it plays. Nothing is saved as a downloadable file.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <p class="kicker">Status</p>
+      <h2>Working v0. Closed beta. Honest about it.</h2>
+      <p>
+        The full loop runs: intake conversation, personalized session script, audio in your own voice, played in your browser. End-to-end on a single Apple Silicon Mac, fully offline once installed.
+      </p>
+      <p>
+        This is not a polished consumer app yet. There's no installer. You have to be comfortable running a few Terminal commands. The voice fine-tune takes several hours on an M-series Mac. The docs are honest about what's still rough.
+      </p>
+      <p class="aside">
+        If you're a developer, designer, writer, or otherwise comfortable with a working v0, the code is below. If you'd rather wait for a clickable installer, this isn't ready yet. It will be.
+      </p>
+    </section>
+
+    <section class="block">
+      <p class="kicker">Get the code</p>
+      <h2>Read it. Run it. Verify it yourself.</h2>
+      <p>
+        The full source is on GitHub under an MIT license. Clone the repo, follow the install steps in the README, and you'll have it running locally in a few minutes plus the one-time model download.
+      </p>
+      <div class="cta">
+        <a class="button" href="https://github.com/tsonali/imagination-engine">View on GitHub →</a>
+        <span class="button-note">Apple Silicon Mac required for v0. About 6 GB of model weights downloaded once. Offline after that.</span>
+      </div>
+    </section>
+
+    <section class="block">
+      <p class="kicker">The thesis</p>
+      <h2>We always look to others for guidance. In the end, it's only ever you.</h2>
+      <p>
+        Most AI products want to be your authority. Your assistant. Your therapist. Your guide. Your guru. They want to be in the room with you, telling you what they think.
+      </p>
+      <p>
+        But no one else is ever in the room with you. Not really. You already know this.
+      </p>
+      <p>
+        So this product asks a simpler question. What if the voice you listen to is just yours? Not a stranger's. Not a brand's. Not an AI's. Yours, talking to yourself, about something you already half-know.
+      </p>
+      <p>
+        The engine doesn't tell you what to imagine. You tell it. It just shapes the silence around you while you do the imagining yourself.
+      </p>
+      <p>
+        Without the privacy, none of that works. So the privacy is everything.
+      </p>
+    </section>
+
+    <footer>
+      <p>By <a href="https://github.com/tsonali">Sonali Maitra</a>. MIT-licensed. Open source on <a href="https://github.com/tsonali/imagination-engine">GitHub</a>.</p>
+      <p>This site is itself a single static page, served from the repo. There is no analytics on this page either.</p>
+    </footer>
+
+  </main>
+</body>
+</html>

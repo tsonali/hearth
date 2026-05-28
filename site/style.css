@@ -1,0 +1,285 @@
+/* ==========================================================================
+   Landing — Tapestry design family.
+   Same tokens and conventions as the engine itself. Editorial single-column
+   reading experience; the page IS the marketing.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/archivo-black-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/archivo-black-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/inter-var-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/inter-var-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --bg: #FFFFFF;
+  --bg-alt: #F5F4F0;
+  --text: #0A0A0A;
+  --text-mid: #555;
+  --text-soft: #888;
+  --rule: #E0E0E0;
+  --rule-strong: #0A0A0A;
+  --accent: #B85A4A;
+  --accent-dark: #944537;
+  --display: 'Archivo Black', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 5rem 1.75rem 6rem;
+}
+
+a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+/* HERO -------------------------------------------------------------------- */
+
+.hero {
+  margin-bottom: 4.5rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 3.5rem;
+}
+.hero .kicker {
+  margin: 0 0 18px 0;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(48px, 7vw, 88px);
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.25rem 0;
+  color: var(--text);
+}
+.hero .lede {
+  font-size: 1.35rem;
+  line-height: 1.45;
+  margin: 0 0 1.75rem 0;
+  font-weight: 500;
+  color: var(--text);
+  max-width: 36em;
+}
+.hero .byline {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+.hero .byline strong { font-weight: 600; color: var(--text); }
+.hero .byline em { font-style: italic; }
+
+/* SECTIONS ---------------------------------------------------------------- */
+
+section.block {
+  margin: 0 0 4.5rem 0;
+  padding-bottom: 4.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+section.block:last-of-type { border-bottom: none; }
+section.block .kicker {
+  margin: 0 0 1.25rem 0;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+section.block h2 {
+  font-family: var(--display);
+  font-size: clamp(28px, 3.4vw, 42px);
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.5rem 0;
+  color: var(--text);
+}
+section.block p {
+  font-size: 1.08rem;
+  line-height: 1.65;
+  margin: 0 0 1.1rem 0;
+  color: var(--text);
+}
+section.block p:last-child { margin-bottom: 0; }
+section.block p.aside {
+  color: var(--text-mid);
+  font-size: 0.98rem;
+}
+
+/* CLAIMS LIST (verifiable privacy) ---------------------------------------- */
+
+ul.claims {
+  list-style: none;
+  margin: 0.5rem 0 0 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+ul.claims li {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 1.5rem;
+  align-items: baseline;
+}
+ul.claims li .claim-tag {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+ul.claims li .claim-body {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+@media (max-width: 580px) {
+  ul.claims li { grid-template-columns: 1fr; gap: 0.4rem; }
+}
+
+/* PILLARS (architecture) -------------------------------------------------- */
+
+ul.pillars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+ul.pillars li {
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  border-radius: 0;
+}
+ul.pillars li h3 {
+  font-family: var(--display);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.55rem 0;
+  color: var(--text);
+}
+ul.pillars li p {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+/* CALL TO ACTION ---------------------------------------------------------- */
+
+.cta {
+  margin-top: 1rem;
+}
+.cta a.button {
+  display: inline-block;
+  padding: 0.85rem 1.65rem;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+.cta a.button:hover { background: var(--accent-dark); color: var(--bg); text-decoration: none; text-decoration-color: transparent; }
+.cta .button-note {
+  display: block;
+  margin-top: 0.85rem;
+  font-size: 0.92rem;
+  color: var(--text-mid);
+}
+
+/* STATUS BADGE ------------------------------------------------------------ */
+
+.status-strip {
+  margin-top: 0.75rem;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.status-strip .pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: 1px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* FOOTER ------------------------------------------------------------------ */
+
+footer {
+  margin-top: 4rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+footer p { margin: 0 0 0.5rem 0; }
+footer a { color: var(--text-mid); text-decoration: underline; text-decoration-color: var(--rule); }

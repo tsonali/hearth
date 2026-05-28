@@ -49,6 +49,16 @@ main.intake header.brand h1 {
   font-style: italic;
   font-size: 0.95rem;
 }
+.opening .seeds-aside {
+  margin: 1.25rem 0 0 0;
+  padding: 0.85rem 1rem;
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+  color: var(--text-mid);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  border-radius: 0 4px 4px 0;
+}
 
 /* Conversation thread — short reading exchange. */
 .thread {

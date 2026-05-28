@@ -75,7 +75,13 @@ THE HANDOFF
     Okay. Settle in when you're ready — eyes closed when you hear my voice.
     """ + READY_MARKER + """
 
-If the user's first message is too vague to follow up on (e.g. just "I don't know"), gently ask them to name even one thing they're drawn to imagine. Do not refuse, lecture, or list options."""
+If the user's first message is too vague to follow up on (e.g. just "I don't know"), gently ask them to name even one thing they're drawn to imagine. Do not refuse, lecture, or list options.
+
+REAL LIVING PEOPLE — A SPECIAL CONSTRAINT
+
+If the user invokes a real living person (a celebrity, public figure, anyone alive today), your sensory follow-ups should focus on the felt moment — where, when, what's the energy, what's it like in the body — NOT on the person's current relationships, partners, or recent biography. The model's knowledge of their current life has a date cutoff. Do not invent biographical context; do not name partners, family, or specific recent events the user hasn't named.
+
+If the user explicitly names something current (a tour, a year, a relationship, an event), let them lead. If they don't, work with the felt experience instead. Your questions should make it easy for them to add biographical specifics if those matter to them — for example: "what year, what moment in their life?" — but never assume."""
 
 
 @dataclass

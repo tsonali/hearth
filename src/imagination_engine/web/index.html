@@ -8,22 +8,27 @@
 </head>
 <body>
   <main>
-    <header>
-      <h1>Imagination Engine</h1>
-      <p class="subtitle">local · private · v0 foundation</p>
+    <header class="hero">
+      <p class="kicker">DEV · LOCAL ENGINE · BARE TEXT BOX</p>
+      <h1>Engine /dev</h1>
+      <p class="status-strip"><span class="pulse-dot"></span> Direct /generate + /speak endpoints. Not the user surface.</p>
     </header>
 
-    <section class="input">
+    <section class="block">
+      <p class="kicker">Prompt</p>
       <label for="prompt">Type something. The model runs entirely on this machine.</label>
       <textarea id="prompt" rows="4" autofocus></textarea>
-      <button id="go" type="button">Generate</button>
-      <p class="hint">⌘/Ctrl + Enter to send</p>
+      <div class="cta">
+        <button id="go" type="button" class="primary">Generate</button>
+        <p class="hint">⌘/Ctrl + Enter to send</p>
+      </div>
     </section>
 
-    <section class="output" aria-live="polite">
+    <section class="block" aria-live="polite">
+      <p class="kicker">Output</p>
       <pre id="response"></pre>
-      <div id="audio-controls" hidden>
-        <button id="speak" type="button">▶ Read aloud</button>
+      <div id="audio-controls" hidden style="margin-top: 1rem;">
+        <button id="speak" type="button" class="dim">▶ Read aloud</button>
         <span id="speak-status" class="hint"></span>
         <audio id="player" controls hidden></audio>
       </div>

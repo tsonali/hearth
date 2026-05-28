@@ -9,13 +9,13 @@
 </head>
 <body>
   <main class="intake">
-    <header class="brand">
-      <p class="breadcrumb">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
+    <header class="hero">
+      <p class="kicker">A LOCAL · PRIVATE · IMAGINATION TOOL</p>
       <h1>Imagination<br>Engine</h1>
     </header>
 
     <section id="opening" class="opening">
-      <p class="lede">Tell me what you want to imagine. <strong>The world is open.</strong> You could:</p>
+      <p class="lede">Tell me what you want to imagine. <em>The world is open.</em> You could:</p>
       <ul class="seeds">
         <li>visualize yourself meeting a hard-fought goal</li>
         <li>imagine being a different character — someone braver, calmer, more curious</li>
@@ -34,7 +34,7 @@
                 placeholder="What do you want to imagine?"></textarea>
       <div class="input-controls">
         <button id="send" type="button" class="primary">Send</button>
-        <button id="skip" type="button" class="ghost" hidden>Just start now →</button>
+        <button id="skip" type="button" class="dim" hidden>Just start now →</button>
         <span id="status" class="hint"></span>
       </div>
       <p class="hint">⌘/Ctrl + Enter to send</p>
@@ -42,15 +42,15 @@
 
     <section id="session-card" class="session-card" hidden>
       <div id="session-choose-voice" class="session-state">
-        <p class="session-label">CHOOSE THE VOICE FOR THIS SESSION</p>
-        <p class="session-detail">Two options:</p>
+        <p class="state-label">Choose the voice for this session</p>
+        <p class="state-detail">Two options:</p>
         <div class="voice-choice">
-          <button id="voice-kokoro" type="button" class="secondary">
+          <button id="voice-kokoro" type="button" class="voice-card dim">
             <span class="vc-title">Quick voice</span>
             <span class="vc-time">~1 minute wait</span>
             <span class="vc-note">Placeholder voice (not yours). For when you don't want to wait.</span>
           </button>
-          <button id="voice-f5" type="button" class="primary">
+          <button id="voice-f5" type="button" class="voice-card">
             <span class="vc-title">Your own voice</span>
             <span class="vc-time">~20 minute wait</span>
             <span class="vc-note">The fine-tuned model speaking in your voice. Start the session, walk away, come back to listen.</span>
@@ -59,46 +59,46 @@
       </div>
 
       <div id="session-preparing" class="session-state" hidden>
-        <p class="session-label">PREPARING YOUR SESSION</p>
-        <p class="session-detail pulse" id="preparing-detail">Building the words. Finding the voice.</p>
-        <p class="session-hint" id="preparing-hint" hidden></p>
+        <p class="state-label">Preparing your session</p>
+        <p class="state-detail pulse" id="preparing-detail">Building the words. Finding the voice.</p>
+        <p class="state-hint" id="preparing-hint" hidden></p>
         <div class="progress-bar" id="preparing-bar" hidden>
           <div class="progress-bar-fill" id="preparing-bar-fill"></div>
         </div>
       </div>
 
       <div id="session-ready" class="session-state" hidden>
-        <p class="session-label">YOUR SESSION IS READY</p>
-        <p class="session-detail">Find somewhere comfortable. Close your eyes when you hear the voice begin.</p>
+        <p class="state-label">Your session is ready</p>
+        <p class="state-detail">Find somewhere comfortable. Close your eyes when you hear the voice begin.</p>
         <button id="begin-btn" type="button" class="primary big">▶  Begin</button>
       </div>
 
       <div id="session-playing" class="session-state" hidden>
-        <p class="session-label">LISTENING</p>
+        <p class="state-label">Listening</p>
         <audio id="player" controls></audio>
       </div>
 
       <div id="session-reflect" class="session-state" hidden>
-        <p class="session-label">WELCOME BACK</p>
-        <p class="session-detail">How did that land? (Optional. Whatever you write stays on this machine.)</p>
+        <p class="state-label">Welcome back</p>
+        <p class="state-detail">How did that land? (Optional. Whatever you write stays on this machine.)</p>
         <textarea id="reflection" rows="4" placeholder="A word, a sentence, a paragraph. Or skip."></textarea>
         <div class="button-row">
           <button id="reflect-save" type="button" class="primary">Save reflection</button>
-          <button id="reflect-skip" type="button" class="ghost">Skip</button>
+          <button id="reflect-skip" type="button" class="dim">Skip</button>
         </div>
         <p id="reflect-status" class="hint"></p>
       </div>
 
       <div id="session-complete" class="session-state" hidden>
-        <p class="session-label">CARRY IT WITH YOU</p>
-        <p class="session-detail">Live your day.</p>
-        <button id="new-session" type="button" class="secondary">Start another →</button>
+        <p class="state-label">Carry it with you</p>
+        <p class="state-detail">Live your day.</p>
+        <button id="new-session" type="button" class="dim">Start another →</button>
       </div>
 
       <div id="session-error" class="session-state" hidden>
-        <p class="session-label">SOMETHING WENT WRONG</p>
-        <p class="session-detail" id="error-detail"></p>
-        <button id="retry-btn" type="button" class="secondary">Try again</button>
+        <p class="state-label state-label-error">Something went wrong</p>
+        <p class="state-detail" id="error-detail"></p>
+        <button id="retry-btn" type="button" class="dim">Try again</button>
       </div>
     </section>
   </main>

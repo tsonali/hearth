@@ -1,34 +1,31 @@
-/* Intake page — Tapestry-family editorial. Reads like a single
-   thoughtful page, not like an app. */
+/* ==========================================================================
+   Intake page — retro phosphor.
+   The working surface of the engine. Conversation thread, input row,
+   voice picker, and the multi-state session card. Style stays consistent
+   with welcome — every surface in VT323 green-on-black, single typography
+   throughout.
+   ========================================================================== */
 
-main.intake { max-width: 640px; margin: 4rem auto 6rem; padding: 0 var(--pad-x); }
-
-main.intake header.brand { margin-bottom: 3rem; }
-main.intake header.brand h1 {
-  font-family: var(--display);
-  font-size: clamp(48px, 7vw, 88px);
-  text-transform: uppercase;
-  line-height: 0.92;
-  letter-spacing: -0.015em;
-  margin: 0;
+main.intake {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 5rem var(--pad-x) 6rem;
 }
+main.intake .hero { margin-bottom: 3rem; }
+main.intake .hero h1 { font-size: clamp(56px, 9vw, 104px); }
 
-/* Opening block — the page's editorial voice. */
-.opening {
-  margin-bottom: 2.75rem;
-}
+/* ==========================================================================
+   OPENING — the editorial voice that meets the user on arrival.
+   ========================================================================== */
+.opening { margin-bottom: 3rem; }
 .opening .lede {
-  font-family: var(--sans);
-  font-size: 1.2rem;
-  line-height: 1.55;
   margin: 0 0 1.5rem 0;
-  color: var(--text);
-  font-weight: 400;
+  font-size: 1.3rem;
+  color: var(--text-bright);
+  line-height: 1.45;
 }
-.opening .lede strong {
-  color: var(--accent);
-  font-weight: 600;
-}
+.opening .lede em { color: var(--amber); font-style: normal; }
+
 .opening .seeds {
   list-style: none;
   padding: 0;
@@ -36,229 +33,247 @@ main.intake header.brand h1 {
   border-top: 1px solid var(--rule);
 }
 .opening .seeds li {
-  font-family: var(--sans);
-  font-size: 1rem;
-  line-height: 1.55;
+  font-size: 1.1rem;
   color: var(--text);
-  padding: 0.85rem 0;
+  line-height: 1.5;
+  padding: 0.75rem 0 0.75rem 1.4em;
   border-bottom: 1px solid var(--rule);
+  position: relative;
 }
-.opening .seeds-tail {
-  margin: 0;
-  color: var(--text-mid);
-  font-style: italic;
-  font-size: 0.95rem;
-}
-.opening .seeds-aside {
-  margin: 1.25rem 0 0 0;
-  padding: 0.85rem 1rem;
-  background: var(--bg-alt);
-  border-left: 3px solid var(--accent);
-  color: var(--text-mid);
-  font-size: 0.92rem;
-  line-height: 1.55;
-  border-radius: 0 4px 4px 0;
+.opening .seeds li::before {
+  content: ">";
+  position: absolute;
+  left: 0.1em;
+  color: var(--text-dim);
 }
 
-/* Conversation thread — short reading exchange. */
+.opening .seeds-tail {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 1.05rem;
+}
+
+/* The "real living people" guidance — same .aside / .seeds-aside pattern
+   from the shared base; just needs the spacing override here. */
+.opening .seeds-aside {
+  margin: 1.5rem 0 0 0;
+}
+
+/* ==========================================================================
+   THREAD — the conversation log.
+   ========================================================================== */
 .thread {
-  margin: 2rem 0 2rem 0;
+  margin: 2.5rem 0 2.5rem 0;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
 }
 .msg {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .msg-label {
   margin: 0;
-  font-family: var(--display);
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--text-mid);
+  color: var(--text-dim);
 }
-.msg-engine .msg-label { color: var(--accent); }
+.msg-label::before { content: "// "; color: var(--text-dim); }
+.msg-engine .msg-label { color: var(--amber); }
+.msg-engine .msg-label::before { color: var(--amber); }
+
 .msg-body {
   margin: 0;
-  font-family: var(--sans);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
   color: var(--text);
 }
-.msg-user .msg-body { color: var(--text-mid); }
+.msg-engine .msg-body { color: var(--text-bright); }
+.msg-user .msg-body { color: var(--text); }
 
-/* Input. */
-.input-row { margin-top: 1.75rem; }
-.input-row textarea {
-  width: 100%;
-  font-family: var(--sans);
-  font-size: 17px;
-  line-height: 1.55;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--bg);
-  color: var(--text);
-  resize: vertical;
+/* ==========================================================================
+   INPUT ROW — textarea + send + skip.
+   ========================================================================== */
+.input-row {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
 }
-.input-row textarea:focus { outline: none; border-color: var(--text); }
-.input-row textarea:disabled { background: var(--bg-alt); color: var(--text-soft); }
+.input-row textarea {
+  background: var(--bg);
+  font-size: 1.2rem;
+}
+.input-row textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+
 .input-controls {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin-top: 0.7rem;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
   flex-wrap: wrap;
 }
+.input-controls .hint { margin: 0; }
 
-/* Session card — multi-state transition from intake into the audio session. */
+/* ==========================================================================
+   SESSION CARD — the post-intake stage with all six states.
+   ========================================================================== */
 .session-card {
-  margin-top: 2.5rem;
-  padding: 2rem 2rem;
+  margin-top: 3rem;
+  padding: 1.75rem 1.75rem;
   background: var(--bg-alt);
   border: 1px solid var(--rule);
-  border-left: 3px solid var(--accent);
-  border-radius: 4px;
+  border-left: 3px solid var(--amber);
+  position: relative;
 }
+.session-card::before {
+  content: "═══ SESSION ═══";
+  position: absolute;
+  top: -0.7em;
+  left: 1.25rem;
+  background: var(--bg);
+  padding: 0 0.6rem;
+  font-size: 0.95rem;
+  color: var(--amber);
+  letter-spacing: 0.18em;
+}
+
 .session-state {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
   align-items: flex-start;
 }
-.session-label {
+
+.state-label {
   margin: 0;
-  font-family: var(--display);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.session-detail {
-  margin: 0;
-  font-family: var(--sans);
   font-size: 1.05rem;
-  color: var(--text);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.state-label::before { content: "[ "; color: var(--text-dim); }
+.state-label::after  { content: " ]"; color: var(--text-dim); }
+.state-label-error { color: var(--error); }
+.state-label-error::before, .state-label-error::after { color: var(--error); }
+
+.state-detail {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-bright);
   line-height: 1.55;
 }
+
+.state-hint {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
 .session-state audio {
   width: 100%;
   margin-top: 0.5rem;
 }
-.session-state button.primary.big {
-  margin-top: 0.5rem;
-  padding: 0.95rem 2rem;
-  font-size: 15px;
-  letter-spacing: 0.06em;
-}
 
-/* Voice choice — two cards stacked. */
+/* ==========================================================================
+   VOICE PICKER — two retro-bordered cards.
+   ========================================================================== */
 .voice-choice {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: 0.85rem;
+  margin-top: 0.25rem;
   width: 100%;
 }
-.voice-choice button {
+/* Voice cards are buttons but they shouldn't look like the [ TEXT ] buttons.
+   Override the global button pattern with a card layout that still shows
+   the bright-green-fill click feel on hover. */
+.voice-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
+  gap: 0.3rem;
   text-align: left;
-  padding: 1rem 1.25rem;
-  font-family: var(--sans);
+  padding: 1.1rem 1.25rem;
+  font-family: var(--font);
+  font-size: 1.05rem;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 1rem;
+  width: 100%;
 }
-.voice-choice .vc-title {
-  font-family: var(--display);
-  font-size: 14px;
-  letter-spacing: 0.06em;
+.voice-card::before, .voice-card::after { content: none; }
+
+.voice-card .vc-title {
+  font-size: 1.25rem;
+  color: var(--text-bright);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.voice-choice .vc-time {
-  font-family: var(--sans);
-  font-size: 0.85rem;
-  color: var(--text-mid);
+.voice-card .vc-time {
+  font-size: 0.95rem;
+  color: var(--amber);
   margin-top: 0.15rem;
 }
-.voice-choice .vc-note {
-  font-family: var(--sans);
-  font-size: 0.92rem;
-  color: var(--text-mid);
+.voice-card .vc-time::before { content: ">> "; color: var(--text-dim); }
+.voice-card .vc-note {
+  font-size: 1rem;
+  color: var(--text-dim);
   font-weight: 400;
-  margin-top: 0.45rem;
+  margin-top: 0.4rem;
   line-height: 1.45;
 }
-.voice-choice button.primary .vc-time,
-.voice-choice button.primary .vc-note {
-  color: rgba(255, 255, 255, 0.85);
+.voice-card:hover .vc-title,
+.voice-card:hover .vc-time,
+.voice-card:hover .vc-note {
+  color: var(--bg);
 }
+.voice-card:hover .vc-time::before { color: var(--bg); }
 
-/* Reflection state — textarea + save/skip. */
+/* ==========================================================================
+   REFLECTION — textarea + save/skip.
+   ========================================================================== */
 #session-reflect textarea {
-  width: 100%;
-  font-family: var(--sans);
-  font-size: 1.02rem;
-  line-height: 1.5;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
   background: var(--bg);
-  color: var(--text);
-  resize: vertical;
+  font-size: 1.1rem;
 }
-#session-reflect textarea:focus { outline: none; border-color: var(--text); }
 #session-reflect .button-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.85rem;
   margin-top: 0.3rem;
   flex-wrap: wrap;
 }
 #reflect-status { margin: 0; }
 
-/* Subtle pulse for the "preparing" detail line — quiet life during the wait. */
-.pulse {
-  animation: pulse-opacity 2.4s ease-in-out infinite;
-}
+/* ==========================================================================
+   PREPARING-STATE detail line — subtle pulse + paragraph counter +
+   progress bar showing real render movement.
+   ========================================================================== */
+.pulse { animation: pulse-opacity 2.4s ease-in-out infinite; }
 @keyframes pulse-opacity {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
 }
 
-/* Secondary line under the preparing detail — paragraph counter + ETA.
-   Kept quiet: smaller, dimmer, monospace-ish so the counter is readable. */
-.session-hint {
-  margin: 0;
-  font-family: var(--display);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-mid);
-}
-
-/* Thin progress bar under the preparing hint — appears only during the
-   audio render stage, when we have a paragraph count to measure against. */
 .progress-bar {
   width: 100%;
-  height: 2px;
+  height: 4px;
   background: var(--rule);
-  border-radius: 1px;
   overflow: hidden;
-  margin-top: 0.1rem;
+  margin-top: 0.4rem;
+  border: 1px solid var(--rule);
 }
 .progress-bar-fill {
   height: 100%;
   width: 0%;
-  background: var(--accent);
+  background: var(--text);
+  box-shadow: 0 0 8px var(--text);
   transition: width 0.4s ease-out;
 }

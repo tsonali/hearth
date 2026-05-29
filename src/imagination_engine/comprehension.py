@@ -118,48 +118,122 @@ commentary, no markdown fences. The JSON has exactly these keys:
   "direction": "case_a" | "case_b" | "case_c",
   "subject": "<the named entity, or empty string>",
   "subject_kind": "real_living_person" | "fictional" | "self_variant" | "abstract" | "",
-  "scene_summary": "<one sentence describing where and what the scene is>",
-  "anchors": ["<concrete sensory anchor 1>", "<2>", "<3>", ...]
+  "scene_summary": "<2-3 sentences describing the specific scene>",
+  "anchors": ["<concrete sensory anchor 1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>"]
 }
 
-RULES FOR DIRECTION (this is the most important field):
+══════════════════════════════════════════════════════════
+THE MOST IMPORTANT INSTRUCTION:
+══════════════════════════════════════════════════════════
 
-CASE A — Listener IS the subject. The script is written from INSIDE the subject's body.
-Triggers (user phrasings):
+The user's intake is usually SPARSE. They will say something like \
+"imagine me as Taylor Swift" or "imagine me retiring young" or \
+"imagine me with a different personality" and then "just start now" \
+WITHOUT giving you details about where, when, who, or what.
+
+DO NOT treat sparseness as a reason to give back generic content. \
+IMPROVISE BOLDLY. Commit to specific concrete details that fit the \
+asked-for scenario — a specific time, place, outfit, situation, \
+moment, mood. The downstream beat planner needs RICH SPECIFIC CANVAS \
+to work from. Generic "stage / spotlight / crowd" anchors produce \
+generic scripts. "The silver bodysuit / the in-ear monitor pressed \
+against your temple / the tunnel-roar of forty thousand voices through \
+the corridor wall" produce immersive scripts.
+
+A great writer given a five-word prompt does not ask for more. They \
+commit to a specific imagined scene and trust their reader to be \
+drawn into it. You are that writer.
+
+GOOD vs BAD examples for SCENE_SUMMARY and ANCHORS given thin intake:
+
+User: "imagine me as Taylor Swift"
+BAD (what the previous version of this prompt produced):
+  scene_summary: "On stage, spotlight shining with Taylor Swift as you."
+  anchors: ["spotlight", "stage"]
+GOOD:
+  scene_summary: "Backstage in a stadium tunnel, three minutes before
+    you step out for tonight's Eras Tour show. The silver bodysuit. The
+    in-ear cuing you in. Your stylist just touched up your lip."
+  anchors: ["silver bodysuit against your skin", "the in-ear monitor
+    pressure on your right temple", "the tunnel-roar of forty thousand
+    voices through the corridor wall", "the cold concrete under your
+    boot heels", "the taste of metal in the back of your mouth",
+    "your stylist's hand on the small of your back", "the click of
+    the audio tech's voice in your ear"]
+
+User: "imagine me retiring young and wealthy"
+BAD:
+  scene_summary: "A retired-young Tuesday morning with no obligation."
+  anchors: ["beach", "sunset"]
+GOOD:
+  scene_summary: "A weekday morning at your house on the Pacific coast.
+    You just got off a call with your architect about the new wing.
+    The light is everywhere and there's nothing on your calendar."
+  anchors: ["the long pause in your day with nothing waiting on it",
+    "the smell of espresso the housekeeper made an hour ago", "the
+    weight of a phone that doesn't need answering", "your bare feet
+    on cool kitchen tile", "the sound of a single distant lawnmower",
+    "the worn-in cushion of a chair you bought for yourself", "an
+    almond croissant cooling on a plate you don't have to wash"]
+
+User: "imagine me with a different personality"
+BAD:
+  scene_summary: "In an environment where the new personality thrives."
+  anchors: ["environment", "thrive"]
+GOOD:
+  scene_summary: "You are the version of you who takes a beat before
+    answering, who lets pauses sit. You're at a party in your own
+    apartment, mid-conversation with someone, and you have all the
+    time in the world."
+  anchors: ["the lower place your breath sits in your chest", "the
+    wider stance through your hips", "the half-smile you let stay
+    on your face", "the cool of a glass against your palm", "the
+    way you wait a full beat before speaking", "the room watching
+    you, not the other way around", "your jaw unclenched"]
+
+THE PATTERN: take the user's seed, IMPROVISE a specific scene with a
+specific time, place, situation, mood, and 5-7 body-and-object-
+specific anchors. Be specific even (especially) when the user wasn't.
+
+CRITICAL — INVENT FRESH SPECIFICS:
+The examples above show the SHAPE of good output, not the CONTENT to
+copy. When the user's intake actually arrives, generate FRESH specifics
+that fit THAT user's seed — do not reuse the example phrases. If the
+user asks for Taylor Swift, do not mention silver bodysuits and Eras
+Tour unless that genuinely fits; pick a different specific Taylor
+moment. If the user asks for retiring young, do not mention Pacific
+coast and almond croissants; pick a different specific retired-young
+morning. The examples were illustrative — your output is yours.
+
+══════════════════════════════════════════════════════════
+
+RULES FOR DIRECTION (CASE A / CASE B / CASE C):
+
+CASE A — Listener IS the subject. Triggers (user phrasings):
   - "imagine me AS [X]" → case_a, subject=[X]
   - "imagine being [X]" → case_a, subject=[X]
   - "imagine me WITH [a capability/state]" → case_a, subject="self with [capability]"
   - "imagine me [achieving something]" → case_a, subject="self [achievement]"
-  - "imagine a different version of me" → case_a, subject="alternate self"
 
-CASE B — Listener is themselves; subject is PRESENT in the scene.
+CASE B — Listener is themselves; subject is PRESENT.
 Triggers:
   - "imagine [X] is in love with me" → case_b, subject=[X]
   - "imagine being with [X]" → case_b, subject=[X]
-  - "imagine [X] tells me / does something to me / loves me" → case_b, subject=[X]
-  - "imagine my [parent/partner/friend] [verb]ing me" → case_b, subject="the named person"
+  - "imagine [X] tells me / does something to me" → case_b, subject=[X]
 
-CASE C — No specific other character; listener is themselves in a scene.
+CASE C — No specific other character.
 Triggers:
   - "imagine being on a quiet mountain" → case_c
   - "imagine a perfect Tuesday morning" → case_c
-  - "imagine I lived in Paris" → case_c, subject="Paris" (the place is the focus)
 
-If ambiguous between A and B, default to A. If no named subject at all, use C.
+Default if ambiguous: case_a.
 
 SUBJECT_KIND:
-  - "real_living_person" — a celebrity, public figure, anyone alive today (Taylor Swift, Harry Styles, etc.)
-  - "fictional" — a character from a book/film/show (Hermione, Sherlock, etc.)
-  - "self_variant" — a version of the user themselves (future self, braver self, etc.)
-  - "abstract" — a role/state with no specific identity (a billionaire, an Olympic athlete, a person with photographic memory)
+  - "real_living_person" — a celebrity, public figure, anyone alive today
+  - "fictional" — a character from a book/film/show
+  - "self_variant" — a version of the user themselves
+  - "abstract" — a role/state with no specific identity (billionaire, Olympic athlete)
   - "" — no subject (CASE C with just a scene/place)
-
-ANCHORS: pull 3-5 concrete sensory anchors from the user's intake (BOTH the user's messages AND the engine's clarifying questions, since the user may have agreed implicitly with the engine's framing). Anchors are SHORT noun phrases naming specific things: "stage floor", "mic in right hand", "warmth across sternum", "the smell of hairspray", "the cold concrete backstage hallway", "her shoulders wider than mine". They are the textures the body of the script should hit. If the intake is thin, pull what's there; do not invent.
-
-SCENE_SUMMARY: one sentence, declarative. Examples:
-  - "On stage as Taylor Swift, the moment just before stepping out for a sold-out show."
-  - "In a private room with Harry Styles, intimate quiet evening, his attention on you."
-  - "A retired-young Tuesday morning with no obligation, in a comfortable home."
 
 Output ONLY the JSON. Do not wrap in code fences. Do not add commentary."""
 

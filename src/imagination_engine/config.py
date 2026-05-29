@@ -31,9 +31,15 @@ MEMORY_DB = DATA_DIR / "memory.sqlite"
 
 @dataclass(frozen=True)
 class Config:
-    # Llama 3.1 8B Instruct, 4-bit MLX quantization, from Hugging Face.
+    # Qwen 2.5 14B Instruct, 4-bit MLX quantization, from Hugging Face.
+    # Chosen over Llama 3.1 8B / Mistral NeMo 12B after the 2026-05-29 bake-off:
+    # Qwen was the ONLY candidate with zero JSON-parse failures (0/5 vs 3/5),
+    # and its quality was competitive once the weak local judge's mis-score was
+    # discounted by direct read. Its only cost is generation speed (~17 min/script),
+    # acceptable for batch/overnight runs (esp. on the dedicated grind box).
     # Pulled directly via mlx-lm's HF integration; no third-party registry.
-    model_id: str = "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit"
+    # See docs/decisions-log.md (2026-05-29 — model bake-off).
+    model_id: str = "mlx-community/Qwen2.5-14B-Instruct-4bit"
 
     # Loopback only — the product is local-first; the server must not be
     # reachable from outside this machine.

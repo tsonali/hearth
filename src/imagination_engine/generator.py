@@ -52,6 +52,7 @@ from typing import Callable, Optional
 
 from imagination_engine.comprehension import Classification, classify_intake
 from imagination_engine.inference import Engine
+from imagination_engine.structured import extract_array
 
 log = logging.getLogger(__name__)
 
@@ -176,38 +177,9 @@ def _generate(engine: Engine, system: str, user: str, max_tokens: int,
     return "".join(chunks).strip()
 
 
-def _extract_json_array(text: str) -> list:
-    """Pull the first JSON array out of the model's response.
-
-    Tolerant of unclosed arrays — if the model ran out of tokens before
-    the closing ], salvage by truncating to the last complete string
-    element and appending ]. This rescued v5 011-photographic-memory
-    where the model produced 8 valid beats but got cut off pre-bracket.
-    """
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip())
-    text = re.sub(r"\s*```$", "", text)
-    start = text.find("[")
-    if start == -1:
-        raise ValueError(f"no [ found in: {text!r}")
-
-    end = text.rfind("]")
-    if end > start:
-        return json.loads(text[start:end + 1])
-
-    # Unclosed array — try to salvage. Find the last complete string
-    # element ("...",) and rebuild [ ... , "..." ].
-    body = text[start + 1:]
-    # Find positions of "..." string-end markers followed by , or end-of-text
-    # Simple heuristic: split at commas, drop the last (incomplete) chunk,
-    # rejoin and close.
-    matches = list(re.finditer(r'"([^"\\]|\\.)*"', body))
-    if not matches:
-        raise ValueError(f"no complete strings in unclosed array: {text!r}")
-    # Take through the last complete quoted string
-    last_end = matches[-1].end()
-    salvaged = "[" + body[:last_end] + "]"
-    log.warning("salvaged unclosed JSON array (%d elements)", len(matches))
-    return json.loads(salvaged)
+# Beat-plan JSON extraction now uses the framework-general `structured` module
+# (extract_array) — robust to fences, prose, trailing commas, control chars, and
+# truncation salvage. Replaces the array-only regex salvage that used to live here.
 
 
 # ---------------------------------------------------------------------------
@@ -403,7 +375,7 @@ def generate_session(
     # got cut off mid-stream (8 valid beats but the closing ] never made it).
     plan_raw = _generate(engine, BEAT_PLANNER_SYSTEM, plan_user, max_tokens=1400, temperature=0.6)
     try:
-        beats = _extract_json_array(plan_raw)
+        beats = extract_array(plan_raw)
         beats = [str(b).strip() for b in beats if str(b).strip()]
         beats = beats[:MAX_BEATS]  # safety cap
         if len(beats) < MIN_BEATS:

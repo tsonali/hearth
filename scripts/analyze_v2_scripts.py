@@ -14,8 +14,10 @@ Run from repo root:
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
+import sys
 from pathlib import Path
 from collections import Counter
 
@@ -311,6 +313,15 @@ def summarize(result: dict) -> None:
 
 
 if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Mechanical (no-LLM) failure-mode analysis of a script batch.")
+    p.add_argument("dir", nargs="?", default=str(ROOT),
+                   help="scenario-tests directory to analyze (default: logs/scenario-tests)")
+    args = p.parse_args()
+    ROOT = Path(args.dir)
+    if not ROOT.is_dir():
+        print(f"not a directory: {ROOT}", file=sys.stderr)
+        sys.exit(1)
+    print(f"analyzing: {ROOT}")
     result = analyze()
     summarize(result)
     out = ROOT / "ANALYSIS.json"

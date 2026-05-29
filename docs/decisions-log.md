@@ -136,3 +136,47 @@ The Kokoro code (`src/imagination_engine/tts.py`, `/speak` endpoint, "Read aloud
 **Empirical validation:** small probe batch of 5 scenarios spanning failure modes (003-taylor-swift, 031-harry-styles, 005-different-personality, 011-photographic-memory, 029-retire-young) running into `logs/scenario-tests-v3/`. Side-by-side comparison with v2 will drive the next iteration. No more 100-scenario batches until v3 is nailed.
 
 **Citations for the research check** (in case future versions need to re-examine the opening): Holmes & Collins (2001) PETTLEP model; van Laer et al. Extended Transportation-Imagery Model meta-analysis; Green & Brock (2000) narrative transportation; Ericksonian induction; HIT/MILD lucid-imagery protocols. Full sources in the sub-agent transcript.
+
+---
+
+## 2026-05-29 — Model bake-off; switch to Qwen 2.5 14B; the model isn't the bottleneck
+
+**Context.** The v3–v5 generator iterations were whack-a-mole against Llama 3.1 8B's ceiling: fix hedging → get word-salad → fix that → get prompt-drift → get JSON-parse failures (3 of 5 scenarios). Diagnosis: the 8B model is the bottleneck. Decision (with founder): run a head-to-head bake-off across local models that fit 16GB, and in parallel begin scene-bible scaffolding.
+
+**Method.** Same 5 scenarios through the identical v5.2 generator on four models: Llama 3.1 8B (baseline), Mistral NeMo 12B, Qwen 2.5 14B, Mistral Small 22B. Evaluated on three legs to avoid Goodharting a single metric (see [[feedback-llm-judge-trap]]): (1) mechanical floor — JSON-parse failures, etc.; (2) a *strict* LLM-judge rubric v2 (rebuilt because the prior judge saturated at 5.00); (3) **direct reading of finalists by Claude**.
+
+**Results.**
+- **Mistral Small 22B: disqualified.** ~12–13GB exceeds the 16GB target with no headroom for the voice layer + app; it crashed the founder's laptop. Can never ship on the product's own target hardware. (Will run only on a dedicated grind box.)
+- Strict-judge overall: NeMo 4.48 > Llama 4.28 > Qwen 4.24 — but spread is within noise at n=5.
+- **JSON reliability — the thing the exercise was meant to fix:** Qwen **0/5** errors; Llama and NeMo **3/5** each. Only Qwen solved it.
+- Speed/script: Llama ~6.5 min, NeMo ~10.6, Qwen ~17.4.
+
+**The judge-trap, caught in the act.** Direct read overturned the judge: Qwen's Harry-Styles script was scored embodiment 1/5 by the local judge, but reading it, it is a *correct, vivid* CASE-B embodiment (listener present, Harry's hand finds theirs). The weak 8B judge mis-scored it, understating Qwen. Lesson logged: **for small batches Claude reads directly; the local 8B judge is retired from the eval loop; at 100+ scale use a panel of Claude agents, not a weak local model.** Conflating "the *product* is local-first" with "our *dev eval* must be local" was a category error.
+
+**Core finding.** Direct reads of NeMo and Qwen on the abstract "different-personality" prompt show *both* drift (NeMo → eroticized café; Qwen → stage/mic scene + leaked the prompt's example anchors). **The model is not the bottleneck — the missing layer is reliability scaffolding** (scene bibles that *bind* the scene + robust structured output). This independently matches the landscape research's conclusion.
+
+**Decisions.**
+1. **Base model → Qwen 2.5 14B 4-bit.** It uniquely solved JSON reliability (the stated problem), quality is competitive once the judge's error is discounted, and its only cost is generation speed — acceptable for batch/overnight, especially on the incoming grind box. (Founder corrected an initial speed-first framing: priority is quality → reliability → speed.)
+2. **Next work = scaffolding, not more model-shopping:** scene bibles to bind the scene and kill drift; harden JSON parsing / structured output. This is the extractable IP (see strategy.md).
+3. **Eval:** Claude is the evaluator at current scale; mechanical floor always; Claude-agent panel for the 100-prompt confirmation. Retire the local Llama judge.
+
+---
+
+## 2026-05-29 — Model roadmap: scaffolding now, then distill our OWN specialist
+
+**Framing correction (founder):** the framework's defining pillars are technical/access — *private & local + anti-token (own-don't-rent) + anti-massive-model (small models on your own hardware)* — i.e., **democratize private AI so the everyday person is unshackled from Big Tech AI.** Anti-anthropomorphism is the founder's personal/product stance, NOT part of the framework definition. (strategy.md updated to match.)
+
+**The model work is two phases:**
+- **Phase 1 (now): reliability scaffolding** on an off-the-shelf small model (Qwen 2.5 14B) — scene bibles that bind the scene (kill drift) + robust structured output (kill JSON breakage). This also *generates the dataset* for Phase 2.
+- **Phase 2 (after): distill our OWN specialist model.** Not pre-train from scratch (frontier-lab compute, out of reach) — *distill/fine-tune*: (1) generate a large, ruthlessly-curated corpus of excellent guided-imagination sessions via the scaffolding + a strong teacher; (2) LoRA/QLoRA fine-tune a small open base on-device (MLX, grind box); (3) eval the specialist vs. off-the-shelf+scaffolding on the rubric + Claude reads + mechanical floor; (4) iterate. Endgame: a small, *owned*, on-device LLM specialist in immersive guided imagination — the language-model twin of the F5-TTS voice fine-tune; possibly distilling the reliability behaviors *into* the model so scaffolding lightens.
+
+**Endgame is the FRAMEWORK, not this app.** The endgame is the framework's
+*general* ability to take any task (protocol + eval rubric + data) and produce a
+token-free, local, owned specialist that's genuinely good at it — for the everyday
+person, free of Big Tech. Guided imagination is **instantiation #1**: the first
+proof and the vehicle for discovering the framework. (Earlier wording that called
+"a guided-imagination specialist" the endgame was a slip — corrected.) Why it's not
+a vanity project: small + scaffolded + fine-tuned + *owned* beats big + cloud +
+rented *for a focused task* — and the framework makes that repeatable for ANY task. Open intellectual risk to test, not assume: distillation's best evidence is on *verifiable* tasks (math/code/reasoning — DeepSeek-distill); distilling *subjective creative quality* (immersion) is less proven. The DeepSeek market panic was wrong for the labs but right for the individual — small+efficient+open is more than enough for personal use.
+
+**Open choice (deferred to Phase 2):** dataset-gen teacher = large *open* models only (fully on-thesis) vs. a frontier model for richer seed data (one-time/offline; resulting model still owned). Lean open-only; frontier-seed only if quality demands it.

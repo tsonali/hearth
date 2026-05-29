@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from imagination_engine.inference import Engine
+from imagination_engine.structured import extract_object
 
 log = logging.getLogger(__name__)
 
@@ -248,23 +249,9 @@ def _format_transcript(messages: list[dict]) -> str:
     return "\n\n".join(lines)
 
 
-def _extract_json(text: str) -> dict:
-    """Pull the first JSON object out of the model's response.
-
-    Models trained on RLHF sometimes wrap JSON in ```json``` fences or
-    prepend a sentence. Be tolerant of both.
-    """
-    # Strip code fences if present
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip())
-    text = re.sub(r"\s*```$", "", text)
-
-    # Find the outermost JSON object
-    start = text.find("{")
-    end = text.rfind("}")
-    if start == -1 or end == -1 or end < start:
-        raise ValueError(f"no JSON object found in: {text!r}")
-    candidate = text[start:end + 1]
-    return json.loads(candidate)
+# JSON extraction now lives in the framework-general `structured` module
+# (handles fences, prose, trailing commas, control chars, and truncation
+# salvage — far beyond the fence-only tolerance this used to have).
 
 
 def classify_intake(engine: Engine, transcript: list[dict]) -> Classification:
@@ -295,7 +282,7 @@ def classify_intake(engine: Engine, transcript: list[dict]) -> Classification:
     raw = "".join(chunks).strip()
 
     try:
-        data = _extract_json(raw)
+        data = extract_object(raw)
         cls = Classification.from_dict(data)
         cls.raw = raw
         log.info("intake classified: direction=%s, subject=%r, anchors=%d",

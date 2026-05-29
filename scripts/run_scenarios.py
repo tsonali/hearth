@@ -137,6 +137,12 @@ def main() -> int:
     p.add_argument("--out-dir", default=None,
                    help="output directory (default: logs/scenario-tests/); "
                         "use a different dir for A/B-ing prompt versions")
+    p.add_argument("--model", default=None,
+                   help="HF model id to load (default: config.model_id); "
+                        "use to A/B a different model against the baseline")
+    p.add_argument("--no-voice", action="store_true",
+                   help="skip loading the TTS voice (we don't render audio in "
+                        "text-only eval runs; saves memory + load time)")
     args = p.parse_args()
     if args.out_dir:
         OUT_DIR = Path(args.out_dir)
@@ -159,10 +165,12 @@ def main() -> int:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     print(f"output: {OUT_DIR}")
-    print(f"loading engine + voice (one-time) ...")
+    print(f"loading engine{'' if args.no_voice else ' + voice'} (one-time) ...")
+    if args.model:
+        print(f"  model: {args.model}")
     t0 = time.time()
-    engine = Engine.load()
-    voice = Voice.load()
+    engine = Engine.load(args.model)
+    voice = None if args.no_voice else Voice.load()
     intake_manager = IntakeManager(engine)
     print(f"  {round(time.time() - t0, 1)}s\n")
 

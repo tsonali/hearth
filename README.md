@@ -4,7 +4,23 @@ A local, private tool for guided imagination. You describe what you want to imag
 
 Nothing ever leaves your machine. There is no server, no account, no telemetry. The language model runs on your laptop. The voice model is one you train on your own recordings. The audio is rendered locally and played in your browser.
 
-> By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI and unwarranted authority) and the in-progress *Unreality* (on how AI-generated content blurs real and simulated experience). This product is that work made operational: a private place to do the imagining you wouldn't share with anyone else, in a voice you trust because it's yours.
+> By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This product is both arguments made operational: AI harnessed to help you imagine *knowingly*, in your own voice, with no pretense of being your friend. The beauty of AI without the compromise of reality.
+
+---
+
+## The bigger bet
+
+This app is the first proof of a thesis: the largest AI companies have a structural blind spot — their business is metered cloud inference, so they have a permanent incentive *against* software that runs privately on your own machine. That leaves a whole category open: **purpose-built applications whose entire value is that nothing ever leaves the device** — for the things you'd never type into a cloud chatbot.
+
+The specific position is a **three-way intersection almost nobody combines**: *fully local* (offline by construction), *small-model reliability scaffolding* (the engineering that makes a small on-device model punch above its weight), and *honest anti-anthropomorphism* (an instrument, never a fake friend). Each alone is partly occupied; the intersection is open.
+
+The Imagination Engine is step one. The plan, in order:
+
+1. **Ship this app** as the canonical working privacy-native artifact.
+2. **Write the essay** that frames why it matters — *after* the artifact has earned it.
+3. **Extract the framework** underneath it — the reusable scaffold for private, offline, model-swappable AI apps — but only once a second app proves what actually generalizes.
+
+The full reasoning, and the traps we're steering around, are in [`docs/strategy.md`](docs/strategy.md). We're building this in the open on purpose: goal stated up front, every step shown and explained. If *"don't trust me, read the code"* is the promise, the repository itself has to be legible — so it is.
 
 ---
 
@@ -96,6 +112,18 @@ Everything in this project is open source. The runtime depends on:
 - **SQLite** (coming) — public domain, for the local memory layer
 
 The product code itself is MIT-licensed. See [`LICENSE`](LICENSE).
+
+---
+
+## Follow the work
+
+This repo is built to be **read**, not just run. The goal and every step are documented as a narrative spine you can traverse:
+
+- [`docs/strategy.md`](docs/strategy.md) — the ultimate goal and the sequence to reach it.
+- [`docs/decisions-log.md`](docs/decisions-log.md) — *why* every architectural turn was taken, with the reasoning and the data behind it (including the dead-ends — those are part of the honesty).
+- [`docs/daily-log.md`](docs/daily-log.md) — the day-by-day grind: what moved, what the numbers said, what's next.
+
+Commit messages explain the *why*, not just the *what*. Code comments at the seams explain the reasoning, not just the mechanism. **The code shows; the prose woven through it tells.** Read it top to bottom and you can follow both the engineering and the intent.
 
 ---
 

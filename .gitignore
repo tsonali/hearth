@@ -61,3 +61,10 @@ data/memory.sqlite-*
 # local-only, never transmitted, never committed. Regenerable from the
 # script stored in memory.sqlite if anyone really wanted to.
 data/sessions/
+
+# Internal strategy / competitive research — NEVER push. These are our
+# private war-map (landscape, distribution GTM, competitive watch). Local
+# only so they can't leak when we push product branches/PRs. The PUBLIC
+# narrative spine (strategy.md, decisions-log.md, daily-log.md, README)
+# stays tracked; the internal analysis does not.
+docs/internal/

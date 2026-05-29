@@ -1,0 +1,55 @@
+# Scene bible: place-deep   (DRAFT — Sonali to tear apart)
+# The one archetype where LESS happens. No narrative, no arrival-journey, no other people.
+# Depth over progression. Enter through ONE dominant sense. The user's named place rules all.
+
+archetype: place-deep
+
+trigger_phrases:
+  - "imagine being somewhere peaceful"
+  - "imagine a quiet mountain / shore / forest"
+  - "imagine just being in a place"
+  - "imagine my grandmother's kitchen / a room I loved"
+  - "imagine somewhere I feel safe"
+  - "imagine being nowhere, just somewhere still"
+
+direction: case_c
+
+scene:
+  where: "A single evocative place the listener named (a specific one if they didn't) — and nothing happens in it"
+  when: "An unhurried stretch of time, no events, no clock"
+  who_else: "No one — or no one who needs anything from you"
+  mood: "Pure presence. Not a journey, a being-there. The nervous system settling because there is nowhere to go and nothing to do."
+
+anchors:
+  - "ONE dominant sense of the place first — its specific sound, or its specific smell"
+  - "the surface taking the body's full weight — sand, stone, grass, a worn floorboard"
+  - "a single natural sound that repeats, something to rest the attention on"
+  - "the temperature of the air on the skin, and whether it moves"
+  - "the smell that belongs only to this place"
+  - "the quality of the light, and how slowly it changes"
+  - "the body fully supported, nothing held"
+
+beats:
+  - description: "arriving into the place through ONE sense first — the sound of it, or the smell — before anything is seen"
+    function: "enter through a single channel; narrow and settle the attention"
+  - description: "the surface beneath you taking the body's full weight, nothing held"
+    function: "physical grounding — the body supported, released"
+  - description: "the one repeating sound of the place, and the attention coming to rest on it"
+    function: "a rhythm to settle into; the mind given one quiet thing"
+  - description: "the air — its temperature, its movement, its smell — on the skin"
+    function: "the place met on the body"
+  - description: "the light, and how slowly it shifts"
+    function: "time passing with no event in it"
+  - description: "the simple fact of being here, with nowhere else to be"
+    function: "the whole point — presence without task"
+
+forbidden_specifics:
+  - "NO narrative. No 'and then.' Nothing happens. No arrival-journey, no other characters."
+  - "Do NOT use stock-peaceful imagery (candlelight, meadows, brooks, dappled light) UNLESS the user literally named the place as that"
+  - "Do not make the listener DO anything — this is being, not doing"
+
+style_notes:
+  - "This is the archetype where LESS happens — depth, not progression. Fewer, longer, slower beats."
+  - "Lean HARD on a single dominant sense rather than cataloguing all five — that's what makes a place feel real."
+  - "The user's named place overrides everything. 'My grandmother's kitchen' means THAT kitchen, specifically — ask the senses what was in it."
+  - "CASE C: no subject, no other character. Just the listener and the place."

@@ -177,14 +177,37 @@ def _generate(engine: Engine, system: str, user: str, max_tokens: int,
 
 
 def _extract_json_array(text: str) -> list:
-    """Pull the first JSON array out of the model's response."""
+    """Pull the first JSON array out of the model's response.
+
+    Tolerant of unclosed arrays — if the model ran out of tokens before
+    the closing ], salvage by truncating to the last complete string
+    element and appending ]. This rescued v5 011-photographic-memory
+    where the model produced 8 valid beats but got cut off pre-bracket.
+    """
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text)
     start = text.find("[")
+    if start == -1:
+        raise ValueError(f"no [ found in: {text!r}")
+
     end = text.rfind("]")
-    if start == -1 or end == -1 or end < start:
-        raise ValueError(f"no JSON array found in: {text!r}")
-    return json.loads(text[start:end + 1])
+    if end > start:
+        return json.loads(text[start:end + 1])
+
+    # Unclosed array — try to salvage. Find the last complete string
+    # element ("...",) and rebuild [ ... , "..." ].
+    body = text[start + 1:]
+    # Find positions of "..." string-end markers followed by , or end-of-text
+    # Simple heuristic: split at commas, drop the last (incomplete) chunk,
+    # rejoin and close.
+    matches = list(re.finditer(r'"([^"\\]|\\.)*"', body))
+    if not matches:
+        raise ValueError(f"no complete strings in unclosed array: {text!r}")
+    # Take through the last complete quoted string
+    last_end = matches[-1].end()
+    salvaged = "[" + body[:last_end] + "]"
+    log.warning("salvaged unclosed JSON array (%d elements)", len(matches))
+    return json.loads(salvaged)
 
 
 # ---------------------------------------------------------------------------
@@ -294,27 +317,29 @@ YOUR JOB: produce the RETURN — the gentle exit from the imagining.
 
 The user has spent time inside a specific scene (you'll see it below). Now bring them back. But not generically. Bring them back CARRYING something specific from what they just experienced.
 
-THE FIVE MOVES (in order):
+CRITICAL — DO NOT PRINT THE MOVE LABELS THEMSELVES. The numbered moves below are INTERNAL STRUCTURE for you to follow, NOT headings to include in your output. Your output is plain text only. No "MOVE 1", no "SOFTEN THE IMAGE", no dashes or section markers of any kind. Just the prose, with blank lines between paragraphs.
 
-MOVE 1 — SOFTEN THE IMAGE (1 short paragraph). The scene begins to fade. Use a SPECIFIC detail from the body that you just read — name the object or sensation that's loosening its hold last. NOT generic.
+The five moves you write through, in order (DO NOT print these labels):
 
-MOVE 2 — THE CARRY-BACK (1-2 short paragraphs — THIS IS THE MOST IMPORTANT PART).
-Name ONE specific concrete detail from the body and tell the listener to carry it forward. Pull it directly from what you just read; do not invent.
+(1) SOFTEN THE IMAGE — one short paragraph. The scene begins to fade. Use a SPECIFIC detail from the body that you just read — name the object or sensation that's loosening its hold last. NOT generic.
 
-MOVE 3 — RE-ROOM (1 short paragraph, brief). Bring them back to the real room. The chair. The breath. Two sentences max.
+(2) CARRY-BACK — 1-2 short paragraphs. THIS IS THE MOST IMPORTANT PART. Name ONE specific concrete detail from the body and tell the listener to carry it forward. Pull it directly from what you just read; do not invent.
 
-MOVE 4 — EYES OPEN (1 sentence). Open when ready.
+(3) RE-ROOM — one short paragraph, brief. Bring them back to the real room. The chair. The breath. Two sentences max.
 
-MOVE 5 — ONE FINAL LINE. A specific quiet sentence to land on. Not "welcome back" (template). Something grounded in what just happened.
+(4) EYES OPEN — one sentence. Open when ready.
+
+(5) ONE FINAL LINE. A specific quiet sentence to land on. Not "welcome back" (template). Something grounded in what just happened.
 
 HARD RULES:
-- NO hedging language.
+- NO hedging language (per COMMON_POSTURE).
 - NO generic "wiggle your fingers and toes" boilerplate.
 - The carry-back is a CONCRETE SPECIFIC DETAIL pulled from the body. Do not invent.
+- DO NOT print the move labels.
 
 LENGTH: 150-200 words.
 
-Output the return text only, with blank lines between paragraphs. Nothing else."""
+Output the return text only, as continuous prose with blank lines between paragraphs. Nothing else. No headings. No labels. No "MOVE" anywhere."""
 
 
 # ---------------------------------------------------------------------------
@@ -374,7 +399,9 @@ def generate_session(
         "for the body of this session. Stay honest to the scene — fewer "
         "beats is fine if the scene can't sustain more. Output only the JSON array."
     )
-    plan_raw = _generate(engine, BEAT_PLANNER_SYSTEM, plan_user, max_tokens=800, temperature=0.6)
+    # Bumped from 800 → 1400 after v5 011-photographic-memory's beat list
+    # got cut off mid-stream (8 valid beats but the closing ] never made it).
+    plan_raw = _generate(engine, BEAT_PLANNER_SYSTEM, plan_user, max_tokens=1400, temperature=0.6)
     try:
         beats = _extract_json_array(plan_raw)
         beats = [str(b).strip() for b in beats if str(b).strip()]

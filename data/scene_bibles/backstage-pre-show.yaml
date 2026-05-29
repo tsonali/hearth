@@ -1,0 +1,82 @@
+# Scene bible: backstage-pre-show
+#
+# Draft for shape only. Sonali should rewrite anchors/beats/style notes in her
+# voice once the format feels right.
+
+archetype: backstage-pre-show
+
+trigger_phrases:
+  - "imagine me as Taylor Swift"
+  - "imagine being Beyoncé"
+  - "imagine performing for thousands"
+  - "imagine being on stage"
+  - "imagine being a rock star"
+  - "imagine [any performer] before a show"
+  - "imagine giving a TED talk"
+  - "imagine giving a standing-ovation speech"
+
+direction: case_a
+
+scene:
+  where: "A concrete backstage tunnel of a stadium or large venue, three minutes before showtime"
+  when: "Late evening; the venue is full; lights are down out front"
+  who_else: "A stylist nearby making one last check; an audio tech audible in your earpiece; a stagehand at the door handle"
+  mood: "Cold focused stillness. Not romantic. Not chaotic. The trained-for-this calm of a body that knows what's about to happen."
+
+# 7-12 concrete sensory anchors the body of the script should hit.
+anchors:
+  - "the cold concrete under your boot heels"
+  - "the in-ear monitor pressing against your right temple, slightly too tight"
+  - "the muffled roar of the crowd through the corridor wall, like a held breath"
+  - "your stylist's fingertips touching the back of your costume, checking a clasp"
+  - "the taste of metal in the back of your mouth from adrenaline"
+  - "the click of the audio tech's voice in your ear with countdown markers"
+  - "a single stray thread from your costume catching at the corner of your mouth"
+  - "the dark slot of the entrance ahead, lit dimly at the edges"
+  - "your breath low in your chest, slower than you'd expect"
+  - "the texture of your hands — empty, waiting"
+
+# 8-12 dramatic beats. Each becomes a ~200-word body call.
+beats:
+  - description: "the cold concrete under the boot heels, weight settled, the body knows where it is"
+    function: "establish embodiment — listener IS the performer, in the body, present"
+
+  - description: "the in-ear cuing in — a tech voice with a countdown marker, the way time becomes concrete"
+    function: "introduce the external structure — the rest of the night is on rails, this is just before"
+
+  - description: "the stylist moment — a touch, a check, a fingertip on a strap or a thread"
+    function: "another person's care, intimate and brief, the only contact you have right now"
+
+  - description: "the muffled crowd — forty thousand held breaths through the corridor wall"
+    function: "the magnitude of the audience as a pressure, not a celebration yet"
+
+  - description: "the taste of metal — adrenaline, the body knowing"
+    function: "physiological commitment of the body to what is about to happen"
+
+  - description: "looking out at the dark slot of the entrance, lit at the edges"
+    function: "the threshold, the line between here and there"
+
+  - description: "an interior stillness — the calm at the center of the body, the years that brought you here"
+    function: "the moment OF the calm, the trained-for-this quality"
+
+  - description: "the click again — 'one minute' or similar — closer now"
+    function: "time compressing, the next thing very close"
+
+  - description: "the first move — weight shifting, the breath drawn for the walk-out"
+    function: "the body beginning to move toward the action"
+
+  - description: "the threshold — boot heel finding the stage tape, the wash of heat from the lights"
+    function: "crossing into the scene, the world opening"
+
+forbidden_specifics:
+  - "Do not name a specific tour unless the user named one in intake"
+  - "Do not name songs unless the user named them"
+  - "Do not name partners, family members, or current relationships of the performer"
+  - "Do not invent recent events (album releases, news) — model's knowledge has a date cutoff"
+
+style_notes:
+  - "This is COLD focus, not romantic warmth. Don't make it cuddly."
+  - "Breath-level pacing. One image per paragraph. Blank lines between."
+  - "If the user named a real living performer, write THEIR specific bodily presence — voice quality, posture, manner — without naming biographical specifics the model can't verify."
+  - "The opening should drop the listener into the cold concrete, the boots, the body. Not into 'imagine you are about to' — into 'you are here.'"
+  - "Use second person present tense. 'Your boot heels are on the cold concrete.' Not 'you might feel.'"

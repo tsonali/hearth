@@ -59,6 +59,7 @@ class Classification:
     subject_kind: str = ""          # "real_living_person" | "fictional" | "self_variant" | "abstract" | ""
     scene_summary: str = ""         # one sentence: where/what the scene is
     anchors: list[str] = field(default_factory=list)  # 3-5 concrete sensory anchors
+    archetype: str = ""             # matched scene-bible archetype, or "" if none fits
     raw: str = ""                   # the raw model output, kept for debugging
 
     def to_dict(self) -> dict:
@@ -68,6 +69,7 @@ class Classification:
             "subject_kind": self.subject_kind,
             "scene_summary": self.scene_summary,
             "anchors": list(self.anchors),
+            "archetype": self.archetype,
         }
 
     @classmethod
@@ -78,6 +80,7 @@ class Classification:
             subject_kind=d.get("subject_kind", ""),
             scene_summary=d.get("scene_summary", ""),
             anchors=list(d.get("anchors", [])),
+            archetype=(d.get("archetype") or "").strip(),
         )
 
     def direction_block(self) -> str:
@@ -269,10 +272,25 @@ def classify_intake(engine: Engine, transcript: list[dict]) -> Classification:
         + "\n----- END TRANSCRIPT -----"
     )
 
+    # Inject the available scene-bible archetypes so the classifier maps the
+    # intake to one — matching is the classifier's job (see scene_bibles README).
+    # The generator binds the matched bible; "" means none fit -> improvise path.
+    from imagination_engine import scene_bibles as _sb
+    archetypes = _sb.archetype_names()
+    system_prompt = CLASSIFIER_SYSTEM_PROMPT
+    if archetypes:
+        system_prompt += (
+            "\n\n══════════════════════════════════════════════════════════\n"
+            'ARCHETYPE — add one more JSON key, "archetype": pick the ONE '
+            'best-fit archetype from this list, or "" if none genuinely fits '
+            "(do NOT force a bad match):\n"
+            + "\n".join(f"  - {a}" for a in archetypes)
+        )
+
     chunks: list[str] = []
     for chunk in engine.stream(
         messages=[
-            {"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_msg},
         ],
         max_tokens=400,
@@ -285,8 +303,11 @@ def classify_intake(engine: Engine, transcript: list[dict]) -> Classification:
         data = extract_object(raw)
         cls = Classification.from_dict(data)
         cls.raw = raw
-        log.info("intake classified: direction=%s, subject=%r, anchors=%d",
-                 cls.direction, cls.subject, len(cls.anchors))
+        if cls.archetype and cls.archetype not in archetypes:
+            log.warning("classifier returned unknown archetype %r; ignoring", cls.archetype)
+            cls.archetype = ""
+        log.info("intake classified: direction=%s, subject=%r, anchors=%d, archetype=%r",
+                 cls.direction, cls.subject, len(cls.anchors), cls.archetype)
         return cls
     except (ValueError, json.JSONDecodeError) as e:
         log.warning("intake classification failed (%s); falling back to CASE C. raw=%r",

@@ -6,6 +6,31 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-05-29 (later) — Scene-binding validated; product identity sharpened
+
+**Moved**
+- Model switched to **Qwen 2.5 14B** after the bake-off (only model with 0/5
+  JSON errors; quality competitive on direct read).
+- Built **PR #1** (robust structured-output reliability primitive) and **PR #2**
+  (scene binding: classifier → archetype → bound scene bible → generation).
+- Caught + fixed a silent-dead-feature: scene-binding never fired until the
+  classifier prompt was fixed to emit `archetype` (in-schema). Then **validated
+  end-to-end**: the two worst drift cases (different-personality, retire-young)
+  now hold the human-curated scene instead of drifting. Task-pack #1 is real.
+- Drafted 4 scene bibles (retire-young, different-personality,
+  future-self-arriving, place-deep) + the existing backstage-pre-show.
+- **Product identity** sharpened (capability evidence): structured generation,
+  NOT a companion chatbot; a curated suite of structured private experiences
+  bundled in one offline download. Roadmap in `docs/roadmap.md`.
+
+**Decision queue**
+- Sharpen the scene bibles to Sonali's taste (she reads the full bound scripts).
+- Task-pack #2 (wind-down/meditation) to prove the architecture generalizes.
+- Grind box incoming → move heavy runs (100-script validation, Phase-2 distill)
+  off the laptop.
+
+---
+
 ## 2026-05-29
 
 **Moved today**

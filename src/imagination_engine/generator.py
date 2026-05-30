@@ -52,6 +52,7 @@ from typing import Callable, Optional
 
 from imagination_engine.comprehension import Classification, classify_intake
 from imagination_engine.inference import Engine
+from imagination_engine.scene_bibles import get_bible
 from imagination_engine.structured import extract_array
 
 log = logging.getLogger(__name__)
@@ -347,6 +348,17 @@ def generate_session(
              classification.direction, classification.subject)
     class_block = _classification_block(classification)
 
+    # Scene binding: if the classifier matched a hand-curated archetype, load its
+    # scene bible and bind it into EVERY stage (open/plan/beats/back all read
+    # class_block) — so the model fills in a HUMAN-designed scene instead of
+    # improvising one that drifts (the cafe/barista failure). No match -> the
+    # improvise-from-prompt path (unchanged v5.2 behavior).
+    bible = get_bible(classification.archetype) if classification.archetype else None
+    if bible is not None:
+        class_block = class_block + "\n\n" + bible.context_block()
+        log.info("  scene-bible bound: %s (%d beats, %d anchors)",
+                 bible.archetype, len(bible.beats), len(bible.anchors))
+
     # Stage 2: open.
     emit("writing_settle", "Writing the opening. Dropping you into the scene.", 2, 5, eta=15.0)
     log.info("[v5] open ...")
@@ -358,33 +370,43 @@ def generate_session(
     open_text = _generate(engine, OPEN_PROMPT, open_user, max_tokens=600)
     log.info("  open: %.1fs, %d words", time.time() - t0, len(open_text.split()))
 
-    # Stage 3: plan beats.
+    # Stage 3: plan beats — from the bound scene bible if we have one (the
+    # human-authored dramatic structure IS the plan, which both binds the scene
+    # and saves an LLM call), otherwise ask the model to plan.
     emit("writing_plan", "Planning the beats of the scene.", 3, 5, eta=15.0)
-    log.info("[v5] plan beats ...")
     t0 = time.time()
-    plan_user = (
-        intake_str + "\n\n" + class_block + "\n\n"
-        "----- THE OPENING (already written) -----\n"
-        + open_text
-        + "\n----- END OPENING -----\n\n"
-        f"Now produce a JSON array of {MIN_BEATS}-{MAX_BEATS} beat descriptions "
-        "for the body of this session. Stay honest to the scene — fewer "
-        "beats is fine if the scene can't sustain more. Output only the JSON array."
-    )
-    # Bumped from 800 → 1400 after v5 011-photographic-memory's beat list
-    # got cut off mid-stream (8 valid beats but the closing ] never made it).
-    plan_raw = _generate(engine, BEAT_PLANNER_SYSTEM, plan_user, max_tokens=1400, temperature=0.6)
-    try:
-        beats = extract_array(plan_raw)
-        beats = [str(b).strip() for b in beats if str(b).strip()]
-        beats = beats[:MAX_BEATS]  # safety cap
-        if len(beats) < MIN_BEATS:
-            log.warning("beat planner returned only %d beats — using what we got", len(beats))
-    except (ValueError, json.JSONDecodeError) as e:
-        log.warning("beat plan parse failed (%s); falling back to single body call", e)
-        beats = []
-    log.info("  plan: %.1fs, %d beats: %s", time.time() - t0, len(beats),
-             [b[:40] for b in beats[:3]])
+    if bible is not None and bible.beats:
+        beats = [
+            (b.description + (f" [function: {b.function}]" if b.function else "")).strip()
+            for b in bible.beats
+            if b.description.strip()
+        ][:MAX_BEATS]
+        log.info("[v5] plan: %d beats from scene bible %s", len(beats), bible.archetype)
+    else:
+        log.info("[v5] plan beats ...")
+        plan_user = (
+            intake_str + "\n\n" + class_block + "\n\n"
+            "----- THE OPENING (already written) -----\n"
+            + open_text
+            + "\n----- END OPENING -----\n\n"
+            f"Now produce a JSON array of {MIN_BEATS}-{MAX_BEATS} beat descriptions "
+            "for the body of this session. Stay honest to the scene — fewer "
+            "beats is fine if the scene can't sustain more. Output only the JSON array."
+        )
+        # Bumped from 800 → 1400 after v5 011-photographic-memory's beat list
+        # got cut off mid-stream (8 valid beats but the closing ] never made it).
+        plan_raw = _generate(engine, BEAT_PLANNER_SYSTEM, plan_user, max_tokens=1400, temperature=0.6)
+        try:
+            beats = extract_array(plan_raw)
+            beats = [str(b).strip() for b in beats if str(b).strip()]
+            beats = beats[:MAX_BEATS]  # safety cap
+            if len(beats) < MIN_BEATS:
+                log.warning("beat planner returned only %d beats — using what we got", len(beats))
+        except (ValueError, json.JSONDecodeError) as e:
+            log.warning("beat plan parse failed (%s); falling back to single body call", e)
+            beats = []
+        log.info("  plan: %.1fs, %d beats: %s", time.time() - t0, len(beats),
+                 [b[:40] for b in beats[:3]])
 
     # Stage 4: generate each beat.
     body_parts: list[str] = []

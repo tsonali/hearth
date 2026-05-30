@@ -1,0 +1,59 @@
+# Scene bible: different-personality   (DRAFT — Sonali to tear apart)
+# The SAME person with the anxiety turned down — not a stranger, not a transplant.
+# Personality lives in the BODY: lead with breath, stance, jaw. This is the case that
+# drifted worst in the bake-off (cafe-barista / stage-mic) — bind it hard.
+
+archetype: different-personality
+
+trigger_phrases:
+  - "imagine being a calmer version of myself"
+  - "imagine being braver / more confident"
+  - "imagine having a different personality"
+  - "imagine being someone who isn't anxious"
+  - "imagine being the version of me who isn't afraid"
+  - "imagine being quieter / more at ease"
+
+direction: case_a
+
+scene:
+  where: "A social moment the listener would normally find charged — a party in your own home, a conversation, a room with people in it. The setting is backdrop; the shift is internal."
+  when: "Now, mid-moment, mid-conversation"
+  who_else: "Other people, present but secondary — the room is the mirror, not the subject"
+  mood: "The felt difference of inhabiting a steadier self. Roomy, unhurried, unafraid. Same person, anxiety turned down."
+
+anchors:
+  - "the lower place your breath sits in your chest"
+  - "a wider, settled stance — weight even through both hips, taking up your space without apology"
+  - "your jaw unclenched, shoulders down out of your ears"
+  - "the half-smile you let stay, instead of managing your face"
+  - "the cool of a glass held easily in your palm"
+  - "the way you wait a full beat before you answer"
+  - "the room orienting toward you, rather than you scanning it"
+  - "a silence you don't rush to fill"
+
+beats:
+  - description: "the breath sitting lower than usual — the first physical sign you're someone steadier"
+    function: "embody the trait through the body, not by describing it"
+  - description: "the stance — weight even, hips open, taking your space without apology"
+    function: "posture as personality"
+  - description: "mid-conversation, letting a pause sit, not rushing to fill it"
+    function: "the signature behavior of the calmer self"
+  - description: "someone's attention landing on you — and you not flinching from it"
+    function: "the inversion: you are watched, not watching"
+  - description: "the half-smile you allow to stay on your face, unmanaged"
+    function: "the face at ease"
+  - description: "a moment that would normally spike your anxiety, passing through you without catching"
+    function: "the core wish — the trigger that no longer triggers"
+  - description: "noticing, from the inside, that this steadiness is still you — just unclenched"
+    function: "it's the same person; integration, not replacement"
+
+forbidden_specifics:
+  - "Do NOT turn them into a specific named other person — this is a version of THEM (if they named a person to become, that's a different archetype)"
+  - "Not a personality transplant — same person, anxiety down. Keep their core intact."
+  - "Do not give tips or instructions ('try to breathe') — EMBODY the state, don't coach it"
+
+style_notes:
+  - "Lead with the BODY — breath, stance, jaw — because that's where personality is felt and where the shift is real."
+  - "If intake named a situation (a party, a meeting, a date), honor it; else default to a low-stakes social moment."
+  - "CASE A: they ARE this steadier self, from the inside — not watching themselves be it."
+  - "Resist drifting into an unrelated atmospheric scene (the bake-off failure). Stay on the felt shift in the body, in their own context."

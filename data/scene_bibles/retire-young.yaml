@@ -1,0 +1,59 @@
+# Scene bible: retire-young   (DRAFT — Sonali to tear apart)
+# The wish here is TIME, not stuff. Luxury = an unclaimed day, a body no longer on-call.
+
+archetype: retire-young
+
+trigger_phrases:
+  - "imagine retiring young"
+  - "imagine never having to work again"
+  - "imagine being financially free"
+  - "imagine being wealthy with no obligations"
+  - "imagine quitting and never going back"
+  - "imagine a life where nothing is scheduled"
+
+direction: case_a
+
+scene:
+  where: "A house you own, full of light, on an ordinary weekday morning — the kind of day you'd normally have spent in meetings"
+  when: "Mid-morning on a Tuesday; the hours that used to belong to other people"
+  who_else: "No one who needs anything from you. Maybe a partner still asleep; a housekeeper already gone. Mostly: the quiet of an unclaimed day."
+  mood: "Spaciousness, not flash. The luxury is TIME — a body slowly unclenching from years of being on call."
+
+anchors:
+  - "bare feet finding a cool stone floor, no rush in the step"
+  - "the smell of coffee someone made an hour ago, still faint in the air"
+  - "your phone face-down on the counter, and the choice not to turn it over"
+  - "late-morning light pooling across a room that has nowhere it needs to be"
+  - "a chair worn in exactly to the shape of you"
+  - "one distant unhurried sound — surf, a far-off mower, a screen door"
+  - "a cup of coffee going cold because you forgot it, and it not mattering at all"
+  - "the long open stretch of the day with nothing scheduled into it"
+
+beats:
+  - description: "waking with no alarm, the body surfacing on its own time"
+    function: "establish the absence of obligation, felt in the body first"
+  - description: "bare feet on the cool floor, an unhurried step, nowhere to be"
+    function: "embodiment — the physics of a day that belongs to you"
+  - description: "the phone face-down, and the small astonishing freedom of not checking it"
+    function: "the central wish — you are no longer on call to anyone"
+  - description: "making coffee slowly, watching it happen, with all the time in the world"
+    function: "time itself as the real wealth"
+  - description: "standing at a window with the whole day open in front of you"
+    function: "the spaciousness — unclaimed hours"
+  - description: "a flicker of the old life — the meeting that would be starting now — drifting past without a grip"
+    function: "contrast; the release of the thing you escaped"
+  - description: "the quiet that isn't empty but full"
+    function: "reframe — not boredom, abundance"
+  - description: "choosing, slowly, what you actually want from the day, for no reason but wanting it"
+    function: "agency restored — desire replacing duty"
+
+forbidden_specifics:
+  - "Do not make it about buying things, yachts, or flashy luxury unless the user named that — the wealth is TIME, not objects"
+  - "Do not name dollar amounts or net worth"
+  - "Do not moralize about whether they 'earned' it or 'deserve' rest"
+
+style_notes:
+  - "The luxury is spaciousness and the absence of obligation — never the stuff."
+  - "Slow pacing mirrors the slow day. One image per paragraph."
+  - "Emphasize the body unclenching from years of being on-call — that's the deepest pleasure here."
+  - "Second person, present tense, committed. 'Your bare feet are on the cool floor.' Never 'you might feel.'"

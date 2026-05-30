@@ -143,11 +143,14 @@ def main() -> int:
     p.add_argument("--no-voice", action="store_true",
                    help="skip loading the TTS voice (we don't render audio in "
                         "text-only eval runs; saves memory + load time)")
+    p.add_argument("--verbose", action="store_true",
+                   help="INFO logging — shows intake classification + whether a "
+                        "scene bible was bound per scenario")
     args = p.parse_args()
     if args.out_dir:
         OUT_DIR = Path(args.out_dir)
 
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
 
     scenarios = list(SCENARIOS)
     if args.only:

@@ -198,3 +198,18 @@ Verified capability research (what small local models are *demonstrably* good at
 - Most defensible public claim: *a small model you run privately, specialized for one task, matches the frontier at that task — fraction of the cost, nothing leaves your device.*
 
 **Test, don't claim:** the losing-empathy study is clinical support (model supplies empathy); our use facilitates the user's own imagining via a structured script — possibly a friendlier spot, but unproven. Validate via generated scripts + user testing, not assertion. (Full evidence: internal capability research doc.)
+
+---
+
+## 2026-05-29 — Scene-binding VALIDATED (PR #2); a near-miss caught
+
+**A silent-dead-feature near-miss, then a real fix.** Scene-binding (PR #2) shipped non-functional: a diagnostic found the classifier returned `archetype=''` on every case, so binding never fired and the generator silently fell back to the old improvise path. Root cause: the archetype instruction was appended *after* the authoritative JSON schema block, so Qwen followed the schema (which omitted `archetype`) and ignored the addendum. Fix: put `archetype` IN the schema as a required key + a labeled ARCHETYPE LIST with mapping hints. Verified 4/4 (Taylor→backstage-pre-show, retire→retire-young, calmer→different-personality, shore→place-deep). **Lesson reinforced: validate a feature actually fires before building on it** — Sonali's "where are we on the 100?" is what surfaced it; we nearly built the roadmap on a dead feature.
+
+**End-to-end validation (Qwen, scene-binding live) on the two worst prior drift cases:**
+- **different-personality.** OLD (improvise) drifted onto an unrelated *stage with a microphone and audience* + leaked example anchors verbatim. NEW (bound) held the bible's scene exactly: party-in-your-apartment, breath low, wide stance, unmanaged half-smile, held pause, unclenched jaw. Drift gone. (2204w vs old rambling.)
+- **retire-young.** OLD drifted to a generic sunrise-porch-birdsong postcard (the AI "peaceful" default) that missed the actual wish. NEW hit the bible's real anchors: phone face-down / coffee gone cold / years on-call dissolving / the unclaimed day — captured the *emotional core* (time + freedom from obligation), not generic calm.
+- Taylor (non-discriminating control: the bare model already knew backstage-Eras) came out tighter but similar — expected.
+
+**Verdict: task-pack #1 architecture is real** — a hand-curated scene bound into a small local model produces the intended experience instead of drifting. This is the keystone the "curated suite" roadmap rests on. Caveat: validated as TEXT and as structural on-scene-ness; whether scripts are genuinely *moving* is a taste call (Sonali) and ultimately an audio judgment (later). PR #2 merged.
+
+**Known small follow-ups (non-blocking):** classifier occasionally leaks the archetype name into `subject` for unnamed-subject cases; structured-output repair still misses some unescaped inner-quote cases (intermittent parse fail). Harden later.

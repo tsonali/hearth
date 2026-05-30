@@ -123,8 +123,13 @@ commentary, no markdown fences. The JSON has exactly these keys:
   "subject": "<the named entity, or empty string>",
   "subject_kind": "real_living_person" | "fictional" | "self_variant" | "abstract" | "",
   "scene_summary": "<2-3 sentences describing the specific scene>",
-  "anchors": ["<concrete sensory anchor 1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>"]
+  "anchors": ["<concrete sensory anchor 1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>"],
+  "archetype": "<EXACTLY one archetype string from the ARCHETYPE LIST provided below, or \"\" if none genuinely fits>"
 }
+
+The "archetype" key is REQUIRED — always include it. Choose the best-fit \
+archetype from the list given below the rules (it maps the imagining to a \
+hand-curated scene). Use the exact string, or "" only if nothing fits.
 
 ══════════════════════════════════════════════════════════
 THE MOST IMPORTANT INSTRUCTION:
@@ -281,10 +286,14 @@ def classify_intake(engine: Engine, transcript: list[dict]) -> Classification:
     if archetypes:
         system_prompt += (
             "\n\n══════════════════════════════════════════════════════════\n"
-            'ARCHETYPE — add one more JSON key, "archetype": pick the ONE '
-            'best-fit archetype from this list, or "" if none genuinely fits '
-            "(do NOT force a bad match):\n"
+            "ARCHETYPE LIST (choose the best-fit for the \"archetype\" key, exact "
+            "string, or \"\" if none truly fits — do NOT force a bad match):\n"
             + "\n".join(f"  - {a}" for a in archetypes)
+            + "\n\nMapping hints: a performer/celebrity/being-on-stage → "
+            "backstage-pre-show; retiring/financial-freedom/no-obligations → "
+            "retire-young; a calmer/braver/different version of yourself → "
+            "different-personality; your future self having achieved something → "
+            "future-self-arriving; just being in a place with no story → place-deep."
         )
 
     chunks: list[str] = []

@@ -44,16 +44,22 @@ The naive worry: bundling several full models is huge (each small 4-bit base is
   low-hundreds of MB**, layered on the shared base. So "a different model per task"
   is really *one base + many tiny specialists* — per-task quality at minimal extra
   disk. (This is the Phase-2 distillation plan, made packageable.)
-- **Download-on-demand** — ship a lean base + voice; fetch a task's adapter (and, if
-  ever needed, an alternate base) the first time the user opens that experience.
-  Install stays small; disk grows only with what they actually use.
-- Near-term (before fine-tunes exist): pick the best off-the-shelf base per task —
-  and *test which base wins which task* (a real, cheap experiment). Long-term:
-  fine-tuned LoRA specialists per task.
+- **Bundle EVERYTHING in one download (the decision).** The whole suite ≈ ~10–14 GB:
+  one shared base + the full voice layer (~3–4 GB) + all task adapters (~1–2 GB total)
+  + scaffolding (negligible). One download, then **fully self-contained** — the app
+  never phones home to fetch a model, ever. Download once, wifi off forever, *every*
+  feature works. This is purer for the "nothing leaves your device" promise than
+  on-demand fetching, and ~10–14 GB is an ordinary one-time download (a fraction of a
+  modern game). (Download-on-demand stays as a fallback only if total size ever
+  becomes a real problem.)
+- Near-term (before fine-tunes exist): all use cases run on the *one shared base* via
+  different scaffolding (prompts/scene-bibles/frameworks) — so bundling all use cases
+  costs ~zero extra model weight. We can *test which base wins which task* (cheap), but
+  the bigger quality lever is the per-task LoRA adapter (Phase 2).
 
-**Verdict: not prohibitive.** One base + per-task LoRA adapters + on-demand download
-gives per-task models for roughly the footprint of a single model plus a handful of
-small files.
+**Verdict: bundle the whole suite.** Shared base + shared voice layer + tiny per-task
+adapters = the entire product in one ~10–14 GB self-contained download, owned and
+offline forever. Per-task models cost roughly the footprint of one model plus small files.
 
 ## Use-case catalog (initial)
 

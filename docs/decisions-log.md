@@ -213,3 +213,21 @@ Verified capability research (what small local models are *demonstrably* good at
 **Verdict: task-pack #1 architecture is real** — a hand-curated scene bound into a small local model produces the intended experience instead of drifting. This is the keystone the "curated suite" roadmap rests on. Caveat: validated as TEXT and as structural on-scene-ness; whether scripts are genuinely *moving* is a taste call (Sonali) and ultimately an audio judgment (later). PR #2 merged.
 
 **Known small follow-ups (non-blocking):** classifier occasionally leaks the archetype name into `subject` for unnamed-subject cases; structured-output repair still misses some unescaped inner-quote cases (intermittent parse fail). Harden later.
+
+---
+
+## 2026-05-29 — Licensing landmines + reliability unlocks (from external strategy report)
+
+An external research report (compass_artifact, in ~/Downloads) largely validated our direction (friction-removal wedge, specialist-beats-generalist, structured-not-open, Qwen as a legally-safe Apache-2.0 base) and surfaced load-bearing facts:
+
+**LICENSING — must respect if we ever distribute:**
+1. **F5-TTS pre-trained models are CC-BY-NC — CONFIRMED (verified 2026-05-29 via SWivid/F5-TTS discussion #997 + HF model card).** F5 *code* is MIT, but the *weights* (Emilia-trained base) are CC-BY-NC and **cannot be used commercially even after fine-tuning** — so Sonali's `model_3000.pt` fine-tune is non-commercial and CANNOT ship in a distributed product. (Loophole: train from scratch on own data w/o pretrained weights = commercial-OK, but needs far more data/compute — not the path. SWivid said CC-BY models are "planned," not released.)
+   - **Dev/personal use: fine — keep F5 for all internal testing now (non-commercial covers it).**
+   - **Shippable product: swap the user-voice path to commercial-clean** — Kokoro (Apache-2.0) + Chatterbox (MIT) already in `tts.py`; NeuTTS Air for permissive on-device cloning. A swap, not a rebuild. Pre-distribution task, NOT urgent.
+2. **Distillation teachers (Phase 2): ONLY Apache-2.0 / MIT open-weight** (Qwen, Mistral, DeepSeek, Phi-4). NEVER frontier APIs (OpenAI/Anthropic/Google ToS ban building competing models from outputs, and it's actively policed). Llama & Gemma≤v3 as teachers **propagate their license restrictions onto the student** — avoid as synthetic-data teachers. This *removes* the earlier "frontier-seed if quality demands" option for anything shipped. (Qwen base = already safe.)
+
+**RELIABILITY UNLOCKS to adopt:**
+- **Grammar-constrained decoding (GBNF / JSON-Schema→GBNF)** — guarantees schema-valid output at the decoding level; a stronger version of our repair-after-the-fact `structured.py`. Adopt for structured modes.
+- **RAG over local files** named the highest-leverage scaffold for knowledge/doc modes (kills hallucination; ~7B is the floor).
+
+**SEQUENCING input (a tension, decision pending):** report puts reliable *text-transformation* modes (doc-Q&A, writing-transformer, extraction, transcription) as Tier 1 and demotes Imagination Engine to Tier 3 "signature/novel" (ship last, it's the riskiest creative mode). Our resolution: keep Imagination Engine as flagship + architecture/quality proof (nearly working), but make **task-pack #2 a reliability-first text mode** (writing-transformer or doc-Q&A) — broader demand + small-model sweet spot — instead of the earlier wind-down/meditation pick. NSFW/roleplay wedge (report's #2 local use case) noted but deliberately deferred — reputationally off-brand for an author-led privacy-dignity product; a conscious later choice, not a drift.

@@ -77,6 +77,13 @@ class Config:
     # Production voice: F5-TTS fine-tuned on the speaker's own recordings.
     # Used when the user picks "your voice" at intake. Checkpoint lives in
     # the f5_tts ckpts directory; reference clip lives in data/dataset/.
+    #
+    # ⚠️ LICENSING (verified 2026-05-29): F5-TTS *code* is MIT but the pre-trained
+    # *weights* are CC-BY-NC (Emilia training data) — NON-COMMERCIAL, even after
+    # fine-tuning. Fine for dev/personal use; CANNOT ship in a distributed product.
+    # Before distribution, swap the user-voice-cloning path to a commercial-clean
+    # base (Kokoro=Apache-2.0, Chatterbox=MIT, or NeuTTS Air). See decisions-log
+    # 2026-05-29 "Licensing landmines."
     f5_speaker: str = "sonali"
     f5_checkpoint: str = "model_3000.pt"
     f5_ref_id: str = "g021"

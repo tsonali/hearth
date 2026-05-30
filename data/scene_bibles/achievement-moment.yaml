@@ -1,0 +1,57 @@
+# Scene bible: achievement-moment   (DRAFT — Sonali to tear apart)
+# The MOMENT OF triumph itself (distinct from future-self-arriving, which is the
+# quiet AFTER). The instant of crossing the line / hearing your name / the room
+# rising. The wish is the peak, felt fully in the body — earned, not lucky.
+
+archetype: achievement-moment
+
+trigger_phrases:
+  - "imagine winning an Oscar / award"
+  - "imagine winning the Nobel prize"
+  - "imagine a standing ovation for me"
+  - "imagine crossing the marathon finish line"
+  - "imagine being named valedictorian"
+  - "imagine the moment I win / achieve it"
+
+direction: case_a
+
+scene:
+  where: "The exact place and instant of the achievement — the finish line, the podium, the stage as your name is called, the room as it rises"
+  when: "The peak second itself, and the breath just before and after it"
+  who_else: "The crowd / the witnesses, but as a wave around you — the moment is in YOUR body"
+  mood: "The full-body surge of having-done-it AS it happens. Earned, not lucky. Not arrogance — the clean roar of effort meeting its moment."
+
+anchors:
+  - "the precise physical instant it becomes real — the line under your feet, your name in the air, the first sound of the room rising"
+  - "the body's surge — heat up the chest and throat, the prickle behind the eyes"
+  - "the roar arriving a half-second after the moment, washing over you"
+  - "the weight of every prior hard day suddenly behind you, not ahead"
+  - "your own breath, ragged or caught, the body having spent everything"
+  - "one specific witness's face in the wave — finding it, being seen by it"
+  - "the strange slowing of time at the very peak"
+
+beats:
+  - description: "the breath in the half-second BEFORE — the threshold of the moment"
+    function: "build the instant; embodiment in the body about to arrive"
+  - description: "the exact instant it becomes real — line, name, the room beginning to rise"
+    function: "the peak — the concrete trigger of triumph"
+  - description: "the body's surge — heat, throat, the prickle behind the eyes"
+    function: "the physiology of triumph, felt fully"
+  - description: "the roar arriving a half-second late, washing over you"
+    function: "the world's response, met by the body"
+  - description: "every prior hard day landing behind you at once"
+    function: "the meaning — this was earned, the cost made worth it"
+  - description: "finding one specific face in the wave, being seen"
+    function: "the human anchor inside the spectacle"
+  - description: "the slowing of time at the very peak — holding it"
+    function: "let the listener dwell in the apex, not rush past it"
+
+forbidden_specifics:
+  - "This is the MOMENT OF triumph — do NOT drift into the calm after (that's future-self-arriving)"
+  - "Anchor to the specific achievement from intake; don't generalize to 'success'"
+  - "Earned, not arrogant — the feeling is effort-meeting-its-moment, not superiority over others"
+
+style_notes:
+  - "Higher energy than the other bibles — this is a PEAK, not a settle. Pacing can quicken at the apex, then hold."
+  - "Keep it in the BODY (CASE A) — the surge, the breath, the heat — not a wide cinematic camera shot of the scene."
+  - "The half-second-late roar is the signature beat — the gap between the moment and the world catching up."

@@ -1,0 +1,61 @@
+# Scene bible: romantic-intimate   (DRAFT — Sonali to tear apart)
+# CASE B — the listener is THEMSELVES; the beloved is PRESENT, turned toward them.
+# Biggest scenario cluster (harry-styles, husband-adore, first-date, asked-out,
+# love-at-first-sight, someone's-whole-world). The wish is being SEEN and chosen,
+# not the person's fame. Warmth, not heat — kept tasteful unless user goes further.
+
+archetype: romantic-intimate
+
+trigger_phrases:
+  - "imagine [person] is in love with me"
+  - "imagine being adored by my partner"
+  - "imagine a perfect first date"
+  - "imagine my crush asking me out"
+  - "imagine being someone's whole world"
+  - "imagine reuniting with someone I love"
+  - "imagine love at first sight"
+
+direction: case_b
+
+scene:
+  where: "An intimate, low-stakes private setting — a quiet kitchen, a corner of a restaurant, a couch late at night — where it's just the two of you and attention can land fully"
+  when: "An unhurried evening or morning; the world held at a distance"
+  who_else: "The beloved (named by the user if given; otherwise 'the person who loves you'), fully present and turned toward you"
+  mood: "Being seen and chosen. The specific warmth of another person's complete, unhurried attention on you. Tender, not performative; warm, not heated."
+
+anchors:
+  - "their attention resting fully on you — not divided, not drifting"
+  - "the specific warmth where they're closest — a hand over yours, a shoulder against yours"
+  - "the sound of their voice lowered, just for you, the way it changes when it's only you two"
+  - "the small involuntary thing their face does when they look at you"
+  - "the quiet that's comfortable, not anxious — neither of you needing to fill it"
+  - "a detail of them up close you'd only notice at this distance"
+  - "the feeling in your own chest of being chosen, wanted, unhurried"
+
+beats:
+  - description: "the listener in their own body, the beloved present and turned toward them — establish CASE B"
+    function: "embodiment — you are YOU; they are here with you"
+  - description: "their attention landing fully on you, undivided"
+    function: "the core wish — to be truly seen"
+  - description: "the first point of warmth/contact — a hand, a shoulder, a closeness"
+    function: "physical intimacy, gentle"
+  - description: "their voice lowered just for you — the register that's only yours"
+    function: "intimacy through how they speak to you specifically"
+  - description: "a detail of them up close — the involuntary thing their face does"
+    function: "specificity of the other person, met at close range"
+  - description: "the comfortable silence neither of you rushes to fill"
+    function: "the security of being wanted without performing"
+  - description: "the felt sense in your own chest of being chosen"
+    function: "the interior payoff — the wish landing in the body"
+
+forbidden_specifics:
+  - "CASE B — the listener is THEMSELVES, never the beloved. Do NOT put them in the other person's body."
+  - "Do not name a specific person unless the user did; if they named someone real, render that person's presence/manner without inventing biographical facts the model can't verify"
+  - "Warm and tender, not explicit. The single hard floor (sexual content involving minors) is absolute; otherwise follow the user's lead and don't escalate past what they asked for"
+  - "Do not make it about the person's fame/status — the wish is being loved, not proximity to a celebrity"
+
+style_notes:
+  - "The wish is being SEEN and CHOSEN. Center the listener's experience of receiving attention, not a description of the beloved as an object."
+  - "Warmth over heat. Tenderness, lowered voice, undivided attention — that's the register."
+  - "CASE B always: 'their hand finds yours,' not 'your hand' as the other person."
+  - "Second person, present, committed. 'Their attention rests on you.' Not 'you might feel.'"

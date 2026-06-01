@@ -167,6 +167,29 @@ prompting can't — a model trained on non-repetitive scripts learns not to loop
 its WEIGHTS. The repetition fix and "make our own model" converge: the prompt/arch
 fix yields better DATA; the fine-tune yields a model that doesn't need the prompt.
 
+## v6 single-pass body: RESULT (2026-05-29) — architecture fix WORKS
+
+On different-personality, three-way: old per-beat loop **0.435** → prompt-patch
+**0.455** → **v6 single-pass 0.225** (repetition nearly halved). Also ~4× faster
+(one call vs seven). Read confirms the metric: the looping is GONE — the body now
+MOVES through the scene as a journey (party noise → answering calmly → glass set
+down → a woman leans in → a man speaks → fade) instead of circling the same anchors.
+**The single-pass architecture is the right foundation — keep it.** It's also the
+general engine (good for any plan+anchors, incl. a stranger's own data).
+
+Traded one big structural problem for two smaller, well-understood tuning ones:
+1. **Too short** — 1277 words vs ~2200 target (single-pass's classic weakness, the
+   original reason staging existed). Fix: length floor + continue-if-short, or
+   raise target. Tractable, no revert.
+2. **Example-anchor leakage** — "warmth across the top of your sternum",
+   "fluorescent lights" copied semi-literally from the prompt's example anchors.
+   Fix in anchor handling (we've seen this before).
+   (Plus minor residual loops: "unapologetic about taking up space" ×3 — much
+   better, not zero.)
+
+Good trade: architecture is right; remaining issues are length + anchor-literalism,
+both tractable, and both further softened later by the fine-tune.
+
 ## Immediate next step
 Fix the generator so its output is training-grade (no looping/repetition), then
 generate + curate the first clean batch. That batch IS the seed of our own model.

@@ -34,7 +34,9 @@ from test_scenarios import SCENARIOS  # noqa: E402
 from imagination_engine.generator import generate_session  # noqa: E402
 from imagination_engine.inference import Engine  # noqa: E402
 from imagination_engine.intake import IntakeManager  # noqa: E402
-from imagination_engine.tts import Voice  # noqa: E402
+# NOTE: Voice (TTS) is imported lazily inside main() only when audio is actually
+# rendered — so the generation/eval/training path never pulls the heavy TTS deps
+# (soundfile, chatterbox, etc.). Lets the grind box run with a TTS-free install.
 
 # Default output directory; overridable via --out-dir for prompt-version A/B.
 OUT_DIR = PROJECT_ROOT / "logs" / "scenario-tests"
@@ -173,7 +175,11 @@ def main() -> int:
         print(f"  model: {args.model}")
     t0 = time.time()
     engine = Engine.load(args.model)
-    voice = None if args.no_voice else Voice.load()
+    if args.no_voice:
+        voice = None
+    else:
+        from imagination_engine.tts import Voice  # lazy: only when rendering audio
+        voice = Voice.load()
     intake_manager = IntakeManager(engine)
     print(f"  {round(time.time() - t0, 1)}s\n")
 

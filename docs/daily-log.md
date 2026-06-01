@@ -6,6 +6,33 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-06-01 — All four families A–D have working, tested engines
+
+**Moved (continuous build session)**
+- **RAG**: semantic embedder (MLX bge-small) + hybrid retrieval; honest benchmarks
+  (caught broken test labels; built the RIGHT paraphrase benchmark → semantic 100%
+  top-1 vs lexical 16% on the real use case).
+- **Family B/D doc-Q&A** (`doc_qa.py`): grounded answers from your files, cited,
+  refuses to hallucinate. Boundary re-tested + narrowed (synthesizes across docs
+  fine; only can't answer what files never STATE — protective, not a wall).
+- **Family C companion** (`companion.py`): honest reflective companion — passes its
+  pre-written bar (0 anthropomorphism, brief, asks sharp questions) AND has
+  **cross-session memory** (continuity without faking personhood).
+- **Part D** (`instrument.py`): persistent personal instruments — build by
+  description + point at files, persist, reopen by name, use grounded + in-persona.
+  The access-native keystone, running.
+- **CLI**: `imagine`, `ask`, `companion` make the engines usable.
+- Everything tested (test_* scripts) + committed + pushed.
+
+**Status:** A (generator, corpus generating on mini), B/D (RAG+doc-QA+instruments),
+C (companion+memory) — all working. Mini corpus ~43/100, auto-loop armed.
+
+**Decision queue:** read Family A failure catalog when corpus done; semantic-embedder
+already swapped (done); wire engines into the app shell / a real UI; grow A corpus
+toward training scale.
+
+---
+
 ## 2026-05-30 — Grind box live; pipeline + RAG + testing built out
 
 **Moved**

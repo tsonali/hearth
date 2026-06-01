@@ -307,6 +307,29 @@ Traded one big structural problem for two smaller, well-understood tuning ones:
 Good trade: architecture is right; remaining issues are length + anchor-literalism,
 both tractable, and both further softened later by the fine-tune.
 
+## Corpus coverage: THIS first corpus is Family A ONLY (be clear-eyed)
+
+The 100-scenario corpus generating now (`test_scenarios.py`) is **100% Family A**
+(imagination/visualization: "imagine me as X"). It has ZERO examples for B, C, D.
+That's CORRECT, not a miss — the families need DIFFERENT specialists with OPPOSITE
+tuning targets, so there was never one corpus for all of A–D. But name it honestly:
+this is **Family A's corpus**, the first of four.
+
+Each family needs its own generation pipeline + corpus + fine-tune:
+- **A (imagination):** ✅ pipeline built (generate→curate→format); corpus generating.
+- **B (utility — summarize/rewrite/doc-Q&A):** needs input-doc → ideal-output pairs
+  (partly sourceable from public datasets). Pipeline NOT built.
+- **C (honest companion/reflection):** needs MULTI-TURN reflective dialogues
+  demonstrating the active-honest-companion behavior — hardest data to source; a
+  different shape (dialogue, not one-shot script). Pipeline NOT built.
+- **D (build-your-own):** not "training data" at all — it's the RAG layer + config
+  tooling. Different kind of build entirely.
+
+**Strategy: prove the WHOLE loop on Family A first** (generate→curate→format→
+fine-tune→evaluate — we're closest here), yielding a working TEMPLATE for "how to
+build a specialist," then replicate that template for B, C, D. One family all the
+way to a trained model → learn the pattern → scale across families.
+
 ## Immediate next step
 Fix the generator so its output is training-grade (no looping/repetition), then
 generate + curate the first clean batch. That batch IS the seed of our own model.

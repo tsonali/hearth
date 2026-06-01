@@ -68,6 +68,35 @@ class HashingEmbedder:
         return out
 
 
+class MLXEmbedder:
+    """Real semantic embedder — on-device via mlx-embeddings (Apple Silicon).
+
+    Default model bge-small-en-v1.5 (384-dim, Apache/MIT-lineage, ~130MB) produces
+    genuine semantic embeddings: "anxious about the dentist" matches "nervous" even
+    with no shared words — the thing HashingEmbedder can't do. Lazy-loaded so the
+    module imports without the dep; pass an instance to RagStore to use it.
+    Outputs are L2-normalized (cosine = dot product, same as the store expects).
+    """
+    def __init__(self, model_id: str = "mlx-community/bge-small-en-v1.5-bf16",
+                 batch_size: int = 32):
+        from mlx_embeddings import load
+        self._load = load
+        self.model_id = model_id
+        self.batch_size = batch_size
+        self.model, self.tokenizer = load(model_id)
+        self.dim = 384
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        from mlx_embeddings import generate
+        out: list[list[float]] = []
+        for i in range(0, len(texts), self.batch_size):
+            batch = texts[i:i + self.batch_size]
+            emb = generate(self.model, self.tokenizer, texts=batch).text_embeds
+            for row in emb.tolist():
+                out.append(_l2_normalize(row))  # ensure unit norm for cosine
+        return out
+
+
 def _l2_normalize(v: list[float]) -> list[float]:
     n = math.sqrt(sum(x * x for x in v)) or 1.0
     return [x / n for x in v]

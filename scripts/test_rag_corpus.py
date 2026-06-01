@@ -18,23 +18,26 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from imagination_engine.rag import RagStore  # noqa: E402
+from imagination_engine.rag import RagStore, MLXEmbedder, HashingEmbedder  # noqa: E402
 
 BOOK = Path("data/test_corpus/pride_and_prejudice.txt")
 
-# Labeled queries: query -> marker phrases the CORRECT passage should contain
-# (any one match = the retrieved chunk is on-target). Drawn from well-known scenes.
+# Labeled queries: query -> marker phrases the CORRECT passage should contain.
+# IMPORTANT: every marker below is VERIFIED present in this Gutenberg edition
+# (grep-confirmed) — a benchmark is only valid if the target text actually exists.
+# (Lesson 2026-05-30: an earlier version used misremembered phrasings that weren't
+# in the text, making good retrieval look broken. Verify labels against the corpus.)
 LABELED = [
     ("Mr. Darcy's first proposal to Elizabeth that she refuses",
-     ["in vain I have struggled", "my feelings will not be repressed", "ardently admire and love"]),
-    ("Mr. Collins proposes marriage to Elizabeth",
-     ["my reasons for marrying", "violence of my affection", "Mr. Collins"]),
-    ("Lydia has eloped with Wickham",
-     ["eloped", "Brighton", "gone off"]),
-    ("the opening line about a single man and a good fortune",
-     ["universally acknowledged", "single man in possession of a good fortune"]),
-    ("Darcy's letter to Elizabeth explaining Wickham",
-     ["Wickham", "my father", "living"]),
+     ["in vain have I struggled"]),
+    ("Elizabeth tells Darcy he is the last man she could be prevailed on to marry",
+     ["last man in the world whom I could"]),
+    ("Mr. Darcy snubs Elizabeth at the ball, calling her only tolerable",
+     ["she is tolerable"]),
+    ("the news that Netherfield Park has been let to a wealthy young man",
+     ["Netherfield Park is let"]),
+    ("Mr. Collins explains his reasons for wanting to marry",
+     ["my reasons for marrying"]),
 ]
 
 
@@ -42,7 +45,14 @@ def run() -> int:
     if not BOOK.is_file():
         print(f"missing corpus: {BOOK}\n  fetch it (see this file's docstring).", file=sys.stderr)
         return 2
-    store = RagStore(Path(tempfile.mkdtemp()) / "pp.sqlite")
+    use_semantic = "--lexical" not in sys.argv
+    if use_semantic:
+        print("embedder: MLXEmbedder (semantic, bge-small) — loading...")
+        embedder = MLXEmbedder()
+    else:
+        print("embedder: HashingEmbedder (lexical baseline)")
+        embedder = HashingEmbedder()
+    store = RagStore(Path(tempfile.mkdtemp()) / "pp.sqlite", embedder=embedder)
     rep = store.index_path("pp", BOOK)
     print(f"indexed: {rep['chunks']} chunks from {BOOK.name}\n")
 

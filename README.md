@@ -1,8 +1,8 @@
 # Imagination Engine
 
-### Private, local AI you own — that costs nothing, ever, and never leaves your machine.
+### Private, local AI you own — free, and it never leaves your machine.
 
-> Tired of selling your soul *and* your life savings to the tech oligarchs who want to own both your data and your money? This is the opposite of that. Free, local, public-domain AI that runs on your own computer. No cloud, no account, no tokens, no telemetry — not because we promise, but because it *can't* phone home. **→ Read [the manifesto](MANIFESTO.md).**
+Most AI runs on someone else's computer: your data goes to a company, and you pay by the use forever. This is the opposite. Small models have gotten good enough to run privately on an ordinary laptop and still be genuinely useful — so this is a set of focused tools that do exactly that, given away in the public domain. **→ [Read the reasoning](MANIFESTO.md).**
 
 A growing suite of focused, private tools — and the means to build your own:
 

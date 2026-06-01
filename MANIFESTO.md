@@ -1,33 +1,35 @@
-# Imagination Engine — a manifesto
+# Imagination Engine
 
-Are you tired of selling your soul *and* your life savings to the tech oligarchs — the ones who want to own both your data and your money?
+I want to explain why I built this, because the reasoning matters more than the software.
 
-I'm a recovering lawyer and a Stanford lecturer. I'm **anti-tokenmaxxing** — you should never pay rent, by the token, forever, just to think a private thought. I'm **pro-privacy** — what happens on your machine is nobody's business but yours. And I'm **public domain, not "open source"** — no attribution, no copyleft, none of the indecipherable license nonsense. Just *take it. It's yours.* I think functional code shouldn't be copyrightable at all, and I'm done waiting for the law to catch up — so this is that argument, made real.
+Most of the AI you can use right now runs on someone else's computer. You send your words to a company, the company runs a model, and it sends an answer back. That arrangement has two costs people tend to overlook. The first is that your data goes to the company — every question, every draft, every thing you were thinking about at two in the morning. The second is that you pay by the use, indefinitely, the way you pay for water. You never own anything. You rent the ability to think with a machine, and the meter never stops.
 
-So I set out to do a simple, radical thing: **legally give you private, local AI that runs on your own computer, works as well as it possibly can, and costs you nothing — ever.**
+I find both of those costs unacceptable, and I no longer think they're necessary. Models small enough to run on an ordinary laptop have gotten good enough to be genuinely useful for a lot of real tasks. Not everything — they are not going to replace the large systems at the frontier — but for a surprising number of the things people actually want, a model running privately on your own machine is not a compromise. It is the better arrangement, because nothing leaves and nothing is metered.
 
-No cloud. No account. No tokens. No telemetry. Nothing leaves your device — not because I promise it won't, but because it *can't*. You can read every line of code. You can turn off your wifi and watch it keep working.
+So I built software that does exactly that, and I am giving it away.
 
-## What you get
+A note on "giving it away," since the phrase is usually softer than people mean it. I am not open-sourcing this in the ordinary sense, where you may use the work as long as you credit me or pass along the same license. I am putting it in the public domain. You owe nothing — not money, not attribution, not agreement with anything I think. Take it and do what you want. I hold the view, which I'll defend elsewhere at greater length, that functional code shouldn't be subject to copyright in the first place. This is that argument made concrete rather than asserted.
 
-A suite of focused, private tools — each one a real instrument, never an open everything-box that pretends to be your friend:
+## What it does
 
-1. **A companion that refuses to fool you.** A chatbot built to do the opposite of every other one — it *limits* how much you anthropomorphize it. It won't pretend to be your friend or fake a soul it doesn't have. It's an honest mirror that helps you hear yourself think. (The thing Weizenbaum wished ELIZA had been.)
+It is not one program but a small and growing set of focused tools, each meant to do one thing honestly rather than to be a single assistant that claims to do everything.
 
-2. **An imagination engine in your own voice.** Tell it what you want to imagine; it writes you a guided session and reads it back — in *your own voice* — while you close your eyes and do the imagining yourself.
+The first is a reflective companion. I am wary of the chatbots that present themselves as friends, that say "I understand how you feel" and "I'm here for you," because they understand nothing and are nowhere. This one is built deliberately not to do that. It does not pretend to be a person. What it does is listen to what you say and reflect it back to you — name the pattern, ask the sharper question — so that you can hear your own thinking more clearly. The value was never in the machine's warmth. It was in giving you a private surface to think against. (Joseph Weizenbaum, who wrote the first program of this kind sixty years ago, spent the rest of his life worried that people would mistake the program for a mind. This is an attempt to build the honest version of what he made.)
 
-3. **An assistant that knows your own files.** Point it at your notes, your documents, your work — and ask. It answers from what's actually there, tells you when it doesn't know, and never sends a page of it anywhere.
+The second is a guided-imagination tool. You tell it what you'd like to imagine; it composes a calm, paced session and reads it back to you in your own voice while you close your eyes and do the imagining. The work happens in your head, where it should. The software only shapes the silence around it.
 
-…and the suite grows: reflective journaling, rehearsal, sense-making over your own life.
+The third reads your own files. You point it at your notes or documents and ask questions; it answers from what is actually written there, tells you plainly when the answer isn't in your files rather than inventing one, and sends none of it anywhere. This is the kind of thing you would never paste into a public chatbot, which is precisely why it belongs on your own machine.
 
-## And then — build your own
+There will be more — reflective journaling, rehearsal for hard conversations, ways of making sense of your own record over time. The point is the shape: small, private, honest tools you own, not a single system you rent.
 
-Because none of it should be locked up: **build your own.** Describe the companion or instrument you want — no code, no terminal — and it builds it for you, on your machine. Point it at your own writing, your own files, a character you love; let it learn your voice overnight if you want. It won't be ChatGPT. It's a focused thing *you* shaped, honest about what it is. But it's yours, it's free, and it never leaves your computer.
+## Building your own
 
-You don't need me. You don't need them. You just need your own machine.
+The last part matters most to me. The same machinery that makes these tools can be handed to you directly. You describe the instrument you want, point it at your own writing or files, and keep it — a companion shaped like a character you love, a voice that settles you, an assistant that knows your work. If you want it to learn a particular voice, you can let it train on your own material overnight, on your own hardware. It will not be one of the large frontier systems, and it will be honest with you about that. But it will be yours, it will be free, and it will never leave your computer.
+
+You don't need me, and you don't need them. You need a machine you already own.
 
 — Sonali Maitra
 
 ---
 
-*Honest status:* this is real, working software under active development — the engines for all of the above run locally today. It is not yet a one-click app for non-technical users; right now it takes some comfort with a terminal. That part is coming. Everything here is dedicated to the public domain ([CC0](LICENSE)) — take it, build on it, owe nothing.
+*Status, honestly:* this is real, working software, still under active development. The tools above run locally today, but it is not yet something a non-technical person can install with one click; at the moment it takes some comfort with a command line. That is the part I'm still building. Everything here is in the public domain ([CC0](LICENSE)).

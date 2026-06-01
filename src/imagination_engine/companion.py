@@ -23,11 +23,56 @@ from __future__ import annotations
 
 import logging
 import re
+import sqlite3
+from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Iterator
 
 from imagination_engine.inference import Engine
 
 log = logging.getLogger(__name__)
+
+# Local, private conversation memory — lets the companion notice patterns ACROSS
+# sessions (continuity = a relationship without faking personhood), per the Family
+# C spec. One short summary row per ended conversation; never transmitted, lives in
+# the user's own file; they can delete it. Mirrors memory.py's SQLite posture.
+_MEM_SCHEMA = """
+CREATE TABLE IF NOT EXISTS companion_log (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts        TEXT NOT NULL,
+    summary   TEXT NOT NULL
+);
+"""
+
+
+class CompanionMemory:
+    """Persists one-line summaries of past conversations for cross-session continuity."""
+
+    def __init__(self, db_path: Path):
+        self.db_path = db_path
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._conn() as c:
+            c.executescript(_MEM_SCHEMA)
+
+    @contextmanager
+    def _conn(self) -> Iterator[sqlite3.Connection]:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            yield conn; conn.commit()
+        finally:
+            conn.close()
+
+    def remember(self, summary: str, ts: str) -> None:
+        with self._conn() as c:
+            c.execute("INSERT INTO companion_log(ts, summary) VALUES (?,?)", (ts, summary))
+
+    def recent(self, limit: int = 3) -> list[str]:
+        with self._conn() as c:
+            rows = c.execute("SELECT summary FROM companion_log ORDER BY id DESC LIMIT ?",
+                             (limit,)).fetchall()
+        return [r["summary"] for r in reversed(rows)]
 
 COMPANION_SYSTEM = """\
 You are a reflective companion — an honest mirror that helps a person hear their \
@@ -79,19 +124,46 @@ def _check_forbidden(text: str) -> list[str]:
 class Companion:
     """A multi-turn honest reflective companion over one conversation."""
 
-    def __init__(self, engine: Engine):
+    def __init__(self, engine: Engine, memory: "CompanionMemory | None" = None):
         self.engine = engine
         self.history: list[dict] = []
+        self.memory = memory
+        # Past-conversation summaries (cross-session continuity), loaded once.
+        self._past = memory.recent() if memory else []
 
     def _running_context(self) -> str:
-        """A compact summary of the conversation so far, so the model can NOTICE
-        PATTERNS without losing the thread (small models drift over long chats).
-        Plain concatenation for v0; a learned summary is a later upgrade."""
-        if not self.history:
-            return ""
-        lines = [f"{'User' if m['role']=='user' else 'You'}: {m['content']}"
-                 for m in self.history[-8:]]
-        return "----- CONVERSATION SO FAR -----\n" + "\n".join(lines) + "\n----- END -----"
+        """Compact context: summaries of PAST conversations (cross-session pattern-
+        noticing) + the current conversation so far (within-session thread)."""
+        blocks = []
+        if self._past:
+            blocks.append("----- FROM PAST CONVERSATIONS (notice patterns over time, "
+                          "reference gently, never pry) -----\n"
+                          + "\n".join(f"- {s}" for s in self._past) + "\n----- END PAST -----")
+        if self.history:
+            lines = [f"{'User' if m['role']=='user' else 'You'}: {m['content']}"
+                     for m in self.history[-8:]]
+            blocks.append("----- THIS CONVERSATION SO FAR -----\n" + "\n".join(lines)
+                          + "\n----- END -----")
+        return "\n\n".join(blocks)
+
+    def close(self, ts: str) -> str | None:
+        """End the conversation: summarize it in one line for cross-session memory.
+        Returns the summary (or None if nothing to save / no memory configured)."""
+        if not self.memory or not self.history:
+            return None
+        convo = "\n".join(f"{'User' if m['role']=='user' else 'Companion'}: {m['content']}"
+                          for m in self.history)
+        summary = "".join(self.engine.stream(
+            messages=[{"role": "system", "content":
+                       "Summarize this reflective conversation in ONE neutral sentence — "
+                       "what the person was working through. No advice, no judgment, "
+                       "third person ('They were...'). Just the theme."},
+                      {"role": "user", "content": convo}],
+            max_tokens=60, temperature=0.3,
+        )).strip()
+        if summary:
+            self.memory.remember(summary, ts)
+        return summary
 
     def turn(self, user_message: str, max_tokens: int = 160) -> CompanionTurn:
         ctx = self._running_context()

@@ -222,14 +222,17 @@ class RagStore:
         return {"files": len(files), "chunks": added, "corpus": corpus}
 
     def retrieve(self, corpus: str, query: str, k: int = 5,
-                 alpha: float = 0.5) -> list[Retrieved]:
+                 alpha: float = 0.8) -> list[Retrieved]:
         """Top-k chunks by HYBRID score: semantic cosine + lexical term-overlap.
 
         Diagnosis (2026-05-30): neither alone clears hard queries — semantic misses
         distinctive exact phrases ("she is tolerable"), lexical misses paraphrase.
         Blending both catches each other's misses. `alpha` weights semantic vs
-        lexical (0.5 = even). Both component scores are min-max normalized across
-        the candidate set before blending so they're comparable.
+        lexical. Default 0.8 (semantic-heavy): the REAL use case is paraphrase
+        queries over the user's own docs, where semantic dominates (work-corpus
+        paraphrase benchmark: semantic-heavy top-1 83-100% vs lexical 16%). Lexical
+        only wins exact-phrase lookup (P&P benchmark), which is NOT how real users
+        query. Both component scores are min-max normalized across candidates.
         """
         qv = self.embedder.embed([query])[0]
         q_terms = set(re.findall(r"[a-z']{3,}", query.lower()))

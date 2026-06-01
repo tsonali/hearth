@@ -90,6 +90,44 @@ So the unglamorous current step (generator producing clean, non-looping,
 genuinely-good scripts) is the foundation the entire program stands on. We earn the
 multi-night training program by first making the data worth training on.
 
+## The use-case families (what we train on) — A, B, C, all in, however long it takes
+
+We do NOT train one do-everything model. The task-pack architecture = shared base +
+per-FAMILY specialist adapters, because the families want OPPOSITE tuning targets
+(dreamy-evocative vs. faithful-restrained) and can't be maxed in one set of weights.
+
+**Family A — Immersive / experiential (the dreamy; Sonali's wheelhouse; flagship).**
+Guided imagination (built), meditation/wind-down/sleep, **Unreality / dream
+sequences** (the thesis made playable), **immersive in-world / lore / "instruction-
+manual-as-fiction"** worldbuilding. Tuning target: sensory specificity, commitment,
+immersion, evocative register.
+
+**Family B — Reliable text utility (the broad public draw).** Writing transformer
+(rewrite/summarize/translate/tone), doc-Q&A over your own files (RAG), structured
+extraction. Tuning target: faithfulness, restraint, don't-embellish, structure —
+the OPPOSITE of A. (Commoditized but it's what makes the tool a daily utility.)
+
+**Family C — Reflective / interactive: an honest, private, modern ELIZA.**
+Structured journaling/reflection, rehearsal, decision-thinking. **The key insight
+(Sonali, via Weizenbaum's ELIZA, 1966):** ELIZA's value was never intelligence — it
+was being a PRIVATE, NON-JUDGING MIRROR that reflected the person back to themselves;
+the human did the real work. This maps perfectly onto (a) what a small local model
+can actually do — reflection = structured transformation of the user's OWN words,
+needs zero frontier IQ (small models lose at SUPPLYING empathy, fine at mirroring);
+and (b) the instrument-not-companion thesis. Crucially, a modern ELIZA that is
+HONEST about being a mirror is ELIZA done the way Weizenbaum (who was horrified
+people mistook the mirror for a mind) wished it had been — Sonali's thesis as the
+answer to his fear. This is the thesis in interactive form, not just a utility mode.
+  Design discipline (keeps it honest AND within a small local model's real ability):
+  reflect-don't-advise (transform, never dispense wisdom); brevity (ELIZA was one
+  line — kills rambling-affirmation); honest frame up front ("a private mirror, not
+  a person, not a therapist; nothing leaves this machine; here to help you hear
+  yourself"); crisis honesty (point to real humans at its limits — non-negotiable).
+
+**Sequencing (Sonali: get it right, take the time):** train Family A first (flagship,
+soul, already in motion, where "dreamy" lives) → then C (the ELIZA-mirror, the
+frontier/statement piece) and B (the reach/utility). All three, no rush.
+
 ## Honest dependencies & risks
 - Distilling subjective *creative quality* (immersion) is less proven than distilling
   verifiable tasks (math/extraction). A real research bet — validate empirically,

@@ -73,6 +73,10 @@ ProgressFn = Callable[..., None]
 MAX_BEATS = 12
 MIN_BEATS = 8
 
+# v6 single-pass body: one generation writes the whole ~1500-2200 word body
+# from the visible plan. Needs a large token budget (≈ 1.4 tokens/word + slack).
+BODY_MAX_TOKENS = 4096
+
 # Each beat targets 150-250 words. With 10 beats + ~150-word open +
 # ~150-word back, sessions land at ~2000 dense words = ~15-20 minutes at
 # slow narrative pace with paragraph pauses.
@@ -297,6 +301,52 @@ Output the beat text only, with blank lines between paragraphs. Nothing else."""
 
 
 # ---------------------------------------------------------------------------
+# Stage 4 (v6): SINGLE-PASS BODY — write the whole body from a visible plan.
+#
+# Replaces the v5 per-beat loop. The looping/repetition failure (2026-05-29) was
+# architectural: N blind beat-calls each re-grounded in the same anchors because
+# none could see the whole arc. Here ONE generation sees the entire beat plan +
+# the full set of scene anchors and writes the body straight through — exactly how
+# a writer works: you remember what you already wrote, so you don't repeat it. The
+# staged loop existed for length + drift; scene-bible binding now handles drift,
+# and a 14B model holds a ~2000-word generation, so single-pass is viable and
+# simpler. This is the GENERAL engine — it must produce good prose for ANY plan +
+# anchors (incl. a stranger's own characters/data), not just our hand-tuned bibles.
+# ---------------------------------------------------------------------------
+BODY_PROMPT = COMMON_POSTURE + """
+
+YOUR JOB: write the BODY of the session — the long middle, from just after the opening to just before the return. You write it ALL in one pass, as one continuous, MOVING piece.
+
+You will see:
+- The classification (embodiment direction, subject, scene)
+- The opening (already spoken to the listener)
+- The PLAN: an ordered list of beats (moments) to move through
+- The scene's sensory anchors (the concrete details available in this scene)
+
+Write the body by moving THROUGH the beats in order, each flowing into the next. The whole thing is ONE journey, not a list of separate sections — no headers, no labels, no beat numbers, just continuous prose with blank lines between paragraphs.
+
+═══════════════════════════════════════════════════
+THE #1 RULE: NEVER REPEAT. THE SCENE MOVES FORWARD.
+═══════════════════════════════════════════════════
+This is a JOURNEY through time, not a static room described over and over. Each anchor and each sensation is introduced ONCE, vividly, then you MOVE ON and don't return to it. You are writing the whole body at once precisely so you can remember what you've already said and never circle back to it.
+
+- Spend each anchor ONCE. After you've given the breath, or the glass, or the half-smile its moment, it is DONE — do not describe it again. The reader felt it; trust them.
+- Each paragraph must advance: new moment, new sensation, new beat — forward motion, like a steadicam moving through a scene, never a loop.
+- If you catch yourself about to re-mention an anchor already used, STOP and reach for something new instead: a new part of the body, a new sound, a development in the moment, a thing that happens next.
+- DISTRIBUTE the anchors across the body — don't cram them all into the first third and then have nothing left. Pace them out, one fresh thing at a time, across the whole arc.
+
+PACE: slow and spacious, but always MOVING. One image or sensation per paragraph. Short paragraphs. Blank lines between (the TTS layer pauses there).
+
+LENGTH: substantial — roughly 1500-2200 words across many short paragraphs, moving through every beat in the plan. Don't rush the arc and don't pad by repeating; fill the length with NEW material at each step.
+
+DO NOT bring the listener back. Do NOT mention "opening eyes" or "returning to the room" — the return is written separately. STAY in the scene to the end.
+
+DO NOT use the forbidden phrases or forbidden stock imagery (from COMMON_POSTURE).
+
+Output the body text only, continuous prose with blank lines between paragraphs. No headers, no labels, no beat markers. Nothing else."""
+
+
+# ---------------------------------------------------------------------------
 # Stage 5: BACK — gradual exit with specific concrete carry-back.
 # ---------------------------------------------------------------------------
 BACK_PROMPT = COMMON_POSTURE + """
@@ -423,48 +473,48 @@ def generate_session(
         log.info("  plan: %.1fs, %d beats: %s", time.time() - t0, len(beats),
                  [b[:40] for b in beats[:3]])
 
-    # Stage 4: generate each beat.
-    body_parts: list[str] = []
-    total_beats = max(len(beats), 1)
-    for i, beat in enumerate(beats):
-        emit("writing_body",
-             f"Writing beat {i + 1} of {len(beats)}: {beat[:60]}",
-             4, 5, eta=(len(beats) - i) * 15.0)
-        log.info("[v5] beat %d/%d: %s", i + 1, len(beats), beat[:60])
-        t0 = time.time()
-        prior_body = "\n\n".join(body_parts) if body_parts else "(none yet — this is the first beat)"
-        beat_user = (
-            intake_str + "\n\n" + class_block + "\n\n"
-            "----- THE OPENING (already spoken) -----\n"
-            + open_text
-            + "\n----- END OPENING -----\n\n"
-            "----- THE BODY SO FAR -----\n"
-            + prior_body
-            + "\n----- END BODY SO FAR -----\n\n"
-            f"THIS BEAT'S JOB: {beat}\n\n"
-            "Write 150-250 words on THIS beat only. Stay in the scene; "
-            "do not bring the listener back."
-        )
-        beat_text = _generate(engine, BEAT_PROMPT, beat_user, max_tokens=BEAT_MAX_TOKENS)
-        log.info("  beat %d: %.1fs, %d words", i + 1, time.time() - t0, len(beat_text.split()))
-        body_parts.append(beat_text)
+    # Stage 4 (v6): SINGLE-PASS body — one generation sees the whole plan + all
+    # anchors and writes the body straight through (the non-repetition fix).
+    emit("writing_body", "Writing the imagining — moving through the scene.", 4, 5, eta=90.0)
+    t0 = time.time()
 
-    # Fallback: if beat plan failed entirely, do one body call the old way.
-    if not body_parts:
-        log.info("[v5] fallback: single body call (beat plan failed)")
-        emit("writing_body", "Writing the body (single-pass fallback).", 4, 5, eta=60.0)
-        t0 = time.time()
-        fallback_user = (
-            intake_str + "\n\n" + class_block + "\n\n"
-            "----- THE OPENING -----\n" + open_text + "\n----- END OPENING -----\n\n"
-            "Now produce the body of the imagining. Stay in the scene. "
-            "Many paragraphs of concrete sensory texture."
+    # Build the plan block. If we have a bible, surface its anchors explicitly so
+    # the body can distribute them (don't cram/repeat). For the no-bible path the
+    # classifier's anchors play that role.
+    if beats:
+        plan_block = "----- THE PLAN (move through these beats, in order) -----\n" + \
+            "\n".join(f"{i + 1}. {b}" for i, b in enumerate(beats)) + \
+            "\n----- END PLAN -----"
+    else:
+        plan_block = (
+            "----- THE PLAN -----\nNo fixed beat list — move through the scene as a "
+            "natural arc, introducing fresh sensory material at each step.\n----- END PLAN -----"
         )
-        body = _generate(engine, BEAT_PROMPT, fallback_user, max_tokens=2048)
-        log.info("  fallback body: %.1fs, %d words", time.time() - t0, len(body.split()))
-        body_parts.append(body)
 
-    body = "\n\n".join(body_parts)
+    scene_anchors = list(bible.anchors) if bible is not None else list(classification.anchors)
+    anchors_block = ""
+    if scene_anchors:
+        anchors_block = (
+            "\n\n----- SCENE ANCHORS (concrete details available — spend each ONCE, "
+            "distributed across the body, never repeated) -----\n"
+            + "\n".join(f"- {a}" for a in scene_anchors)
+            + "\n----- END ANCHORS -----"
+        )
+
+    body_user = (
+        intake_str + "\n\n" + class_block + "\n\n"
+        "----- THE OPENING (already spoken) -----\n"
+        + open_text
+        + "\n----- END OPENING -----\n\n"
+        + plan_block
+        + anchors_block
+        + "\n\nNow write the full body in one continuous pass, moving through the "
+        "plan in order, spending each anchor once and never repeating. Stay in the "
+        "scene; do not bring the listener back."
+    )
+    body = _generate(engine, BODY_PROMPT, body_user, max_tokens=BODY_MAX_TOKENS)
+    log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
+             time.time() - t0, len(body.split()), len(beats))
 
     # Stage 5: back.
     emit("writing_return", "Writing the return — what you'll carry back.", 5, 5, eta=15.0)
@@ -482,11 +532,11 @@ def generate_session(
 
     full = f"{open_text}\n\n{body}\n\n{closing}"
     log.info(
-        "[v5] session ready: %d total words (open=%d, %d beats=%d, back=%d)",
+        "[v6] session ready: %d total words (open=%d, body=%d from %d-beat plan, back=%d)",
         len(full.split()),
         len(open_text.split()),
-        len(beats),
         len(body.split()),
+        len(beats),
         len(closing.split()),
     )
     return full

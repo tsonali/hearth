@@ -107,7 +107,25 @@ immersion, evocative register.
 extraction. Tuning target: faithfulness, restraint, don't-embellish, structure —
 the OPPOSITE of A. (Commoditized but it's what makes the tool a daily utility.)
 
-**Family C — Reflective / interactive: an honest, private, modern ELIZA.**
+**Family C — REFINEMENT (Sonali, 2026-05-30): not a passive mirror — the best
+HONEST companion possible.** Real tension: pure-ELIZA mirroring risks feeling
+useless ("it just parrots me"); but pure-warm-companion is where small local models
+LOSE and where the thesis says don't go (fake friend). Resolution — the dial is NOT
+mirror↔friend, it's **passive↔active on the honesty axis.** Pure-ELIZA's flaw was
+PASSIVITY, not honesty. Build an ACTIVE, insightful, genuinely useful companion that
+is STILL honest about being a tool: it notices PATTERNS across what you say ("third
+time you've mentioned your sister"), asks the SHARP question not the obvious one,
+reflects back with SYNTHESIS ("under this you sound more angry than scared"), offers
+FRAMES not verdicts, and REMEMBERS across sessions (continuity = relationship
+without faking personhood). All of these are small-model-friendly (structured
+analysis of the user's OWN words, not invented wisdom/empathy). **The bar:** "it
+helped me understand something about myself I couldn't see alone — and never once
+pretended to be something it isn't." Clears that = neither useless-mirror nor
+dishonest-friend. Caveat: hardest family to get right on a small local model
+(open-ended interaction = their weakest area) — test brutally against the bar before
+claiming it works. Target = best-possible-honest-companion, NOT lobotomized-mirror.
+
+**Family C base concept — an honest, private, modern ELIZA.**
 Structured journaling/reflection, rehearsal, decision-thinking. **The key insight
 (Sonali, via Weizenbaum's ELIZA, 1966):** ELIZA's value was never intelligence — it
 was being a PRIVATE, NON-JUDGING MIRROR that reflected the person back to themselves;

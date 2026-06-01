@@ -106,6 +106,12 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return sum(x * y for x, y in zip(a, b))  # both pre-normalized
 
 
+def _minmax(xs: list[float]) -> list[float]:
+    lo, hi = min(xs), max(xs)
+    rng = (hi - lo) or 1.0
+    return [(x - lo) / rng for x in xs]
+
+
 # ---------------------------------------------------------------------------
 # Chunking — paragraph-aware overlapping windows.
 # ---------------------------------------------------------------------------
@@ -215,17 +221,37 @@ class RagStore:
                 continue
         return {"files": len(files), "chunks": added, "corpus": corpus}
 
-    def retrieve(self, corpus: str, query: str, k: int = 5) -> list[Retrieved]:
-        """Return the top-k most relevant chunks for the query, by cosine sim."""
+    def retrieve(self, corpus: str, query: str, k: int = 5,
+                 alpha: float = 0.5) -> list[Retrieved]:
+        """Top-k chunks by HYBRID score: semantic cosine + lexical term-overlap.
+
+        Diagnosis (2026-05-30): neither alone clears hard queries — semantic misses
+        distinctive exact phrases ("she is tolerable"), lexical misses paraphrase.
+        Blending both catches each other's misses. `alpha` weights semantic vs
+        lexical (0.5 = even). Both component scores are min-max normalized across
+        the candidate set before blending so they're comparable.
+        """
         qv = self.embedder.embed([query])[0]
+        q_terms = set(re.findall(r"[a-z']{3,}", query.lower()))
         with self._conn() as c:
             rows = c.execute(
                 "SELECT source, text, vector, dim FROM chunks WHERE corpus=?", (corpus,)
             ).fetchall()
+        if not rows:
+            return []
+
+        sem = [_cosine(qv, _unpack(r["vector"], r["dim"])) for r in rows]
+        lex = []
+        for r in rows:
+            terms = set(re.findall(r"[a-z']{3,}", r["text"].lower()))
+            lex.append(len(q_terms & terms) / (len(q_terms) or 1))  # fraction of query terms present
+
+        sem_n = _minmax(sem)
+        lex_n = _minmax(lex)
         scored = [
             Retrieved(text=r["text"], source=r["source"],
-                      score=_cosine(qv, _unpack(r["vector"], r["dim"])))
-            for r in rows
+                      score=alpha * sem_n[i] + (1 - alpha) * lex_n[i])
+            for i, r in enumerate(rows)
         ]
         scored.sort(key=lambda x: -x.score)
         return scored[:k]

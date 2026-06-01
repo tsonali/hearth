@@ -1,10 +1,21 @@
 # Imagination Engine
 
-A local, private tool for guided imagination. You describe what you want to imagine — anything — and the engine produces a calm, paced audio session in *your own voice*. You close your eyes and listen.
+### Private, local AI you own — that costs nothing, ever, and never leaves your machine.
 
-Nothing ever leaves your machine. There is no server, no account, no telemetry. The language model runs on your laptop. The voice model is one you train on your own recordings. The audio is rendered locally and played in your browser.
+> Tired of selling your soul *and* your life savings to the tech oligarchs who want to own both your data and your money? This is the opposite of that. Free, local, public-domain AI that runs on your own computer. No cloud, no account, no tokens, no telemetry — not because we promise, but because it *can't* phone home. **→ Read [the manifesto](MANIFESTO.md).**
 
-> By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This product is both arguments made operational: AI harnessed to help you imagine *knowingly*, in your own voice, with no pretense of being your friend. The beauty of AI without the compromise of reality.
+A growing suite of focused, private tools — and the means to build your own:
+
+- 🧘 **Imagination engine** — guided sessions in *your own voice*, you close your eyes and imagine.
+- 🪞 **Honest companion** — a reflective mirror that helps you think; it refuses to pretend it's your friend.
+- 📂 **Ask your own files** — point it at your notes/docs and ask; it answers from what's there, says so when it isn't, sends nothing anywhere.
+- 🛠️ **Build your own** — describe an instrument, point it at your data, keep it. Yours, on your machine.
+
+Everything runs on a small model on your laptop. Released into the **public domain** ([CC0](LICENSE)) — no attribution, no strings.
+
+> By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This is both arguments made operational.
+
+> **Status — honest:** real, working software under active development. The engines for all of the above run locally today. It is *not yet* a one-click app — right now it takes some comfort with a terminal (see [install](#install-development-build) below). That part is coming.
 
 ---
 

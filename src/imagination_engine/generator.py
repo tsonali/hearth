@@ -344,7 +344,7 @@ This is a JOURNEY through time, not a static room described over and over. Each 
 
 PACE: slow and spacious, but always MOVING. One image or sensation per paragraph. Short paragraphs. Blank lines between (the TTS layer pauses there).
 
-LENGTH: substantial — roughly 1500-2200 words across many short paragraphs, moving through every beat in the plan. Don't rush the arc and don't pad by repeating; fill the length with NEW material at each step.
+LENGTH — IMPORTANT: this is a LONG session, ~1800-2200 words. That length is reached by giving EACH beat in the plan its full due — several short paragraphs per beat, lingering on each moment with fresh sensory detail before moving to the next. Do NOT wrap up early: if you have moved through the plan in under ~1800 words, you have rushed it — go back into the beats you skimmed and deepen them with NEW detail (never by repeating). Move through EVERY beat in the plan; do not collapse the arc. Fill the length with NEW material at each step, never with restated anchors.
 
 DO NOT bring the listener back. Do NOT mention "opening eyes" or "returning to the room" — the return is written separately. STAY in the scene to the end.
 
@@ -523,29 +523,15 @@ def generate_session(
     log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
              time.time() - t0, len(body.split()), len(beats))
 
-    # Length floor: single-pass sometimes wraps early. If short, extend ONCE — a
-    # continuation that sees the whole body so far and carries the journey further
-    # with NEW material (never repeating, never returning). This recovers length
-    # without reintroducing the per-beat looping (it's still one continuous arc).
+    # NOTE (v6.2): the v6.1 "extend if short" call REINTRODUCED looping (the
+    # continuation re-grounded in used anchors: repetition 0.225 -> 0.375). Removed.
+    # Length now comes from the single pass aiming longer up front (BODY_PROMPT
+    # length target + ample token budget) — one coherent pass keeps repetition low
+    # AND reaches length. If a pass still lands short, that's a curation signal
+    # (drop it from the training set), not a reason to bolt on a loopy extension.
     if len(body.split()) < BODY_MIN_WORDS:
-        log.info("[v6] body short (%d < %d) — extending once", len(body.split()), BODY_MIN_WORDS)
-        emit("writing_body", "Deepening the imagining.", 4, 5, eta=60.0)
-        t0 = time.time()
-        extend_user = (
-            intake_str + "\n\n" + class_block + "\n\n"
-            "----- THE OPENING (already spoken) -----\n" + open_text + "\n----- END OPENING -----\n\n"
-            + plan_block + anchors_block + "\n\n"
-            "----- THE BODY SO FAR -----\n" + body + "\n----- END BODY SO FAR -----\n\n"
-            "The body above ended too early. CONTINUE it — write the next stretch of "
-            "the SAME continuous journey, carrying the scene further with NEW moments "
-            "and sensations not yet used above. Do NOT repeat anything already written, "
-            "do NOT restate used anchors, and do NOT bring the listener back (the return "
-            "is separate). Pick up exactly where it left off and keep moving."
-        )
-        extension = _generate(engine, BODY_PROMPT, extend_user, max_tokens=BODY_MAX_TOKENS)
-        if extension.strip():
-            body = body.rstrip() + "\n\n" + extension.strip()
-        log.info("[v6] extended: +%.1fs, body now %d words", time.time() - t0, len(body.split()))
+        log.info("[v6.2] body landed short (%d < %d) — kept as-is (no loopy extension; "
+                 "curation can drop short scripts)", len(body.split()), BODY_MIN_WORDS)
 
     # Stage 5: back.
     emit("writing_return", "Writing the return — what you'll carry back.", 5, 5, eta=15.0)

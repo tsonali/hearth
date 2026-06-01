@@ -46,10 +46,17 @@ Sonali edits/owns the final. NOT final copy.
 
 ## The kicker (the deeper offer)
 
-> And because none of it should be locked up: **a free consumer product that lets
-> people do this themselves.** Bring your own data. Make your own companion — a
-> character you love, a voice that soothes you, a mirror that fits you. You don't
-> need me. You don't need them. You just need your own machine.
+> And because none of it should be locked up: **build your own.** A simple dialog
+> box — no code, no terminal — where you describe the companion or instrument you
+> want and it builds it for you on your own machine. Want it to learn a specific
+> voice or character? Feed it your own writing and let it train overnight, privately,
+> on your hardware. Make a character you love, a voice that soothes you, a reflection
+> partner that fits you. It won't be ChatGPT — it's a focused thing you shaped, and
+> it's honest about that. But it's *yours*, it's free, and it never leaves your
+> machine. You don't need me. You don't need them. You just need your own computer.
+
+*(This is Part D — "build your own" — the keystone: we don't just give people private
+AI, we give them the means to make their own. See docs/own-model-plan.md Family D.)*
 
 ---
 

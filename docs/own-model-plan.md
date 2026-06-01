@@ -151,6 +151,32 @@ answer to his fear. This is the thesis in interactive form, not just a utility m
   a person, not a therapist; nothing leaves this machine; here to help you hear
   yourself"); crisis honesty (point to real humans at its limits — non-negotiable).
 
+**Family D — BUILD YOUR OWN (the keystone of the access-native thesis; Sonali
+2026-05-30).** The product doesn't just GIVE people private AI — it gives them the
+means to MAKE THEIR OWN. A consumer-friendly dialog box (much more limited than
+Claude Code, and honest about it) to build a personal companion/instrument on the
+local LLM + their own data. No profit-seeker will ever ship this (it's the opposite
+of their model) — uniquely Sonali's to offer. Two levels, both honest as "a focused
+instrument you shaped," NOT "a do-anything AI":
+- **Tier 1 (instant, for everyone): describe + examples → a configured instance.**
+  Dialog box: describe the character/voice/purpose, give example exchanges/text to
+  emulate; it generates a system-prompt + scene-bible-style config + few-shot
+  examples → a new local instance, instantly, no training. ("a gruff sailor
+  mentor"; "a voice like my grandmother's stories"; "a Stoic reflection partner.")
+  Very achievable on a small local model.
+- **Tier 2 (deep, overnight): bring your data → local QLoRA fine-tune.** Drop in
+  writing/transcripts/a character's dialogue; an overnight local fine-tune makes a
+  model that has LEARNED that voice/character ("a character they love, a friend").
+  Quality depends on their data; it's the slow/compute version.
+- **Tier 3 (do NOT promise): full Claude-Code "build any app."** That's us +
+  frontier models + years of tooling. A local model can't; promising it betrays
+  trust. Be honest about the ceiling.
+**The structural beauty:** Part D is just OUR framework exposed to the user — the
+scene-bible config format, the generator, the fine-tune pipeline we built for our
+task packs ARE what a user needs to make theirs. Not a separate feature; a friendly
+dialog box on the front of the engine we already have. This is why "the architecture
+is the product" matters — D is the proof of it.
+
 **Sequencing (Sonali: get it right, take the time):** train Family A first (flagship,
 soul, already in motion, where "dreamy" lives) → then C (the ELIZA-mirror, the
 frontier/statement piece) and B (the reach/utility). All three, no rush.

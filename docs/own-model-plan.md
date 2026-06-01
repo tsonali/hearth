@@ -103,9 +103,21 @@ manual-as-fiction"** worldbuilding. Tuning target: sensory specificity, commitme
 immersion, evocative register.
 
 **Family B — Reliable text utility (the broad public draw).** Writing transformer
-(rewrite/summarize/translate/tone), doc-Q&A over your own files (RAG), structured
-extraction. Tuning target: faithfulness, restraint, don't-embellish, structure —
-the OPPOSITE of A. (Commoditized but it's what makes the tool a daily utility.)
+(rewrite/summarize/translate/tone), one-off doc-Q&A, structured extraction. Tuning
+target: faithfulness, restraint, don't-embellish, structure — the OPPOSITE of A.
+(Commoditized but it's what makes the tool a daily utility.)
+
+**B vs D — the clean boundary (clarified 2026-05-30, was muddy):** B and D share the
+same underlying RAG-over-documents capability, but differ on PERSISTENCE + PERSONAL
+CONFIG:
+- **B = built-in, stateless, general tools we ship.** "Summarize *this* doc I just
+  dropped in." Works for everyone the same way, one-off, we made it.
+- **D = a persistent, PERSONAL instrument the USER sets up over THEIR ongoing
+  corpus, and returns to.** "Be my associate who knows all my work files + email,
+  that I consult every day." The "at-home secretary/associate" is **D, definitively**
+  — it's standing + personal (you configure it, point it at your folders, keep it),
+  not a one-off tool. B is the impersonal version of the same engine; D is the
+  yours-and-ongoing version.
 
 **Family C — REFINEMENT (Sonali, 2026-05-30): not a passive mirror — the best
 HONEST companion possible.** Real tension: pure-ELIZA mirroring risks feeling
@@ -205,11 +217,28 @@ ARCHITECTURE IMPLICATION: we need a RAG layer (retrieval over user files) as a
 first-class part of the framework, alongside the generator + fine-tune pipeline.
 This also powers Family B (doc-Q&A) — same machinery.
 
+**D, CONCRETELY — three components (the specific sketch):**
+1. **RAG layer (the engine):** point it at folders → index your files → retrieve
+   relevant bits at query time → answer grounded in YOUR documents. Technical core,
+   shared with B.
+2. **Persistence/config (what makes it YOURS):** set up a named, standing instrument
+   ("My work associate," pointed at ~/work + email); it remembers the setup; you
+   return to it. A standing thing, not a one-off.
+3. **Dialog-box builder (the no-code front):** "What do you want to build? →
+   [describe it] → point it at your files → optionally add writing samples to match
+   your style → done." The two mechanisms: point-at-a-folder (RAG, instant, "know my
+   stuff") + optionally feed-examples (fine-tune, overnight, "sound like me").
+
+D in one line: a no-code builder to stand up a PERSISTENT, PERSONAL AI instrument —
+secretary, analyst, companion, character — grounded in your own private data (RAG)
+and optionally trained on your own style (fine-tune), living on your machine, that
+you keep.
+
 **The structural beauty:** Part D is just OUR framework exposed to the user — the
-scene-bible config format, the generator, the fine-tune pipeline we built for our
-task packs ARE what a user needs to make theirs. Not a separate feature; a friendly
-dialog box on the front of the engine we already have. This is why "the architecture
-is the product" matters — D is the proof of it.
+scene-bible config format, the generator, the RAG layer, the fine-tune pipeline we
+built for our task packs ARE what a user needs to make theirs. Not a separate
+feature; a friendly dialog box on the front of the engine we already have. This is
+why "the architecture is the product" matters — D is the proof of it.
 
 **Sequencing (Sonali: get it right, take the time):** train Family A first (flagship,
 soul, already in motion, where "dreamy" lives) → then C (the ELIZA-mirror, the

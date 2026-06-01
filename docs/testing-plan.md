@@ -43,6 +43,18 @@ Unit tests cover the 5 real malformations + clean + unrecoverable. Keep as-is.
   evidence-backed, not speculative.** Re-run the same labeled set after the swap to
   prove the upgrade.
 
+### Doc-Q&A boundary (found 2026-05-30) — refusal is CORRECT, not a bug
+"Who does Elizabeth marry?" over P&P returns "isn't in your files" even at k=10 —
+because the fact is NEVER stated extractably; it's conveyed implicitly across the
+whole book (the second proposal, final-chapter narration). RAG-over-chunks answers
+from RETRIEVED PASSAGES; it cannot SYNTHESIZE a whole-document arc, and a small
+local model shouldn't fake it. **This is a real, honest boundary — the system
+correctly refuses rather than hallucinate.** It does NOT need fixing: our actual
+use case is "what did the budget doc say" (fact lookup over your files), which works
+(paraphrase benchmark 100%), not "synthesize the arc of my novel." Document the
+boundary; set user expectations ("answers what your files SAY, doesn't infer across
+them"); don't over-engineer toward whole-corpus synthesis we don't need.
+
 ### Companion (Family C) — not built; hardest to test
 - Behavioral testing is intrinsically hard (open-ended dialogue). Plan: a set of
   **scripted user turns + the bar** ("helped me understand something; never faked

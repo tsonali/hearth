@@ -90,6 +90,39 @@ So the unglamorous current step (generator producing clean, non-looping,
 genuinely-good scripts) is the foundation the entire program stands on. We earn the
 multi-night training program by first making the data worth training on.
 
+## STRUCTURED ELICITATION — accuracy through asking, not guessing (Sonali 2026-05-30)
+
+A core, cross-cutting principle (Sonali calls it "pre-tuning"): **a small local model
+should never GUESS what the user wants — it should ASK.** After the download, a
+structured intake conversation extracts the user's true intent BEFORE the model does
+the real work. Curated, scenario-aware questions resolve the ambiguity; the LLM's
+natural warmth/extemporization delivers them humanly and fills the texture. This buys
+high accuracy through STRUCTURE, not SCALE — no bigger model, no fine-tune needed. It
+"tunes the interaction, not the weights."
+
+**Why it's strategically huge:** it's the accuracy lever that ISN'T fine-tuning —
+cheaper, more reliable, more general, works TODAY. And it generalizes the move that's
+worked at every layer (scene-bibles bind the scene, staged generation structures
+output, the classifier extracts intent): **structure the INPUT as carefully as the
+output — don't let the small model guess at either end.** A small model asked the
+right questions first punches far above its weight.
+
+**Applies to ALL families:** A (what/where/who/feel), B (what kind of output, for
+whom, how long), C (what are you actually here to work through), D (what should this
+instrument be, what's it pointed at). Each family needs its own curated
+scenario→questions library + LLM extemporization layer.
+
+**The design tension (the hard part = calibration):** too few questions → the model
+still guesses; too many → the user bails before getting anything. The art is the
+FEWEST, SHARPEST questions that resolve the MOST ambiguity, then stop and let the
+model extemporize. Shape = curated scenarios + targeted questions + LLM warmth; skill
+= the calibration.
+
+**Status:** the engine has a SEED of this (`intake.py` + classifier) but it's thin
+and improvised. Make it a first-class, scenario-aware elicitation SYSTEM. This is a
+high-value, train-free build that lifts every family — a strong laptop-side design
+target while the mini generates.
+
 ## The use-case families (what we train on) — A, B, C, all in, however long it takes
 
 We do NOT train one do-everything model. The task-pack architecture = shared base +

@@ -43,17 +43,23 @@ Unit tests cover the 5 real malformations + clean + unrecoverable. Keep as-is.
   evidence-backed, not speculative.** Re-run the same labeled set after the swap to
   prove the upgrade.
 
-### Doc-Q&A boundary (found 2026-05-30) — refusal is CORRECT, not a bug
-"Who does Elizabeth marry?" over P&P returns "isn't in your files" even at k=10 —
-because the fact is NEVER stated extractably; it's conveyed implicitly across the
-whole book (the second proposal, final-chapter narration). RAG-over-chunks answers
-from RETRIEVED PASSAGES; it cannot SYNTHESIZE a whole-document arc, and a small
-local model shouldn't fake it. **This is a real, honest boundary — the system
-correctly refuses rather than hallucinate.** It does NOT need fixing: our actual
-use case is "what did the budget doc say" (fact lookup over your files), which works
-(paraphrase benchmark 100%), not "synthesize the arc of my novel." Document the
-boundary; set user expectations ("answers what your files SAY, doesn't infer across
-them"); don't over-engineer toward whole-corpus synthesis we don't need.
+### Doc-Q&A boundary (found 2026-05-30; RE-TESTED + narrowed — earlier framing overstated it)
+The boundary is NARROW and mostly protective, NOT a usability wall (an earlier note
+made it sound bigger than it is). Re-tested with REAL personal-file questions over a
+work corpus and it handles them well:
+- "what are the main things going on right now?" → synthesized ACROSS all 4 docs, cited ✅
+- "give me a summary of this quarter" → pulled themes together, cited ✅
+- "what should I be worried about?" → surfaced security + churn, cited ✅
+So it DOES synthesize across documents fine — **when the material is retrievable.**
+The TRUE boundary: it can't answer what the text never actually STATES. The P&P
+"who does Elizabeth marry?" failure was because Austen never states it (implicit
+across a novel) — a case that barely arises with personal files, which usually SAY
+things (notes record decisions, emails state asks). And when it genuinely can't
+answer, it says "isn't in your files" instead of hallucinating — the RIGHT behavior
+for a tool people trust with real data (a confident wrong answer is far worse).
+**Net: people use it normally; the boundary rarely bites, and protects them when it
+does.** Set expectations as "answers from what your files say; tells you when it
+doesn't know" — a feature, not a caveat.
 
 ### Companion (Family C) — not built; hardest to test
 - Behavioral testing is intrinsically hard (open-ended dialogue). Plan: a set of

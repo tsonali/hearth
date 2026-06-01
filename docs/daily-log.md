@@ -6,6 +6,34 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-05-30 — Grind box live; pipeline + RAG + testing built out
+
+**Moved**
+- **Mac mini grind box online** (M4/16GB, SSH from laptop, "always keep it busy"):
+  generating the Family A corpus (100 scenarios, v6.2) + an armed auto-loop that
+  self-curates + catalogs when it finishes. Laptop stays free.
+- **Generator v6.2**: single-pass-aiming-long fixed the length-vs-repetition
+  tension (rep 0.223 AND ~1700w). Pipeline step 1 done.
+- **Full data pipeline built + tested**: curate_corpus.py (keep/reject),
+  build_dataset.py (JSONL training pairs), failure_catalog.py (empirical gap map).
+- **RAG layer** (`rag.py`) — shared engine under Family B + D; chunk/index/
+  retrieve/ground/isolate, local-first. Tested.
+- **Fixed the repo dependency bug** — `uv sync` resolves clean (TTS now an
+  optional `[voice]` extra); public repo is installable.
+- **Testing plan** (`testing-plan.md`) + **real-corpus RAG benchmark**: P&P
+  (public domain), labeled queries → baseline **20% top-1** on the lexical
+  embedder = evidence we need a real semantic embedder (drop-in seam).
+- Relicensed to **CC0**; manifesto draft; product families A–D + Part D (build-
+  your-own = RAG over your own data) + structured-elicitation principle all
+  specified.
+
+**Decision queue**
+- Read the corpus + failure catalog when the mini finishes (the empirical gaps).
+- Swap in a real semantic embedder; re-run the 20% benchmark to prove the jump.
+- Keep mini fed (more Family A toward ~500–1000 training pairs).
+
+---
+
 ## 2026-05-29 (later) — Scene-binding validated; product identity sharpened
 
 **Moved**

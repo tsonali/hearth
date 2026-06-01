@@ -128,6 +128,36 @@ answer to his fear. This is the thesis in interactive form, not just a utility m
 soul, already in motion, where "dreamy" lives) → then C (the ELIZA-mirror, the
 frontier/statement piece) and B (the reach/utility). All three, no rush.
 
+## Hardware reality + compute strategy (2026-05-30)
+
+**The "grind box" is a Mac mini M4, 16GB** — NOT the 64GB box originally speced.
+Same memory ceiling as the laptop. So reframe: it's a **dedicated always-on
+WORKER, not a supercomputer.** Its real value = runs unattended for days without
+sleeping or tying up the laptop (the #1 blocker all along). It CAN: run Qwen 14B,
+mass-generate scripts overnight, QLoRA-fine-tune our own 14B (fits 16GB). It CANNOT:
+run 22B+ models or heavy large-model training.
+
+**Compute strategy — don't buy more hardware yet:**
+- **Unattended generation / batch / QLoRA-of-14B → the free mini.** $0.
+- **Anything bigger (heavier fine-tunes, from-scratch experiments) → rent cloud
+  GPU per-job** (RunPod/Vast.ai, A100 a few hours, ~$5–20/run). Pay only when
+  training; far bigger GPUs than any Mac; nothing to maintain. This is our FACTORY
+  (build-time) — the shipped product stays 100% local, so it doesn't break the
+  thesis (same logic as using Claude Code to build).
+- **Only if rentals become frequent** → then buy (Mac mini M4 Pro 64GB ~$2k, or a
+  used RTX 3090/24GB Linux box ~$1.2–1.8k that out-trains a Mac for CUDA fine-tuning
+  but can't run our MLX code). Decide with real usage data, not now.
+
+Bottom line: $0 today (free mini + laptop), ~$20 per fine-tune when we get there.
+
+**Known repo bug (found during mini setup):** `pyproject.toml` is unsatisfiable on a
+fresh `uv sync` — `chatterbox-tts==0.1.7` pins `diffusers==0.29.0` but the project
+pins `diffusers>=0.38.0`. (The laptop only worked because it had a pre-existing
+.venv.) Mini workaround: installed only the generation/fine-tune stack
+(`mlx-lm fastapi uvicorn pyyaml huggingface-hub` + `-e . --no-deps`), skipping the
+TTS deps the grind box doesn't need. TODO: fix the pin properly (loosen chatterbox
+or make TTS an optional extra) so `uv sync` works clean for contributors.
+
 ## Honest dependencies & risks
 - Distilling subjective *creative quality* (immersion) is less proven than distilling
   verifiable tasks (math/extraction). A real research bet — validate empirically,

@@ -476,6 +476,83 @@ def intake_reflect(session_id: str, req: ReflectRequest) -> JSONResponse:
     return JSONResponse({"saved": True})
 
 
+# ---------------------------------------------------------------------------
+# Family C — the honest reflective companion. Conversations held per-session in
+# memory; cross-session continuity via CompanionMemory (local SQLite).
+# ---------------------------------------------------------------------------
+_companions: dict[str, object] = {}
+_companion_memory = None
+
+
+def _get_companion_memory():
+    global _companion_memory
+    if _companion_memory is None:
+        from imagination_engine.companion import CompanionMemory
+        _companion_memory = CompanionMemory(MEMORY_DB.parent / "companion.sqlite")
+    return _companion_memory
+
+
+class CompanionRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+@app.post("/companion/turn")
+async def companion_turn(req: CompanionRequest) -> JSONResponse:
+    """One turn with the honest reflective companion (Family C)."""
+    from imagination_engine.companion import Companion
+    comp = _companions.get(req.session_id)
+    if comp is None:
+        comp = Companion(get_engine(), memory=_get_companion_memory())
+        _companions[req.session_id] = comp
+    turn = await run_in_threadpool(comp.turn, req.message)
+    return JSONResponse({"reply": turn.reply, "flagged": turn.flagged})
+
+
+# ---------------------------------------------------------------------------
+# Family B/D — ask questions grounded in the user's own files. The corpus is
+# indexed once (POST /ask/index), then queried (POST /ask/query).
+# ---------------------------------------------------------------------------
+_docqa = None
+
+
+def _get_docqa():
+    global _docqa
+    if _docqa is None:
+        from imagination_engine.doc_qa import DocQA
+        from imagination_engine.rag import RagStore, MLXEmbedder
+        store = RagStore(MEMORY_DB.parent / "ask.sqlite", embedder=MLXEmbedder())
+        _docqa = DocQA(get_engine(), store)
+    return _docqa
+
+
+class IndexRequest(BaseModel):
+    corpus: str = "default"
+    path: str
+
+
+class AskRequest(BaseModel):
+    corpus: str = "default"
+    question: str
+
+
+@app.post("/ask/index")
+async def ask_index(req: IndexRequest) -> JSONResponse:
+    """Index a file or folder into a named corpus (one-time per corpus)."""
+    p = Path(req.path).expanduser()
+    if not p.exists():
+        raise HTTPException(status_code=400, detail=f"path not found: {p}")
+    rep = await run_in_threadpool(_get_docqa().index, req.corpus, p)
+    return JSONResponse(rep)
+
+
+@app.post("/ask/query")
+async def ask_query(req: AskRequest) -> JSONResponse:
+    """Answer a question grounded ONLY in the indexed files. Refuses if not present."""
+    ans = await run_in_threadpool(_get_docqa().ask, req.corpus, req.question)
+    return JSONResponse({"answer": ans.text, "sources": ans.sources, "grounded": ans.grounded})
+
+
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 

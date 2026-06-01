@@ -68,3 +68,6 @@ data/sessions/
 # narrative spine (strategy.md, decisions-log.md, daily-log.md, README)
 # stays tracked; the internal analysis does not.
 docs/internal/
+
+# Test corpora — fetchable public-domain artifacts, not committed (see testing-plan.md)
+data/test_corpus/

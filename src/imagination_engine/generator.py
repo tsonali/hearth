@@ -264,9 +264,26 @@ You will see:
 - THIS BEAT's specific job
 
 Your job is to write the next ~200 words that:
-1. Carry forward from where the body so far leaves off.
+1. Carry forward from where the body so far leaves off — the scene MOVES, time passes, something develops. This is the next moment, not a re-description of the same one.
 2. Inhabit the specific beat described. Stay on THIS beat. Don't try to cover the rest of the scene.
-3. Add new sensory specifics — not repeats from earlier beats.
+3. Introduce NEW sensory territory — a sense, an object, a part of the body, a detail not yet touched in the body so far.
+
+═══════════════════════════════════════════════════
+THE #1 FAILURE TO AVOID: REPETITION / LOOPING.
+═══════════════════════════════════════════════════
+The body-so-far has already established the scene's core anchors (the breath, the
+stance, an object in hand, the room, etc.). DO NOT re-describe them. The reader has
+already felt the breath low in the chest, already felt the glass, already felt the
+stance — saying it again is the single worst thing you can do. Each beat must EARN
+its place by adding something that was NOT there before.
+
+Before you write, scan the body-so-far and note which sensory details are already
+used. Then deliberately go ELSEWHERE: a new part of the body, a new sound, a thing
+that happens, a shift in the light or the moment. If your beat would mostly restate
+the breath/stance/object already covered, you have failed — find the new thing.
+
+Reference an already-established anchor ONLY in passing if you must, never as the
+subject of a paragraph. The subject of every paragraph is NEW.
 
 PACE: slow. 2-4 short paragraphs is right. One image or sensation per paragraph. Blank lines between.
 
@@ -275,8 +292,6 @@ LENGTH: 150-250 words. Not more. The user is in a long session; each beat is one
 DO NOT bring the listener back. Do NOT mention "opening eyes" or "returning to the room." STAY in the scene.
 
 DO NOT use the forbidden phrases or forbidden stock imagery (from COMMON_POSTURE).
-
-DO NOT restate earlier beats. New material only.
 
 Output the beat text only, with blank lines between paragraphs. Nothing else."""
 

@@ -178,6 +178,46 @@ def detect_word_salad(text: str) -> tuple[bool, str]:
     return False, ""
 
 
+def repetition_score(text: str) -> tuple[float, list[str]]:
+    """Measure looping/repetition — the failure that makes a script bad TRAINING data.
+
+    Two signals, combined into a 0..1 score (higher = more repetitive):
+      (a) trigram self-overlap: fraction of 3-word shliding-window sequences that
+          recur later in the script (verbatim looping).
+      (b) top-content-phrase density: how often the single most-repeated 4-word
+          phrase appears (the "jaw unclenched / shoulders down" tic).
+    Returns (score, examples_of_repeated_phrases).
+    """
+    words = re.findall(r"[a-z']+", text.lower())
+    if len(words) < 50:
+        return 0.0, []
+
+    # (a) trigram recurrence
+    trigrams = [tuple(words[i:i+3]) for i in range(len(words) - 2)]
+    seen: set = set()
+    repeats = 0
+    counts: Counter = Counter(trigrams)
+    for tg in trigrams:
+        if tg in seen:
+            repeats += 1
+        seen.add(tg)
+    trigram_overlap = repeats / max(len(trigrams), 1)
+
+    # (b) most-repeated 4-gram (content phrase), ignoring very common function-word runs
+    fourgrams = Counter(tuple(words[i:i+4]) for i in range(len(words) - 3))
+    top_phrase, top_count = ("", 0)
+    examples: list[str] = []
+    for phrase, c in fourgrams.most_common(8):
+        if c >= 3:
+            examples.append(f'"{" ".join(phrase)}" ×{c}')
+            if c > top_count:
+                top_phrase, top_count = " ".join(phrase), c
+    phrase_density = min(top_count / 6.0, 1.0)  # 6+ repeats of one 4-gram = maxed
+
+    score = round(0.6 * trigram_overlap + 0.4 * phrase_density, 3)
+    return score, examples[:5]
+
+
 def per_thousand(n: int, total_words: int) -> float:
     return 1000.0 * n / max(total_words, 1)
 
@@ -203,6 +243,7 @@ def analyze() -> dict:
         hedges = count_hits(script, HEDGING_PATTERNS)
         stock = count_words(script, STOCK_IMAGERY)
         gibberish, gib_reason = detect_word_salad(script)
+        rep_score, rep_examples = repetition_score(script)
 
         # Did the body engage the user's specific request?
         # Heuristic: pull a few keywords from the user's intake message
@@ -253,6 +294,8 @@ def analyze() -> dict:
             "stock_per_1000": round(per_thousand(stock, tw), 1),
             "gibberish_tail": gibberish,
             "gibberish_reason": gib_reason,
+            "repetition_score": rep_score,
+            "repetition_examples": rep_examples,
         })
 
     rows.sort(key=lambda r: r["name"])
@@ -285,6 +328,13 @@ def summarize(result: dict) -> None:
     print(f"  gibberish-tail failures: {len(gibberish_scripts)}/{n}")
     for r in gibberish_scripts:
         print(f"    {r['name']}: {r['gibberish_reason']}")
+    print()
+
+    print(f"  repetition (looping — bad for training data): mean {avg('repetition_score'):.3f}")
+    print("  most repetitive scripts:")
+    for r in sorted(rows, key=lambda x: -x["repetition_score"])[:8]:
+        ex = "; ".join(r["repetition_examples"][:2])
+        print(f"    {r['repetition_score']:.3f}  {r['name']}   {ex}")
     print()
 
     # Worst offenders by hedging rate

@@ -76,6 +76,8 @@ MIN_BEATS = 8
 # v6 single-pass body: one generation writes the whole ~1500-2200 word body
 # from the visible plan. Needs a large token budget (≈ 1.4 tokens/word + slack).
 BODY_MAX_TOKENS = 4096
+# Length floor: if the single pass wraps early, extend ONCE with new material.
+BODY_MIN_WORDS = 1500
 
 # Each beat targets 150-250 words. With 10 beats + ~150-word open +
 # ~150-word back, sessions land at ~2000 dense words = ~15-20 minutes at
@@ -118,13 +120,18 @@ REPLACE THEM with the thing itself. Not "perhaps her hand finds yours" but "her 
 FORBIDDEN STOCK IMAGERY (the AI's safe default for "peaceful" — unless the user EXPLICITLY named these, NEVER use them):
 candlelight, candles, meadows, rolling hills, wildflowers, gurgling brooks, babbling streams, blooming lavender, nightingales, songbirds, soft glow, dappled light, warm bath, gentle breeze, twinkling stars, shimmering.
 
-SENSORY SPECIFICITY (this is what makes immersion real):
-- Every paragraph names AT LEAST ONE concrete physical detail. Not "a sense of warmth" — "warmth across the top of your sternum."
-- Light: name the kind. "late-afternoon orange." "fluorescent buzz."
-- Sound: name the source. "the radiator clicking." "his laugh from the next room."
-- Touch: name the body part. "the muscle behind your right shoulder blade lets go."
-- Smell: pick ONE thing. "wax. Something that's been melting a while."
-- Position: where exactly is the body. "weight on your left hip."
+SENSORY SPECIFICITY (this is what makes immersion real). The bracketed items below
+are ILLUSTRATIONS OF THE TECHNIQUE — they show the LEVEL of specificity to reach
+for. They are NOT content to copy. Never reuse these exact phrases in your output;
+invent fresh specifics that fit THIS scene:
+- Every paragraph names AT LEAST ONE concrete physical detail — abstract feeling [bad] vs. a body-part-or-object-specific detail [good]. Reach for the [good] level with words of your own.
+- Light: name the KIND specific to this scene (not a generic glow).
+- Sound: name the SOURCE specific to this scene.
+- Touch: name the exact BODY PART where it lands.
+- Smell: pick ONE concrete thing that belongs in THIS scene.
+- Position: say where exactly the body's weight is.
+(If a phrase appears in these instructions or in the example anchors, it is OFF
+LIMITS as content — it's a teaching sample, not your material.)
 
 OUTPUT FORMAT
 - Plain text only. No headers, no labels, no markers, no brackets.
@@ -515,6 +522,30 @@ def generate_session(
     body = _generate(engine, BODY_PROMPT, body_user, max_tokens=BODY_MAX_TOKENS)
     log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
              time.time() - t0, len(body.split()), len(beats))
+
+    # Length floor: single-pass sometimes wraps early. If short, extend ONCE — a
+    # continuation that sees the whole body so far and carries the journey further
+    # with NEW material (never repeating, never returning). This recovers length
+    # without reintroducing the per-beat looping (it's still one continuous arc).
+    if len(body.split()) < BODY_MIN_WORDS:
+        log.info("[v6] body short (%d < %d) — extending once", len(body.split()), BODY_MIN_WORDS)
+        emit("writing_body", "Deepening the imagining.", 4, 5, eta=60.0)
+        t0 = time.time()
+        extend_user = (
+            intake_str + "\n\n" + class_block + "\n\n"
+            "----- THE OPENING (already spoken) -----\n" + open_text + "\n----- END OPENING -----\n\n"
+            + plan_block + anchors_block + "\n\n"
+            "----- THE BODY SO FAR -----\n" + body + "\n----- END BODY SO FAR -----\n\n"
+            "The body above ended too early. CONTINUE it — write the next stretch of "
+            "the SAME continuous journey, carrying the scene further with NEW moments "
+            "and sensations not yet used above. Do NOT repeat anything already written, "
+            "do NOT restate used anchors, and do NOT bring the listener back (the return "
+            "is separate). Pick up exactly where it left off and keep moving."
+        )
+        extension = _generate(engine, BODY_PROMPT, extend_user, max_tokens=BODY_MAX_TOKENS)
+        if extension.strip():
+            body = body.rstrip() + "\n\n" + extension.strip()
+        log.info("[v6] extended: +%.1fs, body now %d words", time.time() - t0, len(body.split()))
 
     # Stage 5: back.
     emit("writing_return", "Writing the return — what you'll carry back.", 5, 5, eta=15.0)

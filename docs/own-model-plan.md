@@ -137,6 +137,36 @@ frontier/statement piece) and B (the reach/utility). All three, no rush.
 - Teacher MUST be Apache/MIT (Qwen/Mistral/DeepSeek). Never Llama/Gemma≤v3/frontier
   (contract strings). Qwen base = already clean.
 
+## Repetition: prompt-only fix FAILED (2026-05-29) — it's architectural
+
+Adding a hard anti-repetition rule to BEAT_PROMPT did NOT work: repetition 0.435 →
+0.455 (flat/slightly worse) on different-personality. Reading the output diagnosed
+WHY — the looping is ACROSS beats, from two structural causes a prompt can't fix:
+1. **The bible's anchors ARE the repetition.** Every beat-call sees the SAME ~8
+   anchors (breath-low, half-smile, jaw-unclenched, cool-glass, hips) because
+   they're what the scene *is* — so each beat re-touches them. The bible's
+   strength (binding the scene) causes the looping. Beats are generated blind to a
+   global plan, so they can't know an anchor is "already used."
+2. **Each beat re-establishes context** ("the glass shifts *again*," "breath
+   *remains*") because it's a separate generation that doesn't trust the reader to
+   remember. The staged-beat design that fixed DRIFT is structurally prone to this.
+   (Credit: the new prompt DID add fresh material — the gaze, the floor grooves, a
+   chuckle — it's additive, just not corrective.)
+
+**Two real fixes (decide):**
+- **(A) Distribute anchors across beats** — a planning step assigns each anchor to
+  specific beats; each beat is told which are ITS anchors and not to dwell on
+  others. Moderate change.
+- **(B) Single-pass body with full plan visible** instead of N blind beat-calls —
+  the model sees the whole arc, naturally avoids re-use (knows it "used" the glass).
+  Bigger change / partly reverts staging — but staging was for length+drift, and
+  scene-bible binding now does the drift job, so single-pass-with-plan may be viable.
+
+**Deeper point for the model work:** this is exactly what FINE-TUNING fixes that
+prompting can't — a model trained on non-repetitive scripts learns not to loop in
+its WEIGHTS. The repetition fix and "make our own model" converge: the prompt/arch
+fix yields better DATA; the fine-tune yields a model that doesn't need the prompt.
+
 ## Immediate next step
 Fix the generator so its output is training-grade (no looping/repetition), then
 generate + curate the first clean batch. That batch IS the seed of our own model.

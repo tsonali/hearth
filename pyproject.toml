@@ -6,32 +6,30 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 license = { text = "CC0-1.0" }
 authors = [{ name = "Sonali Maitra" }]
+# CORE deps only — the generation / fine-tune / eval path. This set resolves
+# cleanly on a fresh `uv sync` (no conflicts), so the grind box and any
+# contributor can install without the TTS dependency hell. TTS is an optional
+# extra (see [project.optional-dependencies]) because chatterbox-tts pins
+# diffusers==0.29.0 / torch==2.6.0, which conflict with our torch>=2.12 (MLX/F5).
 dependencies = [
     "mlx-lm>=0.21.0",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.9.0",
+    "pyyaml>=6.0",
+    "huggingface-hub>=0.27.0",
+]
+
+[project.optional-dependencies]
+# Voice/TTS layer — install with `uv sync --extra voice`. Kept OUT of core
+# because of the chatterbox/diffusers/torch conflict; the generation+training
+# path never imports these (Voice is lazy-imported only when rendering audio).
+voice = [
     "kokoro-onnx>=0.5.0",
     "soundfile>=0.13.1",
     "torch>=2.12.0",
     "torchaudio>=2.11.0",
     "f5-tts>=1.1.20",
-    # Chatterbox + the deps it needs but does not declare cleanly. The
-    # package itself pins torch==2.6.0 which conflicts with our pinned
-    # torch>=2.12 (needed for MLX/F5), so it was installed with --no-deps
-    # via `uv pip install --no-deps chatterbox-tts`. The transitive deps
-    # below are the ones actually used at runtime — torch 2.12 is API-
-    # compatible with code that was written against 2.6 in this case.
-    "chatterbox-tts==0.1.7",
-    "resemble-perth>=1.0",
-    "s3tokenizer>=0.3.0",
-    "conformer>=0.3.2",
-    "diffusers>=0.38.0",
-    "onnx>=1.21.0",
-    "ml-dtypes>=0.5.0",
-    # LAME MP3 encoder — for the downloadable/shareable session MP3.
-    # Sessions are rendered as WAV for inline playback then encoded to
-    # MP3 (~75% smaller) for the user to AirDrop / save / share.
     "lameenc>=1.8.0",
 ]
 

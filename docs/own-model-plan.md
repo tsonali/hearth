@@ -171,6 +171,40 @@ instrument you shaped," NOT "a do-anything AI":
 - **Tier 3 (do NOT promise): full Claude-Code "build any app."** That's us +
   frontier models + years of tooling. A local model can't; promising it betrays
   trust. Be honest about the ceiling.
+**BIGGER THAN VOICE/CHARACTER (Sonali 2026-05-30):** "build your own" is NOT mainly
+about persona/voice — it's about pointing a local model at YOUR OWN PRIVATE DATA.
+This is the BEST-EVIDENCED small-local-model capability (summarization, extraction,
+RAG over your docs — the research's sweet spot), AND the sharpest privacy wedge (your
+emails + work files are exactly what you'd NEVER upload to the cloud, and most want
+an AI on). The creative unlock = TWO mechanisms, and most use cases want the second:
+- **TRAIN (fine-tune):** bake a STYLE/skill into the weights. "Sound like me."
+  Needs many clean examples, overnight compute.
+- **RETRIEVE (RAG):** model reads your ACTUAL files at query time, grounded. "Know
+  my stuff, act on my files." NO training, instant, updates live as files change,
+  and the single most RELIABLE thing a small local model does (RAG → ~0%
+  hallucination in the research). Most rich use cases are RAG, not training.
+
+The "live-in associate" family (RAG over a private corpus — instant, reliable):
+- work files → summarize/find/cross-reference/draft; "what did we decide about X?"
+- email → "draft a reply in my style"; "what am I forgetting to answer"; thread summaries
+- research/notes/PDFs → a private analyst over your own library
+- journals → reflection grounded in your ACTUAL past, not generic
+
+The "sound like me / be this character" family (fine-tune — overnight, for style):
+- sent emails → learns your VOICE; combine with RAG (facts) = a real "respond like me"
+- a character's dialogue → a companion that's genuinely that character
+
+User-facing distinction (a normal person gets this): want it to KNOW your stuff? →
+point it at a folder (instant, RAG). Want it to SOUND like you/someone? → feed
+examples to train (overnight). Best = both. Honest caveats: RAG needs decent
+retrieval (solved patterns, real engineering); the small model does grounded
+transformation (summarize/draft/find), NOT magic reasoning over the data — set
+expectations there and it's excellent.
+
+ARCHITECTURE IMPLICATION: we need a RAG layer (retrieval over user files) as a
+first-class part of the framework, alongside the generator + fine-tune pipeline.
+This also powers Family B (doc-Q&A) — same machinery.
+
 **The structural beauty:** Part D is just OUR framework exposed to the user — the
 scene-bible config format, the generator, the fine-tune pipeline we built for our
 task packs ARE what a user needs to make theirs. Not a separate feature; a friendly

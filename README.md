@@ -1,12 +1,12 @@
-# Imagination Engine
+# Hearth
 
-### Private, local AI you own — free, and it never leaves your machine.
+### Private AI that lives in your house and never leaves it.
 
-Most AI runs on someone else's computer: your data goes to a company, and you pay by the use forever. This is the opposite. Small models have gotten good enough to run privately on an ordinary laptop and still be genuinely useful — so this is a set of focused tools that do exactly that, given away in the public domain. **→ [Read the reasoning](MANIFESTO.md).**
+Most AI runs on someone else's computer: your data goes to a company, and you pay by the use forever. Hearth is the opposite. Small models have gotten good enough to run privately on an ordinary laptop and still be genuinely useful — so this is a set of focused tools that do exactly that, given away in the public domain. **→ [Read the reasoning](MANIFESTO.md).**
 
-A growing suite of focused, private tools — and the means to build your own:
+Hearth is a growing suite of focused, private tools — and the means to build your own:
 
-- 🧘 **Imagination engine** — guided sessions in *your own voice*, you close your eyes and imagine.
+- 🧘 **Imagination Engine** — guided sessions in *your own voice*, you close your eyes and imagine.
 - 🪞 **Honest companion** — a reflective mirror that helps you think; it refuses to pretend it's your friend.
 - 📂 **Ask your own files** — point it at your notes/docs and ask; it answers from what's there, says so when it isn't, sends nothing anywhere.
 - 🛠️ **Build your own** — describe an instrument, point it at your data, keep it. Yours, on your machine.
@@ -21,7 +21,7 @@ Everything runs on a small model on your laptop. Released into the **public doma
 
 ## The bigger bet
 
-This app is the first proof of a thesis: the largest AI companies have a structural blind spot — their business is metered cloud inference, so they have a permanent incentive *against* software that runs privately on your own machine. That leaves a whole category open: **purpose-built applications whose entire value is that nothing ever leaves the device** — for the things you'd never type into a cloud chatbot.
+Hearth is the first proof of a thesis: the largest AI companies have a structural blind spot — their business is metered cloud inference, so they have a permanent incentive *against* software that runs privately on your own machine. That leaves a whole category open: **purpose-built applications whose entire value is that nothing ever leaves the device** — for the things you'd never type into a cloud chatbot.
 
 The specific position is a **three-way intersection almost nobody combines**: *fully local* (offline by construction), *small-model reliability scaffolding* (the engineering that makes a small on-device model punch above its weight), and *honest anti-anthropomorphism* (an instrument, never a fake friend). Each alone is partly occupied; the intersection is open.
 

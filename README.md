@@ -105,13 +105,13 @@ Everything in this project is open source. The runtime depends on:
 
 - **[Llama 3.1 8B Instruct](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct)** — Meta, Llama 3.1 Community License (open weights)
 - **[MLX / mlx-lm](https://github.com/ml-explore/mlx-lm)** — Apple, MIT
-- **[F5-TTS](https://github.com/SWivid/F5-TTS)** — MIT, for voice cloning + fine-tuning
+- **[F5-TTS](https://github.com/SWivid/F5-TTS)** — code MIT; pre-trained weights CC-BY-NC (non-commercial). Used here only non-commercially. The shippable default voice path prefers Kokoro/Chatterbox (Apache-2.0/MIT).
 - **[Kokoro TTS](https://github.com/hexgrad/kokoro)** — Apache-2.0, used as the placeholder voice
 - **[FastAPI](https://fastapi.tiangolo.com)** — MIT, the local HTTP server
 - **[Inter](https://rsms.me/inter/)** / **[Archivo Black](https://fonts.google.com/specimen/Archivo+Black)** — both Open Font License, bundled locally
 - **SQLite** (coming) — public domain, for the local memory layer
 
-The product code itself is MIT-licensed. See [`LICENSE`](LICENSE).
+**The code in this repo is released into the public domain (CC0) — no copyright, no attribution required, no strings.** Take it, fork it, build on it, ship it; you owe nothing. This is deliberate: the project exists to give people access that profit-seekers withhold, and functional code shouldn't be locked up by copyright at all. See [`LICENSE`](LICENSE). (Third-party dependencies keep their own licenses; nothing here is or will be sold.)
 
 ---
 

@@ -121,9 +121,18 @@ without faking personhood). All of these are small-model-friendly (structured
 analysis of the user's OWN words, not invented wisdom/empathy). **The bar:** "it
 helped me understand something about myself I couldn't see alone — and never once
 pretended to be something it isn't." Clears that = neither useless-mirror nor
-dishonest-friend. Caveat: hardest family to get right on a small local model
-(open-ended interaction = their weakest area) — test brutally against the bar before
-claiming it works. Target = best-possible-honest-companion, NOT lobotomized-mirror.
+dishonest-friend. Caveat (PRECISE — corrected 2026-05-30, don't overstate): the capability research
+flagged that small models lose ONLY at open-ended empathy-SUPPLYING chat (model has
+to BE the warm/wise presence — clinical PTSD study, Claude won 75%). It did NOT say
+"companion impossible." Its own "open question" explicitly named the FACILITATIVE
+case (model helps the USER's own process, doesn't supply empathy) as a different,
+"friendlier spot" — UNTESTED, not disproven. Our active-honest-companion (patterns,
+sharp questions, synthesis, frames — facilitation, not supplied wisdom) lands
+exactly in that flagged gap, and is small-model-friendly (structured work on the
+user's own words). So: NOT "small loses at companions" → that's only the fake-friend
+version. The honest-facilitative companion is the promising-but-unproven zone the
+research pointed at. Build it, then VALIDATE against the bar (don't assume; don't
+over-caution either). Target = best-possible-honest-companion, NOT lobotomized-mirror.
 
 **Family C base concept — an honest, private, modern ELIZA.**
 Structured journaling/reflection, rehearsal, decision-thinking. **The key insight

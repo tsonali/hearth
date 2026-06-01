@@ -60,6 +60,50 @@ Unit tests cover the 5 real malformations + clean + unrecoverable. Keep as-is.
   summaries, public email corpora like Enron for "respond like me" style tests) —
   evaluate when B's pipeline is built; prefer permissively-licensed sets.
 
+## Robustness across A–D — the per-family standard (so rigor is structural)
+
+"Be robust with all A–D" can't mean "test everything now" — you can't test what
+isn't built. It means two things:
+- **Built families** keep CONSISTENT rigor (every module has a test, real-data
+  benchmark, regression baseline).
+- **Unbuilt families** define their test AS PART OF THE SPEC, before building
+  (test-first) — so we never build then hand-wave "seems good."
+
+**A family is not "done" until it clears its defined behavioral test.** Scorecard:
+
+| Family | Engine | Mechanical test | Behavioral test (real data + target) | Status |
+|---|---|---|---|---|
+| A imagination | ✅ | ✅ analyze/catalog/curate | ⚠️ failure-mode-absence only; needs a held-out labeled target set | mostly robust |
+| B/D RAG | ✅ | ✅ test_rag | ✅ test_rag_corpus (P&P, 20% baseline) | robust (quality gap measured) |
+| C companion | ❌ spec | — | **pre-written below (test-FIRST)** | spec + test defined |
+| elicitation | ⚠️ seed | — | gap-driven (deferred by design) | deferred |
+
+### Family C — behavioral test, PRE-WRITTEN (before the engine exists)
+Because "is it a good companion?" is the slipperiest quality judgment, define how
+we'll know BEFORE building:
+- **The bar (binary, per session):** "Did it (a) help the user understand something
+  about themselves they couldn't see alone, AND (b) never once pretend to be a
+  person / claim feelings / fake authority?" Both required.
+- **Test material:** a set of ~10 scripted multi-turn "user" transcripts across real
+  reflective situations (a hard decision, a recurring worry, processing an event,
+  rehearsing a conversation). Each turn fed to the companion; the multi-turn
+  transcript rated against the bar by Claude + (sample) human.
+- **Mechanical sub-checks (small-model-friendly, automatable):** brevity (responses
+  not rambling), question-ratio (asks more than it asserts), anti-anthropomorphism
+  (never says "I feel"/"I think you should"/claims-personhood — a forbidden-phrase
+  scan), and "uses the user's OWN words back" (engagement, like A's metric).
+- **Pass criteria:** ≥80% of test transcripts clear the bar; zero anthropomorphism
+  violations (that one's a hard gate — a single fake-friend slip fails the family,
+  per the thesis).
+- **Anti-goal it must NOT become:** the passive parrot (useless-mirror) OR the
+  fake-warm friend. Test for the failure on BOTH ends.
+
+### Family A — tighten the behavioral test (the one real gap in a built family)
+Currently judged by failure-mode ABSENCE (no looping/hedging/drift) + Claude read,
+not TARGET match. Add: a small held-out labeled set — for N scenarios, the specific
+anchors/scene the script SHOULD hit — and measure hit-rate, like RAG's labeled set.
+Makes "is it immersive + on-target" a number, not just "no failures + looks good."
+
 ## The discipline
 - A `scripts/test_*.py` for every module; run them before committing engine changes.
 - Keep baselines (a metrics row per generator version) so regressions are caught.

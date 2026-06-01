@@ -55,6 +55,43 @@ def prompt_engagement(script: str, intake: str) -> float:
     return round(sum(1 for k in kws if k in body) / len(kws), 2)
 
 
+def anchor_hit_rate(script: str, anchors: list[str]) -> tuple[float, int, int]:
+    """TARGET-MATCH (not just failure-absence): did the script actually land the
+    scene bible's intended anchors? For each anchor, count it 'hit' if ANY of its
+    distinctive content-words appear in the script. Returns (rate, hits, total)."""
+    if not anchors:
+        return (-1.0, 0, 0)  # -1 = no bible anchors to score against
+    body = script.lower()
+    hits = 0
+    for a in anchors:
+        words = [w for w in re.findall(r"[a-z']{4,}", a.lower()) if w not in STOP]
+        # an anchor "hits" if a meaningful share of its content words appear
+        if words and sum(1 for w in words if w in body) >= max(1, len(words) // 3):
+            hits += 1
+    return (round(hits / len(anchors), 2), hits, len(anchors))
+
+
+def _bible_anchors_for(scenario_id: str, intake: str) -> list[str]:
+    """Best-effort: find the scene bible likely bound for this script, return its
+    anchors (the TARGETS the script should have hit). Uses the classifier's archetype
+    if recorded; else returns [] (we just skip target-scoring that script)."""
+    try:
+        from imagination_engine import scene_bibles as sb
+    except Exception:
+        return []
+    # The corpus dirs don't store the chosen archetype; approximate by matching
+    # any bible whose trigger phrases overlap the intake. (Good enough for an
+    # aggregate target-hit signal; exact binding is logged at gen time.)
+    intake_l = intake.lower()
+    best, best_overlap = None, 0
+    for arch, bible in sb.list_bibles().items():
+        ov = sum(1 for ph in bible.trigger_phrases if any(
+            w in intake_l for w in re.findall(r"[a-z']{4,}", ph.lower())))
+        if ov > best_overlap:
+            best, best_overlap = bible, ov
+    return list(best.anchors) if best else []
+
+
 def catalog_one(script: str, intake: str) -> dict:
     words = len(script.split())
     rep, rep_ex = repetition_score(script)
@@ -63,6 +100,8 @@ def catalog_one(script: str, intake: str) -> dict:
     salad, _ = detect_word_salad(script)
     engage = prompt_engagement(script, intake)
     leaks = [p for p in LEAK_PHRASES if p in script.lower()]
+    anchors = _bible_anchors_for("", intake)
+    anchor_rate, anchor_hits, anchor_total = anchor_hit_rate(script, anchors)
 
     modes = []
     if rep > 0.30: modes.append("repetition")
@@ -73,12 +112,15 @@ def catalog_one(script: str, intake: str) -> dict:
     if salad: modes.append("word_salad")
     if engage < 0.4: modes.append("low_prompt_engagement")
     if leaks: modes.append("anchor_leakage")
+    if anchor_rate >= 0 and anchor_rate < 0.5: modes.append("low_anchor_hit")  # missed the target scene
 
     # read-priority: more/again worse failure modes => more worth a human read.
     # also flag CLEAN-but-interesting (passed everything) lightly for spot-reads.
     priority = len(modes) * 10 + (5 if rep > 0.25 else 0) + (5 if engage < 0.5 else 0)
     return {"words": words, "repetition": rep, "hedges": hedges, "stock": stock,
-            "engagement": engage, "leaks": leaks, "failure_modes": modes,
+            "engagement": engage, "leaks": leaks,
+            "anchor_hit_rate": anchor_rate, "anchor_hits": f"{anchor_hits}/{anchor_total}",
+            "failure_modes": modes,
             "read_priority": priority, "rep_examples": rep_ex[:2]}
 
 

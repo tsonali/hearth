@@ -118,10 +118,16 @@ FEWEST, SHARPEST questions that resolve the MOST ambiguity, then stop and let th
 model extemporize. Shape = curated scenarios + targeted questions + LLM warmth; skill
 = the calibration.
 
-**Status:** the engine has a SEED of this (`intake.py` + classifier) but it's thin
-and improvised. Make it a first-class, scenario-aware elicitation SYSTEM. This is a
-high-value, train-free build that lifts every family — a strong laptop-side design
-target while the mini generates.
+**Status + SEQUENCING (Sonali 2026-05-30 — important):** do NOT build elicitation
+speculatively now. We don't yet know what the model actually gets wrong, so
+designing questions now = fixing imagined problems. **First make the engine as good
+as possible; find where it EMPIRICALLY falls down (read/score the corpus, catalog
+real failure patterns); THEN aim elicitation at those observed gaps.** Elicitation is
+a TARGETED fix for known failures, not a speculative layer. The reframe: the gaps the
+model still has after we've maxed the engine ARE the question set — the failures tell
+us which questions to ask; we don't invent them. ("We don't know what we don't know
+yet" → go find out empirically, then design.) The engine has a thin SEED
+(`intake.py` + classifier); build the real system later, gap-driven.
 
 ## The use-case families (what we train on) — A, B, C, all in, however long it takes
 

@@ -35,92 +35,71 @@ The full reasoning, and the traps we're steering around, are in [`docs/strategy.
 
 ---
 
-## What it does
-
-You open the engine in your browser. You type — in your own words — what you want to imagine. Anything: yourself a year from now succeeding at something hard, being a different character entirely, your life if you'd taken another path, being Lincoln the night before Gettysburg, being Taylor Swift backstage. *Anything legal.*
-
-The engine has a short, warm conversation with you to pick up sensory specifics — where, when, what does it feel like in the body. Then it builds you a 10–15 minute guided session and reads it to you, in your own voice, with real pauses between paragraphs so the imagery has time to land.
-
-After, you go live your day.
-
----
-
 ## Why local-only
 
-Every part of this product is built on the assumption that **what you imagine is your business and no one else's**. So:
+Every part of Hearth is built on the assumption that **what you do here is your business and no one else's**. So:
 
-- **The language model runs on your machine.** No API calls to OpenAI, Anthropic, or anyone else. Llama 3.1 8B (open weights) running locally via [MLX](https://github.com/ml-explore/mlx) on Apple Silicon.
-- **The voice model is yours.** You record ~30 minutes of your own voice; the engine fine-tunes a local copy of [F5-TTS](https://github.com/SWivid/F5-TTS) on it. The trained model never leaves your machine.
-- **The audio is rendered locally and played in-browser.** There is no audio file you can download, share, or upload. The session plays, then it's gone.
-- **No account. No email. No sign-up.** There is nothing to leak because nothing exists about you anywhere.
-- **No telemetry, ever.** Not "anonymized analytics." Not "crash reports." Nothing. The engine does not know who you are or what you did with it.
+- **The model runs on your machine.** No API calls to OpenAI, Anthropic, or anyone else. A small open-weight model (currently Qwen 2.5 14B) running locally via [MLX](https://github.com/ml-explore/mlx) on Apple Silicon.
+- **Nothing is uploaded.** No account, no email, no sign-up, no telemetry, no "anonymized analytics," no crash reports. There is nothing to leak because nothing about you exists anywhere.
+- **You can verify it.** Once the model is downloaded, turn off your WiFi — Hearth keeps working, end to end. If anything required the network, it would fail at that point. It doesn't.
 
-**You can verify this yourself.** Once the engine and your voice model are downloaded, turn off your WiFi. The engine keeps working, end to end. If anything required the network, it would fail at that point. It doesn't.
-
-You can also read the code. That's why it's open source.
+You can also read every line of code. That's the point.
 
 ---
 
-## Status
+## Status — honest
 
-This is a working v0 in active development. Currently:
+Working software, in active development. The engines for all four tools run locally
+today (see `docs/roadmap.md` and `docs/own-model-plan.md` for the live plan):
 
-- ✅ Local LLM (Llama 3.1 8B via MLX) — running, with proper sampling controls
-- ✅ Intake conversation — warm, brief, sensory; user-paced (skip whenever you want)
-- ✅ Script generator — multi-stage (settle → imagining → return), produces ~12-minute immersive sessions
-- ✅ Audio render — Kokoro TTS for the placeholder voice; F5-TTS for the user's own cloned voice
-- ✅ Recording app — drives the user through ~200 sentences to produce training data for their own voice model
-- ✅ Voice fine-tuning pipeline — runs on Apple Silicon (M-series Mac)
-- 🚧 Distribution — manual install today; signed/notarized website download soon
-- 🚧 Memory & reflection layer — short post-session prompts stored locally
-- 🚧 Beta — currently single-user (the author's machine)
+- ✅ **Imagination Engine** — intake → staged script generation → audio in your own voice
+- ✅ **Companion** — honest reflective companion (+ cross-session memory)
+- ✅ **Ask Your Files** — local RAG: index your files, ask, grounded answers that refuse to hallucinate
+- 🚧 **Build Your Own** — engine built (`instrument.py`), UI pending
+- 🚧 **One-click app** — today it takes a terminal; a packaged double-click app is the current last-mile work
+- 🚧 **Our own fine-tuned model** — distilling a clean, owned specialist (see `docs/own-model-plan.md`)
 
-This is not a polished consumer app yet. If you're not comfortable running a Python project from a terminal, wait for the packaged release. If you are, the install steps are below.
+Not yet a polished consumer app. If you're comfortable with a terminal, install below; otherwise, the one-click app is coming.
 
 ---
 
 ## Install (development build)
 
-Requires an Apple Silicon Mac (M1 / M2 / M3 / etc.) running macOS 13 or later.
+Requires an Apple Silicon Mac. Core install needs no TTS (generation + the tools);
+add `--extra voice` for audio.
 
 ```bash
-# 1. Clone the repo
+# 1. Clone
 git clone https://github.com/tsonali/hearth.git
-cd imagination-engine
+cd hearth
 
-# 2. Install uv (Python project manager — Apache-2.0 / MIT)
+# 2. Install uv (Python project manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3. Sync the Python environment (installs MLX, FastAPI, F5-TTS, Kokoro, etc.)
-uv sync
+# 3. Sync the environment (core: generation + companion + ask)
+uv sync                  # add: uv sync --extra voice   (for audio/TTS)
 
-# 4. Install ffmpeg (used by the F5-TTS training stack)
-brew install ffmpeg
-
-# 5. Start the local server
+# 4. Start Hearth
 uv run imagination-engine serve
 
-# 6. Open the engine
-# In your browser, go to http://127.0.0.1:8765/intake
+# 5. Open it
+# http://127.0.0.1:8765   (the Hearth hub — all the tools)
 ```
 
-The first time you generate a session, the engine downloads the LLM weights (~4.5 GB) and the voice model weights (~1.5 GB). Once cached, everything runs offline.
-
-To train your own voice (so the engine speaks in your voice instead of the placeholder), see `docs/voice-training.md`.
+The model weights (~8 GB) download once on first use, then everything runs offline.
 
 ---
 
 ## The stack, by license
 
-Everything in this project is open source. The runtime depends on:
+Hearth's own code is **public domain (CC0)** — no attribution, no strings. It builds on:
 
-- **[Llama 3.1 8B Instruct](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct)** — Meta, Llama 3.1 Community License (open weights)
+- **[Qwen 2.5 14B Instruct](https://huggingface.co/Qwen)** — Alibaba, Apache-2.0 (the local model)
 - **[MLX / mlx-lm](https://github.com/ml-explore/mlx-lm)** — Apple, MIT
-- **[F5-TTS](https://github.com/SWivid/F5-TTS)** — code MIT; pre-trained weights CC-BY-NC (non-commercial). Used here only non-commercially. The shippable default voice path prefers Kokoro/Chatterbox (Apache-2.0/MIT).
-- **[Kokoro TTS](https://github.com/hexgrad/kokoro)** — Apache-2.0, used as the placeholder voice
 - **[FastAPI](https://fastapi.tiangolo.com)** — MIT, the local HTTP server
-- **[Inter](https://rsms.me/inter/)** / **[Archivo Black](https://fonts.google.com/specimen/Archivo+Black)** — both Open Font License, bundled locally
-- **SQLite** (coming) — public domain, for the local memory layer
+- **[SQLite](https://sqlite.org)** — public domain, the local memory + RAG store
+- **Voice (optional `--extra voice`):** [Kokoro](https://github.com/hexgrad/kokoro) (Apache-2.0) and [Chatterbox](https://github.com/resemble-ai/chatterbox) (MIT) for shippable voices; [F5-TTS](https://github.com/SWivid/F5-TTS) (code MIT, weights CC-BY-NC) used non-commercially for the personal voice-clone
+- **[Inter](https://rsms.me/inter/)** / **[Archivo Black](https://fonts.google.com/specimen/Archivo+Black)** — Open Font License, bundled locally
 
 **The code in this repo is released into the public domain (CC0) — no copyright, no attribution required, no strings.** Take it, fork it, build on it, ship it; you owe nothing. This is deliberate: the project exists to give people access that profit-seekers withhold, and functional code shouldn't be locked up by copyright at all. See [`LICENSE`](LICENSE). (Third-party dependencies keep their own licenses; nothing here is or will be sold.)
 

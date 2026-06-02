@@ -492,6 +492,12 @@ def _get_companion_memory():
     return _companion_memory
 
 
+@app.get("/companion", response_class=HTMLResponse)
+def companion_page() -> HTMLResponse:
+    """The honest reflective companion — chat UI (Family C)."""
+    return HTMLResponse((WEB_DIR / "companion.html").read_text(encoding="utf-8"))
+
+
 class CompanionRequest(BaseModel):
     session_id: str
     message: str

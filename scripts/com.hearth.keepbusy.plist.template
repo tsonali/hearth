@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.hearth.keepbusy</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/caffeinate</string><string>-is</string>
+    <string>/bin/bash</string>
+    <string>/Users/smaitra/imagination-engine/keep_busy.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/smaitra/imagination-engine</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardErrorPath</key><string>/Users/smaitra/imagination-engine/logs/launchd.err</string>
+  <key>StandardOutPath</key><string>/Users/smaitra/imagination-engine/logs/launchd.out</string>
+</dict></plist>

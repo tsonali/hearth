@@ -1,5 +1,7 @@
 # Daily log
 
+**LIVE PUBLIC SITE: https://tsonali.github.io/hearth/** (GitHub Pages, gh-pages branch /root, no analytics). Sonali: "looks terrifico." 2026-06-01.
+
 A rolling record of the daily grind. Newest entry on top. Each entry: what
 moved, what the numbers said, and the decision queue for the next session.
 The journey is part of the public diligent narrative — see `strategy.md`.

@@ -122,6 +122,14 @@ not TARGET match. Add: a small held-out labeled set — for N scenarios, the spe
 anchors/scene the script SHOULD hit — and measure hit-rate, like RAG's labeled set.
 Makes "is it immersive + on-target" a number, not just "no failures + looks good."
 
+## UI polish backlog (found while building/verifying the web pages, 2026-06-01)
+- **Ask page: indexing a large corpus takes >30s with only a static "reading your
+  files…" message** — a real user could think it hung. Need progress feedback or
+  async indexing with a status poll. (Verified the flow WORKS — Mr. Collins query
+  returned a correct cited answer from P&P — but the wait is opaque.)
+- Both new pages assume the local server is already running; the "double-click app"
+  packaging that starts it for a non-technical user is still the big last-mile gap.
+
 ## The discipline
 - A `scripts/test_*.py` for every module; run them before committing engine changes.
 - Keep baselines (a metrics row per generator version) so regressions are caught.

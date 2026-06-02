@@ -532,6 +532,12 @@ def _get_docqa():
     return _docqa
 
 
+@app.get("/ask", response_class=HTMLResponse)
+def ask_page() -> HTMLResponse:
+    """Ask questions grounded in your own files — UI (Family B/D)."""
+    return HTMLResponse((WEB_DIR / "ask.html").read_text(encoding="utf-8"))
+
+
 class IndexRequest(BaseModel):
     corpus: str = "default"
     path: str

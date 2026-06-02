@@ -44,6 +44,22 @@ distillation teachers — clean inputs → a clean, dedicatable model.
 5. **Public-domain audio → transcripts.** LibriVox-style public-domain spoken-word,
    or public-domain relaxation recordings, transcribed. Clean but quality varies.
 
+## COURSE-CORRECTION (2026-06-01): stop AI-drafting exemplars; get REAL ones
+
+Sonali's call after reading the hand-drafted exemplars: they're "way too AI-y."
+The honest diagnosis — you can't bootstrap genuine quality from the model that
+lacks it; Claude drafting "plausible meditation prose" reproduces exactly the
+problem. We need REAL human-authored examples as the gold standard. So:
+- PAUSE Claude-written exemplars (001-011 were the AI-y batch; keep as scaffolding/
+  structure reference only, NOT as gold).
+- Decision: **lean toward PUBLIC-DOMAIN + GOVERNMENT/institutional scripts** (free,
+  clean, real, on-thesis — our training data being public-domain is itself the
+  point) — pending the deep-research report (run wf_5b7fee2c-259) on concrete
+  sources, licenses, prices. Commissioning real practitioners is a live option too;
+  decide once research lands.
+- Hard constraint reaffirmed: training data must be public-domain / openly-licensed /
+  owned-with-train+redistribute rights. NO scraping Headspace/Calm/etc.
+
 ## Recommended approach (combine)
 - **Anchor: hand-write ~30-50 exemplary scripts (source #1)** — Sonali's taste, the
   restraint+arc the read found missing. These are the quality north star AND eval set.

@@ -60,6 +60,26 @@ problem. We need REAL human-authored examples as the gold standard. So:
 - Hard constraint reaffirmed: training data must be public-domain / openly-licensed /
   owned-with-train+redistribute rights. NO scraping Headspace/Calm/etc.
 
+## THE FAILURE, NAMED PRECISELY (Sonali, 2026-06-01): abstraction, not imagery
+
+Sonali on the AI-drafted 002: "pure nonsense — nothing happened — the opposite of
+vivid imagery." Correct and damning. The real failure mode (worse than "AI-y"):
+**when Claude lacks the concrete specifics, it retreats to ABSTRACTION and emotional
+NARRATION instead of committing to real, physical, specific things in a real scene.**
+- BAD (what Claude wrote): "a space where the weight used to be," "the steadiness of
+  having earned it," "you are someone who finishes." → feelings *described*, no scene,
+  nothing happening. A pep talk, not an imagining.
+- GOOD (what vivid imagery is): the cold doorknob, the smell of toast, the specific
+  crack in the ceiling, the weight of a particular mug, the floor against the soles
+  of the feet. Mundane, physical, SPECIFIC. Something concrete in each moment.
+This directly violates the immersion research (attentional capture + sensory
+specificity) that we had IN HAND — proof Claude can't self-source this quality.
+THE BAR for the real corpus + any future generation: commit to the concrete physical
+specific; never flee to the grand abstract. "Feel the floor under your feet," not
+"feel the steadiness of having arrived." Real practitioner scripts have exactly this
+courage-of-the-mundane-specific — which is precisely why we need THEM, not Claude's
+abstractions.
+
 ## Recommended approach (combine)
 - **Anchor: hand-write ~30-50 exemplary scripts (source #1)** — Sonali's taste, the
   restraint+arc the read found missing. These are the quality north star AND eval set.

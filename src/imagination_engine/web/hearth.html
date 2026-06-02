@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearth</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .wrap { max-width: 760px; margin: 0 auto; padding: 48px var(--pad-x) 80px; }
+    .brand { font-size: 2.6rem; color: var(--text-bright); text-shadow: var(--glow-bright);
+      letter-spacing: 2px; margin: 0; }
+    .tag { color: var(--text-dim); font-size: 1.15rem; margin: 6px 0 0; }
+    .intro { color: var(--text); line-height: 1.6; margin: 26px 0 8px; max-width: 60ch; }
+    .intro .amber { color: var(--amber); }
+    .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 30px 0; }
+    @media (max-width: 620px) { .tools { grid-template-columns: 1fr; } }
+    .tool { display: block; border: 1px solid var(--rule-bright); padding: 16px 18px;
+      color: var(--text); text-decoration: none; transition: all .15s; }
+    .tool:hover { border-color: var(--amber); box-shadow: var(--glow-bright);
+      color: var(--text); }
+    .tool h3 { margin: 0 0 6px; color: var(--text-bright); font-size: 1.25rem; }
+    .tool:hover h3 { color: var(--amber); }
+    .tool p { margin: 0; color: var(--text-dim); font-size: 0.95rem; line-height: 1.45; }
+    .tool .soon { color: var(--text-dim); border-color: var(--rule); }
+    .tool.disabled { border-color: var(--rule); pointer-events: none; opacity: 0.6; }
+    .tool.disabled:hover { border-color: var(--rule); box-shadow: none; }
+    .badge { float: right; font-size: 0.75rem; color: var(--text-dim); border: 1px solid var(--rule);
+      padding: 1px 6px; }
+    .foot { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; margin-top: 36px;
+      border-top: 1px solid var(--rule); padding-top: 18px; }
+    .foot a { color: var(--text-dim); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="brand">HEARTH</h1>
+    <p class="tag">Private AI that lives in your house and never leaves it.</p>
+
+    <p class="intro">
+      A small set of focused tools, each running entirely on this machine. Nothing
+      you type is uploaded, metered, or sent anywhere — not because we promise, but
+      because it <span class="amber">can't</span>. Pick a tool.
+    </p>
+
+    <div class="tools">
+      <a class="tool" href="/intake">
+        <h3>Imagination Engine</h3>
+        <p>Tell it what to imagine; it writes a guided session and reads it back in your own voice.</p>
+      </a>
+      <a class="tool" href="/companion">
+        <h3>Companion</h3>
+        <p>An honest mirror that reflects your thinking back to you. Not a friend — a surface to think against.</p>
+      </a>
+      <a class="tool" href="/ask">
+        <h3>Ask Your Files</h3>
+        <p>Point it at your own notes and documents and ask. It answers from what's there, or says it doesn't know.</p>
+      </a>
+      <span class="tool disabled">
+        <h3>Build Your Own <span class="badge">soon</span></h3>
+        <p>Describe an instrument, point it at your data, and keep it. Yours, on your machine.</p>
+      </span>
+    </div>
+
+    <div class="foot">
+      Everything here is in the public domain — take it, build on it, owe nothing.
+      <a href="https://github.com/tsonali/imagination-engine">Read the code and the reasoning.</a><br>
+      By Sonali Maitra.
+    </div>
+  </div>
+</body>
+</html>

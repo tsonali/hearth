@@ -92,14 +92,19 @@ class SpeakRequest(BaseModel):
 
 
 @app.get("/", response_class=HTMLResponse)
-def welcome() -> HTMLResponse:
-    """Front door — the welcome page a new user lands on.
+def home() -> HTMLResponse:
+    """Hearth hub — the front door presenting the whole suite (all four tools).
 
-    The Tapestry-style intake page itself (/intake) is the working surface;
-    the bare /generate engine (/dev) is the developer surface. This page is
-    the human-facing front door that explains what this is and routes the
-    user to the right place. See `web/welcome.html`.
+    Replaces the old single-tool 'Imagination Engine' welcome. Routes the user to
+    /intake (imagination), /companion, /ask, and (soon) build-your-own.
+    See `web/hearth.html`. Old welcome.html kept at /welcome for reference.
     """
+    return HTMLResponse((WEB_DIR / "hearth.html").read_text(encoding="utf-8"))
+
+
+@app.get("/welcome", response_class=HTMLResponse)
+def welcome() -> HTMLResponse:
+    """The original single-tool welcome page (kept for reference)."""
     return HTMLResponse((WEB_DIR / "welcome.html").read_text(encoding="utf-8"))
 
 

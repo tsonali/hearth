@@ -80,6 +80,27 @@ specific; never flee to the grand abstract. "Feel the floor under your feet," no
 courage-of-the-mundane-specific — which is precisely why we need THEM, not Claude's
 abstractions.
 
+## THE DEEPEST FAILURE: placeholders, not things (read 011 to see it)
+
+Read 011-effortless-skill closely (Sonali made me): it is ALL pronouns and
+placeholders — "the thing," "it," "the moment," "the hard part," "the next part,"
+"the skill," "the ease." NOT ONE concrete noun. It's a Mad Libs template where every
+real thing is a [BLANK] never filled in. A meditation about a *blank*.
+- The self-deception: Claude told itself "let it be wherever that is for you" was
+  RESTRAINT (leaving room for the user). It is not — it is EVASION of the work of
+  imagining a specific scene, dressed up as generosity. Vagueness isn't generous;
+  it's empty.
+- The fix understood: real imagery COMMITS to a specific scene even if the user's
+  differs. "Your fingers on the piano keys, the third slightly sticky" / "the bow
+  drawing across the string, the note landing true" transports; "the moment to use
+  it arrives" is nothing. Specificity is generous; placeholders are a form letter.
+- Why it happened: Claude had no real scene to anchor to, so it filled with
+  pronouns. Exactly why we need REAL human scripts — a teacher would write "you sit
+  at the desk and the report writes itself, sentences arriving fully formed," never
+  "the skill runs ahead of you."
+THE TEST for any script (real or generated): can you point to the concrete nouns? If
+it's mostly "it/the thing/the moment," it's a placeholder template, not imagery.
+
 ## Recommended approach (combine)
 - **Anchor: hand-write ~30-50 exemplary scripts (source #1)** — Sonali's taste, the
   restraint+arc the read found missing. These are the quality north star AND eval set.

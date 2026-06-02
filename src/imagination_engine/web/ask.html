@@ -4,57 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hearth — Ask Your Files</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/hearth.css">
   <style>
-    .wrap { max-width: 720px; margin: 0 auto; padding: 28px var(--pad-x) 120px; }
-    .frame-note { color: var(--text-dim); font-size: 0.95rem; line-height: 1.5;
-      border: 1px solid var(--rule); padding: 12px 14px; margin: 14px 0 22px; }
-    .frame-note strong { color: var(--amber); }
-    .row { display: flex; gap: 10px; margin: 12px 0; }
-    input[type=text] { flex: 1; background: var(--bg-alt); color: var(--text-bright);
-      border: 1px solid var(--rule-bright); font-family: var(--font);
-      font-size: 1.1rem; padding: 10px 12px; }
-    input:focus { outline: none; box-shadow: var(--glow-bright); }
-    button { background: var(--bg); color: var(--text-bright);
-      border: 1px solid var(--rule-bright); font-family: var(--font);
-      font-size: 1.1rem; padding: 10px 18px; cursor: pointer; white-space: nowrap; }
-    button:hover { color: var(--amber); border-color: var(--amber); }
-    button:disabled { color: var(--text-dim); border-color: var(--rule); cursor: default; }
-    #status { color: var(--text-dim); font-size: 0.95rem; margin: 8px 0 18px; min-height: 1.2em; }
-    #askArea { opacity: 0.4; pointer-events: none; transition: opacity .2s; }
+    #status { color: var(--dim); font-size: 0.98rem; margin: 0.6em 0 1.4em; min-height: 1.2em; }
+    #askArea { opacity: 0.35; pointer-events: none; transition: opacity .2s; }
     #askArea.ready { opacity: 1; pointer-events: auto; }
-    #log { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
-    .q { color: var(--text-bright); } .q::before { content: "? "; color: var(--text-dim); }
-    .a { color: var(--text); line-height: 1.55; white-space: pre-wrap; }
-    .src { color: var(--text-dim); font-size: 0.85rem; margin-top: 4px; }
-    .think { color: var(--text-dim); font-style: italic; }
-    .home { color: var(--text-dim); font-size: 0.9rem; }
-    h2 { color: var(--text-dim); font-size: 1rem; margin: 22px 0 6px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="narrow">
     <a class="home" href="/">← Hearth</a>
-    <h1>Ask Your Files</h1>
-    <div class="frame-note">
+    <p class="kicker">Ask Your Files</p>
+    <hr class="rule">
+    <div class="note">
       Point this at a file or folder on <strong>your own machine</strong>. It reads
       what's there, answers your questions from it, and tells you plainly when an
       answer isn't in your files instead of making one up. Nothing is uploaded —
       it never leaves this computer.
     </div>
 
-    <h2>1. point it at your files</h2>
+    <h2>1 — Point it at your files</h2>
     <div class="row">
       <input type="text" id="path" placeholder="/Users/you/Documents/notes  (a file or folder)">
-      <button id="indexBtn">index</button>
+      <button id="indexBtn">Index</button>
     </div>
     <div id="status"></div>
 
     <div id="askArea">
-      <h2>2. ask</h2>
+      <h2>2 — Ask</h2>
       <div class="row">
-        <input type="text" id="q" placeholder="what do my files say about…">
-        <button id="askBtn">ask</button>
+        <input type="text" id="q" placeholder="What do my files say about…">
+        <button id="askBtn">Ask</button>
       </div>
       <div id="log"></div>
     </div>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearth — private AI that lives in your house</title>
+  <meta name="description" content="A small set of focused AI tools that run entirely on your own computer. Nothing is uploaded, metered, or sent anywhere. Public domain. By Sonali Maitra.">
+  <meta property="og:title" content="Hearth">
+  <meta property="og:description" content="Private AI that lives in your house and never leaves it.">
+  <link rel="stylesheet" href="./hearth.css">
+  <style>
+    /* page-specific accents on top of the shared B&W theme */
+    .lede { font-size: clamp(1.15rem, 2.4vw, 1.5rem); line-height: 1.5; max-width: 30ch;
+      font-weight: 500; margin: 0 0 1.6em; }
+    .essay p { max-width: 62ch; }
+    .essay .standfirst { font-weight: 600; }
+    .toolrow { border-top: 2px solid var(--ink); margin-top: 0.5em; }
+    .t { border-bottom: 1px solid var(--faint); padding: 1.4em 0; }
+    .t h3 { margin: 0 0 0.2em; } .t p { color: var(--dim); margin: 0; max-width: 60ch; }
+    .t .tag { float: right; font-family: var(--display); font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--dim); border: 1px solid var(--faint); padding: 2px 7px; }
+    .get { margin: 3em 0 1em; }
+    .btn { display: inline-block; font-family: var(--display); text-transform: uppercase;
+      letter-spacing: 0.04em; font-size: 0.95rem; padding: 14px 26px; background: var(--ink);
+      color: var(--paper); text-decoration: none; }
+    .btn:hover { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+    .get .nb { color: var(--dim); font-size: 0.95rem; margin-top: 0.8em; }
+    .byline { color: var(--dim); font-size: 0.98rem; }
+    .byline em { font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="narrow">
+
+    <p class="kicker">Hearth</p>
+    <hr class="rule">
+    <h1>Private AI that lives in your house.</h1>
+    <p class="lede">A small set of focused tools that run entirely on your own computer — and never leave it.</p>
+
+    <div class="essay">
+      <p class="standfirst">Most of the AI you can use right now runs on someone else's computer.</p>
+      <p>You send your words to a company, the company runs a model, and it sends an answer back. That arrangement has two costs people tend to overlook. The first is that your data goes to the company — every question, every draft, every thing you were thinking. The second is that you pay by the use, indefinitely, the way you pay for water. You never own anything. You rent the ability to think with a machine, and the meter never stops.</p>
+      <p>I find both of those costs unacceptable, and I no longer think they're necessary. Models small enough to run on an ordinary laptop have gotten good enough to be genuinely useful for a lot of real tasks. Not everything — they aren't going to replace the large systems at the frontier — but for a surprising number of the things people actually want, a model running privately on your own machine isn't a compromise. It's the better arrangement, because nothing leaves and nothing is metered.</p>
+      <p>So I built software that does exactly that, and I'm giving it away — into the public domain. You owe nothing: not money, not attribution, not agreement with anything I think. <a href="https://github.com/tsonali/hearth/blob/main/MANIFESTO.md">Read the full reasoning →</a></p>
+    </div>
+
+    <h2>The Tools</h2>
+    <div class="toolrow">
+      <div class="t"><h3>Imagination Engine</h3><p>Tell it what you want to imagine; it writes a guided session and reads it back in your own voice.</p></div>
+      <div class="t"><h3>Companion</h3><p>An honest mirror that reflects your thinking back to you. Not a friend — a surface to think against.</p></div>
+      <div class="t"><h3>Ask Your Files</h3><p>Point it at your own notes and documents and ask. It answers from what's there, or says it doesn't know.</p></div>
+      <div class="t"><h3>Build Your Own <span class="tag">Coming</span></h3><p>Describe an instrument, point it at your data, and keep it. Yours, on your machine.</p></div>
+    </div>
+
+    <div class="get">
+      <h2>Get Hearth</h2>
+      <a class="btn" href="https://github.com/tsonali/hearth">View the code</a>
+      <p class="nb">A one-click app for everyone is in the works. For now, Hearth is real, working software for people comfortable with a command line — the code and instructions are on GitHub. Apple Silicon Mac.</p>
+    </div>
+
+    <div class="foot">
+      <p class="byline">By <strong>Sonali Maitra</strong> — author of <em>God in the Machine</em> and the in-progress <em>Unreality</em>.</p>
+      In the public domain. This page collects nothing about you — no analytics, no cookies, no tracking.
+    </div>
+
+  </div>
+</body>
+</html>

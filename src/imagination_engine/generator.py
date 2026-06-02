@@ -523,15 +523,47 @@ def generate_session(
     log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
              time.time() - t0, len(body.split()), len(beats))
 
-    # NOTE (v6.2): the v6.1 "extend if short" call REINTRODUCED looping (the
-    # continuation re-grounded in used anchors: repetition 0.225 -> 0.375). Removed.
-    # Length now comes from the single pass aiming longer up front (BODY_PROMPT
-    # length target + ample token budget) — one coherent pass keeps repetition low
-    # AND reaches length. If a pass still lands short, that's a curation signal
-    # (drop it from the training set), not a reason to bolt on a loopy extension.
-    if len(body.split()) < BODY_MIN_WORDS:
-        log.info("[v6.2] body landed short (%d < %d) — kept as-is (no loopy extension; "
-                 "curation can drop short scripts)", len(body.split()), BODY_MIN_WORDS)
+    # v6.3 — BEAT-ADVANCING continuation. The full-corpus run (2026-06-01) showed
+    # single-pass-aiming-long collapses on most scenarios: 64/100 came in too short
+    # (median 948w vs ~1800 target) — the model declares the scene "done" early.
+    # Fix: if short, continue by pushing the model THROUGH THE REMAINING BEATS with
+    # NEW material — NOT re-grounding (that was v6.1's looping mistake). We tell it
+    # which beats it has NOT yet covered and to advance only those. Up to 2 rounds.
+    rounds = 0
+    while len(body.split()) < BODY_MIN_WORDS and rounds < 2 and beats:
+        rounds += 1
+        log.info("[v6.3] body short (%d < %d) — beat-advancing continuation %d/2",
+                 len(body.split()), BODY_MIN_WORDS, rounds)
+        t0 = time.time()
+        # which beats look unaddressed? cheap heuristic: a beat whose distinctive
+        # words barely appear in the body yet is a candidate to push toward next.
+        body_low = body.lower()
+        remaining = []
+        for b in beats:
+            kw = [w for w in re.findall(r"[a-z']{4,}", b.lower()) if len(w) > 4]
+            if kw and sum(1 for w in kw if w in body_low) < max(1, len(kw) // 3):
+                remaining.append(b)
+        remaining_block = ("----- BEATS NOT YET FULLY EXPLORED (continue into THESE, "
+                           "in order, with NEW sensory material) -----\n"
+                           + "\n".join(f"- {b}" for b in remaining[:6])
+                           + "\n----- END -----") if remaining else (
+            "Carry the scene FORWARD into new moments — the journey isn't finished.")
+        cont_user = (
+            intake_str + "\n\n" + class_block + "\n\n"
+            "----- THE OPENING (already spoken) -----\n" + open_text + "\n----- END OPENING -----\n\n"
+            "----- THE BODY SO FAR -----\n" + body + "\n----- END BODY SO FAR -----\n\n"
+            + remaining_block
+            + "\n\nCONTINUE the body from exactly where it stopped. Move FORWARD into "
+            "new moments and sensations the body has NOT covered yet. Absolutely do "
+            "NOT restate, summarize, or re-describe anything already written — that is "
+            "the worst failure. New territory only. Do not bring the listener back."
+        )
+        extension = _generate(engine, BODY_PROMPT, cont_user, max_tokens=BODY_MAX_TOKENS)
+        if not extension.strip():
+            break
+        body = body.rstrip() + "\n\n" + extension.strip()
+        log.info("[v6.3]   +%.1fs, body now %d words (round %d, %d beats remaining)",
+                 time.time() - t0, len(body.split()), rounds, len(remaining))
 
     # Stage 5: back.
     emit("writing_return", "Writing the return — what you'll carry back.", 5, 5, eta=15.0)

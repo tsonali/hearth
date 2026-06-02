@@ -1,6 +1,7 @@
 ---
 intake: "I'm wound up and anxious and I need to come down."
 archetype: meditation / anxiety-release
+protocol: settling
 status: DRAFT
 ---
 

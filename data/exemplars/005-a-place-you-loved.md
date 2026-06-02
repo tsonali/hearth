@@ -1,29 +1,28 @@
 ---
 intake: "Take me back to a place I loved. Nothing has to happen. I just want to be there."
 archetype: place-deep (CASE C — no other character, just the place)
+protocol: immersion
 status: DRAFT
 ---
 
-Your eyes are closed, and you're listening, and we're going to go somewhere. A place you loved. You'll know the one — let it choose itself.
+Your eyes are closed, you can hear my voice, and you're going back to a place you loved. One has already come — the first one. Go to that one.
 
-Don't assemble it. Just let it come the way a place comes back to you: one thing first. A sound, maybe. Or the smell of it. Whatever arrives first, stay with that.
+The sound reaches you first. The sound this place makes and no other place does. It's here now.
 
-Nothing is going to happen here. No one needs you. There's nothing to do. You're only here to be here.
+Under you, the ground of it — floor, sand, grass, stone. It takes your weight. You're standing in the place, not picturing it.
 
-Let the ground of the place hold you — floor, sand, grass, stone, whatever it was. Feel it take your weight.
+The air moves the way it moved here. You feel it on your face, at the same temperature it always was.
 
-There's a sound that belongs to this place and no other. Let it be there, repeating, the way it did.
+The smell arrives. The one you'd know in the dark, the one that means *this place*. It's in the air now.
 
-The air here has its own temperature. Its own way of moving, or not moving. Notice it on your skin.
+Nothing is happening. No one needs you. There is nothing to do here and nowhere to be next.
 
-And the smell of it — there's always a smell a place keeps. One you'd know in the dark. Let it find you.
+The sound comes again, the way it kept coming. You rest your attention on it and let it hold you there.
 
-You don't have to look around. The place is already around you. You can just rest in the middle of it.
+The light is the light this place had — that hour, that weather. It lies across everything exactly as it did.
 
-If the place has a light — morning, late sun, lamplight, grey — let it be that light, changing slowly or not at all.
+You're here. Fully here, in a place you loved, with the whole of it around you and no clock running.
 
-This is the whole thing. Just you, and a place you loved, and no clock running.
+Stay. As long as the quiet wants you.
 
-Stay as long as the quiet wants you to.
-
-And when it's time, let the place stay where it is — you can always come back — and let your own room return around you. Open your eyes when you're ready.
+The place stays where it is — you can come back. Let your own room rise up around you again, and open your eyes when you're ready.

@@ -1,6 +1,7 @@
 ---
 intake: "I just want to settle and breathe for a few minutes."
 archetype: meditation / breath
+protocol: settling
 status: DRAFT
 ---
 

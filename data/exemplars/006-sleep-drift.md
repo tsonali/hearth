@@ -1,6 +1,7 @@
 ---
 intake: "Help me fall asleep. I can't shut my brain off."
 archetype: meditation / sleep (drift-off — meant to trail off, not 'return')
+protocol: settling
 status: DRAFT
 ---
 

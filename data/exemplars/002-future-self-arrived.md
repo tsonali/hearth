@@ -1,29 +1,28 @@
 ---
 intake: "Imagine me a year from now, having finally finished the thing I keep not starting."
 archetype: future-self-arriving
+protocol: immersion
 status: DRAFT
 ---
 
-Your eyes are closed, and you're listening, and the year is already over.
+Your eyes are closed, you can hear my voice, and the year is over. You're standing on the other side of the thing you kept not starting.
 
-It's an ordinary morning. The thing you kept not starting — it's done. Not being celebrated. Just done, the way a wall is painted or a debt is paid. Behind you.
+It's an ordinary morning. The thing is done. Not being applauded — just done, the way a wall is painted or a debt is paid. It's behind you now.
 
-Notice where you are. You don't have to build the room; it's just the place you'd be on a quiet morning a year from now. Let it arrive however it arrives.
+You're somewhere familiar. The morning light is on it. Let the place be wherever a year-from-now morning puts you.
 
-There's something here that proves it. An object. The finished thing itself, or the small evidence of it — let your attention land on whatever that turns out to be for you.
+Your eye goes to the proof of it. The finished thing, or the small evidence of it, sitting right there where you can see. You look at it.
 
-What's different isn't the room. It's you. The thing that used to sit in your chest — the not-yet, the dread of starting — there's a space where it used to be. Feel the absence of it.
+What's changed isn't the room. It's you. The thing that used to sit in your chest — the not-yet, the weight of the unstarted — it's gone. There's open space where it lived.
 
-You remember the version of you who hadn't started. Who kept finding reasons. You don't judge them. From here, you can see they just didn't know yet that it was possible.
+You remember the one who hadn't started. Who kept finding reasons. You don't blame them. They just didn't know yet that this was reachable.
 
-It wasn't one heroic day. It was a lot of ordinary ones. You can feel that in how steady this feels — not lucky, earned.
+It wasn't one heroic day. It was a pile of ordinary ones. You feel it in how steady the ground is under you — this was earned, not handed to you.
 
-There's no urge to start anything right now. That's the strange part. The wanting that drove you has gone quiet, because the thing it wanted is here.
+And there's no pull to start anything now. The wanting that drove you has gone quiet, because the thing it wanted is here, behind you, real.
 
-Take the one true fact of this morning — that you are the person who did it — and hold it a moment longer.
+Hold the one true fact of this morning: you are the person who finished it.
 
-Now let the morning soften. Let the room loosen its edges.
+Now let the morning soften and loosen.
 
-Carry that one fact back with you: not the finished thing, but the proof that you're someone who finishes.
-
-When you're ready, let your eyes open. It's still ahead of you. But now you've stood on the other side of it.
+Take that fact back with you — not the finished thing, the proof that you're someone who finishes. When you're ready, open your eyes. It's still ahead of you. But you've stood on the far side of it now, and you know the way.

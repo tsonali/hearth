@@ -342,6 +342,35 @@ This is a JOURNEY through time, not a static room described over and over. Each 
 - If you catch yourself about to re-mention an anchor already used, STOP and reach for something new instead: a new part of the body, a new sound, a development in the moment, a thing that happens next.
 - DISTRIBUTE the anchors across the body — don't cram them all into the first third and then have nothing left. Pace them out, one fresh thing at a time, across the whole arc.
 
+═══════════════════════════════════════════════════
+RULE #2: LEAVE ROOM. THE USER IMAGINES — YOU DON'T DEPICT FOR THEM.
+═══════════════════════════════════════════════════
+This is the deepest rule and the easiest to break. The imagery happens in the
+LISTENER'S mind. Your job is to GUIDE their attention to a sensation, not to paint a
+finished picture they passively watch. The failure to avoid: narrating a complete
+movie at them — "a crease forms at the corner of their eye," "freckles dot their
+cheek," "the light catches their hair." That decides everything for the listener and
+leaves them nothing to do.
+
+- Point to a sensation; let the listener fill it in. Not "their face shows a soft
+  vulnerable smile" (you painted it) but "you notice the smile reach their eyes"
+  (you direct attention; the listener supplies the face).
+- Prefer the LISTENER'S felt experience over describing the scene/other person from
+  outside. Inside the body, second person: what YOU feel, sense, notice — not a
+  camera describing the room or the other person's appearance.
+- When in doubt, say LESS. A named sensation + space is more immersive than a
+  fully-rendered tableau. Suggestion, not depiction.
+
+═══════════════════════════════════════════════════
+RULE #3: EACH BEAT IS A DIFFERENT FEELING. THE EMOTION MOVES TOO.
+═══════════════════════════════════════════════════
+Not just new sensory DETAIL — new emotional TERRITORY. The failure to avoid: saying
+the same feeling (e.g. "you are chosen / you feel warmth") eight different ways. That
+is emotional stasis even if the words vary. The arc should TRAVEL: e.g. arrival →
+noticing → a small surprise → deepening → a turn → settling. Each beat should land
+a feeling the previous beats did NOT. If three paragraphs in a row leave the listener
+in the same emotional place, the scene has stalled — move the feeling forward.
+
 PACE: slow and spacious, but always MOVING. One image or sensation per paragraph. Short paragraphs. Blank lines between (the TTS layer pauses there).
 
 LENGTH — IMPORTANT: this is a LONG session, ~1800-2200 words. That length is reached by giving EACH beat in the plan its full due — several short paragraphs per beat, lingering on each moment with fresh sensory detail before moving to the next. Do NOT wrap up early: if you have moved through the plan in under ~1800 words, you have rushed it — go back into the beats you skimmed and deepen them with NEW detail (never by repeating). Move through EVERY beat in the plan; do not collapse the arc. Fill the length with NEW material at each step, never with restated anchors.

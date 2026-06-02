@@ -129,6 +129,28 @@ us which questions to ask; we don't invent them. ("We don't know what we don't k
 yet" → go find out empirically, then design.) The engine has a thin SEED
 (`intake.py` + classifier); build the real system later, gap-driven.
 
+## CORPUS READ (2026-06-01) — the metrics were too kind; real keep-rate < 7%
+
+Actually READ a keeper (044-soulmate, passed ALL curation) instead of trusting the
+catalog. Two quality failures the mechanical floor CANNOT see:
+1. **Emotional stasis disguised as low repetition.** The n-gram repetition score is
+   fine, but the script says the SAME beat (chosen-warmth, the held hand) ~8 ways
+   with no progression. Lexically varied, emotionally static. Need an eval for
+   "does the scene ADVANCE emotionally," not just "are words repeated."
+2. **Over-narration — violates the core thesis.** It describes a finished movie AT
+   the user ("a crease forms at the corner of their eye," "freckles and contours")
+   instead of shaping silence for the user to imagine in. The meditation-app-
+   narration failure in a new costume. The protocol says imagery happens in the
+   USER's mind; the generator keeps rendering it for them.
+
+IMPLICATION: the true rate of genuinely-good scripts is LOWER than the 7% the catalog
+reported. Next generator work isn't just length/looping (mechanical) — it's
+emotional progression + restraint (don't render the whole scene). "Triangulate,
+don't trust the metric" paying off: reading caught what measuring missed. Candidate
+fixes: a "leave room / suggest don't depict" instruction; an emotional-arc beat
+plan (each beat a DIFFERENT feeling); a qualitative Claude-read scoring pass added
+to curation.
+
 ## The use-case families (what we train on) — A, B, C, all in, however long it takes
 
 We do NOT train one do-everything model. The task-pack architecture = shared base +

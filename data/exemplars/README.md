@@ -41,6 +41,15 @@ gold set splits into two protocols with deliberately OPPOSITE rules:
 
 → Each exemplar is tagged with its protocol so we curate/train under the right rules.
 
+**BUILD BOTH, FULLY — and let the USER pick (Sonali, 2026-06-01).** Both protocols
+are first-class halves of the suite, built out big. And the immersion-vs-settling
+choice becomes a USER-FACING FORK at intake, not a behind-the-scenes guess: ask the
+user which experience they want — to be TAKEN SOMEWHERE (immersion) or HELPED TO
+SETTLE (calm) — and route to the right protocol + ruleset. This is on-thesis: the
+instrument doesn't presume, it asks. (It also cleanly resolves the conflict — no
+auto-classifier guessing whether "a quiet beach" means transport-me-there vs
+calm-me-down; the user tells us.) → intake gets a protocol-selection step.
+
 ## Coverage plan (the scenarios a user would actually want)
 Imagination (Family A):
   achievement, becoming-someone, different-self, future-self, romance/being-loved,

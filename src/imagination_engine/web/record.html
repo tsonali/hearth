@@ -19,6 +19,16 @@
       <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
     </header>
 
+    <section id="train-voice" hidden
+             style="margin:1.4em 0; padding:1em 1.2em; border:1.5px solid #0a0a0a;">
+      <h2 style="margin:0 0 0.3em;">Make this your voice</h2>
+      <p id="train-blurb" style="margin:0 0 0.7em; color:#555;">
+        Record the lines below, then train — your sessions can be read aloud in your own
+        voice. Training runs <strong>on this machine</strong>; nothing is uploaded.</p>
+      <button id="train-btn" type="button" disabled>Train my voice</button>
+      <p id="train-status" style="margin:0.6em 0 0; color:#555; min-height:1.2em;"></p>
+    </section>
+
     <section id="speaker-picker" class="permission" hidden>
       <h2>Who is recording?</h2>
       <p>Each speaker's recordings are kept separate. The model that ends up in the product will be trained on whichever speaker you choose here.</p>
@@ -446,6 +456,61 @@
     }
 
     boot();
+
+    /* ---------- voice trainer ---------- */
+    (function voiceTrainer() {
+      const MIN = 15;
+      const sec = document.getElementById("train-voice");
+      const btn = document.getElementById("train-btn");
+      const stat = document.getElementById("train-status");
+      let polling = false;
+
+      function sid() { return (typeof speaker === "object" && speaker) ? speaker.id : null; }
+
+      async function poll() {
+        const id = sid(); if (!id) return;
+        try {
+          const r = await fetch(`/record/train/${id}/status`);
+          const d = await r.json();
+          if (d.state === "running") {
+            polling = true; btn.disabled = true; btn.textContent = "Training…";
+            stat.textContent = `${d.message || d.stage || "working"} (you can leave this page — it keeps going)`;
+            setTimeout(poll, 5000);
+          } else if (d.state === "done") {
+            polling = false; btn.textContent = "Voice ready ✓"; btn.disabled = true;
+            stat.textContent = "Your voice is trained. Choose “Your own voice” in any session.";
+          } else if (d.state === "error") {
+            polling = false; btn.disabled = false; btn.textContent = "Train my voice";
+            stat.textContent = "Training hit a snag: " + (d.error || "unknown") + ". You can try again.";
+          }
+        } catch (e) { /* leave UI as-is */ }
+      }
+
+      btn.addEventListener("click", async () => {
+        const id = sid(); if (!id) return;
+        btn.disabled = true; stat.textContent = "Starting…";
+        try {
+          const r = await fetch(`/record/train/${id}`, { method: "POST" });
+          const d = await r.json();
+          if (!r.ok) { stat.textContent = d.detail || "couldn't start"; btn.disabled = false; return; }
+          poll();
+        } catch (e) { stat.textContent = "(couldn't reach the local engine)"; btn.disabled = false; }
+      });
+
+      // refresh button-enabled state from the clip count, and reflect training status
+      setInterval(() => {
+        const id = sid();
+        sec.hidden = !id;
+        if (!id || polling) return;
+        const n = (typeof completed !== "undefined" && completed) ? completed.size : 0;
+        if (btn.textContent === "Voice ready ✓") return;
+        if (n >= MIN) { btn.disabled = false; stat.textContent = `${n} lines recorded — ready to train.`; }
+        else { btn.disabled = true; stat.textContent = `Record ${MIN - n} more line(s) to train your voice (${n}/${MIN}).`; }
+      }, 1500);
+
+      // on load, resume any in-flight/finished training status
+      setTimeout(poll, 1200);
+    })();
   </script>
 </body>
 </html>

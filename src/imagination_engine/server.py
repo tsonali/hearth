@@ -131,9 +131,17 @@ def _has_own_voice() -> bool:
     "Your own voice" card when there's actually one ready to use.
     """
     try:
-        # Mirror F5Voice.load()'s file checks but without importing torch/F5
-        # — this runs on every welcome page load and must stay cheap.
         from importlib.resources import files as _files
+        # 1) a voice the user trained via the in-app trainer (data/voices.json)
+        reg = PROJECT_ROOT / "data" / "voices.json"
+        if reg.is_file():
+            own = json.loads(reg.read_text()).get("own")
+            if own and own.get("speaker"):
+                spk = own["speaker"]; ck = own.get("checkpoint", config.f5_checkpoint)
+                ckpt = Path(str(_files("f5_tts").joinpath(f"../../ckpts/{spk}/{ck}"))).resolve()
+                if ckpt.is_file():
+                    return True
+        # 2) the default configured speaker (mirrors F5Voice.load file checks, cheap)
         spk = config.f5_speaker
         ckpt = Path(str(_files("f5_tts").joinpath(
             f"../../ckpts/{spk}/{config.f5_checkpoint}"
@@ -284,6 +292,42 @@ def record_delete(speaker_id: str, sentence_id: str) -> JSONResponse:
         log.info("Deleted recording: %s", out_path)
         return JSONResponse({"deleted": sentence_id, "speaker": speaker_id})
     raise HTTPException(status_code=404, detail="not found")
+
+
+# --- Voice trainer: turn a user's recordings into their own usable voice ---
+MIN_CLIPS_TO_TRAIN = 15
+_VOICE_TRAIN_STATUS = PROJECT_ROOT / "data" / "voice_training"
+
+
+@app.post("/record/train/{speaker_id}")
+def record_train(speaker_id: str) -> JSONResponse:
+    """Kick off voice training for a speaker from their recorded clips (background)."""
+    import subprocess, sys
+    speaker_dir = _speaker_dir(speaker_id)
+    n = len(list(speaker_dir.glob("*.wav")))
+    if n < MIN_CLIPS_TO_TRAIN:
+        raise HTTPException(status_code=400,
+                            detail=f"record at least {MIN_CLIPS_TO_TRAIN} clips first (you have {n})")
+    # don't double-launch
+    sp = _VOICE_TRAIN_STATUS / f"{speaker_id}.json"
+    if sp.exists():
+        st = json.loads(sp.read_text())
+        if st.get("state") == "running":
+            return JSONResponse({"started": False, "already": True, "stage": st.get("stage")})
+    _VOICE_TRAIN_STATUS.mkdir(parents=True, exist_ok=True)
+    logf = open(_VOICE_TRAIN_STATUS / f"{speaker_id}.launch.log", "a")
+    subprocess.Popen([sys.executable, str(PROJECT_ROOT / "scripts" / "train_voice.py"), speaker_id],
+                     cwd=str(PROJECT_ROOT), stdout=logf, stderr=subprocess.STDOUT)
+    log.info("voice training launched for %s (%d clips)", speaker_id, n)
+    return JSONResponse({"started": True, "speaker": speaker_id, "clips": n})
+
+
+@app.get("/record/train/{speaker_id}/status")
+def record_train_status(speaker_id: str) -> JSONResponse:
+    sp = _VOICE_TRAIN_STATUS / f"{speaker_id}.json"
+    if not sp.exists():
+        return JSONResponse({"state": "idle"})
+    return JSONResponse(json.loads(sp.read_text()))
 
 
 # ---------------------------------------------------------------------------

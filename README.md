@@ -124,3 +124,34 @@ Most AI tools want to know what you're thinking — that's the business model. T
 If that's the kind of tool you want to use — or build with — read the code and tell me what you think.
 
 — Sonali Maitra
+
+---
+
+## How it's built — and how it gets better
+
+Hearth runs on a small open model (Qwen 2.5 14B, 4-bit) on your own machine via MLX —
+no cloud, no API, no metering. The four tools are thin, honest layers over that one
+local model; each is driven by a system prompt, not a separate service.
+
+**Our own model.** We fine-tune a specialist with LoRA, **locally** (it trains on an
+Apple-Silicon Mac for $0 — nothing leaves the house, true to the whole premise). Why
+fine-tune at all? Not to be "smarter" than the base — to be *reliably* the right kind of
+thing: vivid and concrete for guided sessions, an honest non-prescriptive mirror for the
+companion, clean and preamble-free for the secretary.
+
+**The method — taste, mechanized.** The hard part isn't the code; it's teaching the model
+what *good* means. So:
+1. A small set of genuinely-good human exemplars sets the bar.
+2. The model generates many candidates across diverse prompts.
+3. They're **curated** against an explicit quality bar (concrete physical detail, no
+   AI-y abstraction, no preachy intros, no fake warmth) — the founder's taste, written
+   down as rules.
+4. We train on the survivors, evaluate base-vs-tuned by *reading the output*, and repeat
+   until it plateaus.
+The training corpus itself is **never redistributed** — training on material is fair use,
+republishing it is not, so it stays off this repo. We ship the model and the method, not
+other people's data.
+
+**The honest state:** the local fine-tune is measurably better than the base model and
+improving each cycle — *good, not magic*. The full reasoning, every decision, and the
+candid results live in [`docs/`](docs/) (start with `decisions-log.md`).

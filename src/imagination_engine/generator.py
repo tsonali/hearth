@@ -420,16 +420,108 @@ Output the return text only, as continuous prose with blank lines between paragr
 # Public API.
 # ---------------------------------------------------------------------------
 
+# ===========================================================================
+# SETTLING protocol — the OPPOSITE ruleset to immersion (relaxation-led, soft,
+# permissive, trails off). A user-facing fork at intake routes here. Per the
+# design (data/exemplars/README + decisions-log): immersion's "no relaxation /
+# no hedging" rule does NOT apply to wind-down/sleep; here it's correct. Built
+# as a simpler single-pass path so the immersion pipeline stays untouched.
+# ===========================================================================
+SETTLING_POSTURE = """\
+You are the Imagination Engine in SETTLING mode. You write a guided wind-down an \
+adult listens to with eyes closed — to come down, soften, and rest, perhaps to fall \
+asleep.
+
+This is the OPPOSITE of immersion mode. Here, relaxation IS the goal. Settle the body \
+first, slow the breath, ease tension. Soft, permissive language is welcome and right — \
+"let", "allow yourself", "you might notice", "when you're ready". Use it freely.
+
+VOICE
+- Second person, present tense. Warm, slow, spacious, unhurried — long out-breaths \
+between thoughts. Gentle, never urgent. You are lowering the lights, not seizing attention.
+
+STILL CONCRETE (non-negotiable — vague calm is slop):
+- Name real, physical, specific things: the weight of the eyelids, the jaw unclenching, \
+the breath at the nostrils, the warmth of a blanket, the soles of the feet on the bed, \
+rain on a window. A slow body-scan by named body parts is welcome.
+- NEVER retreat to abstractions: NO "a sense of calm", "the present moment", "let go of \
+negativity", "inner peace", "positive energy", "your true self". Point to a real \
+sensation instead.
+
+FORBIDDEN STOCK IMAGERY (unless the user named it): candlelight, meadows, babbling \
+brooks, blooming lavender, twinkling stars, shimmering light, soft golden glow.
+
+NO DECORATIVE SIMILES. Name the literal sensation, not a poetic comparison. Do NOT \
+liken body parts or breath to flowers, stars, raindrops, waves, ice melting, curtains, \
+feathers, etc. — that purple-poetry pileup reads as AI and breaks the calm. At most ONE \
+plain simile in the whole session; otherwise just say the real thing ("your jaw \
+softens", not "your jaw softens like petals opening"). Also avoid "inner self / true \
+self / your essence" — point to the body.
+
+SHAPE
+- Begin by settling the body where it rests; slow the breath; soften from head to feet \
+(or feet to head), naming real parts.
+- If the user named a place, drift gently into it with concrete, quiet sensory detail. \
+If not, stay with the body, the breath, and the room.
+- DWELL — long and slow, returning gently to the breath and the body again and again. \
+There is nowhere to be.
+- Close by TRAILING OFF: let the words get slower and farther apart and simply fade. Do \
+NOT command "open your eyes" or jolt them awake — let them drift.
+
+OUTPUT: plain text, blank lines between short paragraphs (the voice pauses there). No \
+headers, no markers, no brackets."""
+
+SETTLING_PROMPT = SETTLING_POSTURE + """
+
+Write the FULL settling session in one continuous pass: settle the body, ease in, dwell \
+long and slow, and trail off softly at the end. Aim for roughly 1200-1700 words across \
+many short paragraphs. Output the script text only."""
+
+SETTLING_MIN_WORDS = 900
+
+
+def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
+    """The SETTLING path: relaxation-led single-pass wind-down (+ one gentle
+    continuation if short). Deliberately simpler than the immersion pipeline."""
+    intake_str = _intake_block(transcript)
+    emit("writing_classify", "Understanding what you want.", 1, 3, 12.0)
+    classification = classify_intake(engine, transcript)
+    class_block = _classification_block(classification)
+
+    emit("writing_body", "Writing your wind-down — settling the body, easing in.", 2, 3, 90.0)
+    user = (intake_str + "\n\n" + class_block + "\n\n"
+            "Now write the full settling session per the rules above.")
+    body = _generate(engine, SETTLING_PROMPT, user, max_tokens=BODY_MAX_TOKENS)
+
+    if len(body.split()) < SETTLING_MIN_WORDS:
+        emit("writing_body", "Deepening the wind-down.", 3, 3, 45.0)
+        cont = _generate(engine, SETTLING_PROMPT,
+                         user + "\n\n----- SO FAR -----\n" + body + "\n----- END -----\n\n"
+                         "CONTINUE softly from where it stopped — go slower and deeper into "
+                         "the body and breath with NEW gentle detail; do not repeat anything. "
+                         "Let it trail off at the very end.",
+                         max_tokens=BODY_MAX_TOKENS)
+        if cont.strip():
+            body = body.rstrip() + "\n\n" + cont.strip()
+
+    emit("writing_return", "Softening the close.", 3, 3, 3.0)
+    log.info("[settling] session ready: %d words", len(body.split()))
+    return body
+
+
 def generate_session(
     engine: Engine,
     transcript: list[dict],
     *,
+    protocol: str = "immersion",
     on_progress: Optional[ProgressFn] = None,
 ) -> str:
-    """Generate the full session script via the v5 staged-beats pipeline.
+    """Generate the full session script.
 
-    Total LLM calls: 1 (classify) + 1 (open) + 1 (plan beats) + N (beats)
-    + 1 (back). With N≈10, ~14 calls total. Typical wall-clock 3-5 min.
+    protocol="immersion" (default): the v5 staged-beats pipeline (classify → open →
+      plan → body → back), ~14 LLM calls, for being-taken-somewhere.
+    protocol="settling": the relaxation-led single-pass wind-down path, for
+      helped-to-settle / sleep. See `_generate_settling`.
 
     `on_progress`, if supplied, is invoked at each stage transition.
     """
@@ -437,6 +529,9 @@ def generate_session(
     def emit(stage: str, detail: str, step: int, total: int, eta: float) -> None:
         if on_progress is not None:
             on_progress(stage=stage, detail=detail, step=step, total=total, eta_seconds=eta)
+
+    if (protocol or "immersion").lower().strip() == "settling":
+        return _generate_settling(engine, transcript, emit)
 
     intake_str = _intake_block(transcript)
 

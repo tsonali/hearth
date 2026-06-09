@@ -257,3 +257,44 @@ This refines the model roadmap: Phase-2 distillation must use Apache/MIT teacher
 - **RAG over local files** named the highest-leverage scaffold for knowledge/doc modes (kills hallucination; ~7B is the floor).
 
 **SEQUENCING input (a tension, decision pending):** report puts reliable *text-transformation* modes (doc-Q&A, writing-transformer, extraction, transcription) as Tier 1 and demotes Imagination Engine to Tier 3 "signature/novel" (ship last, it's the riskiest creative mode). Our resolution: keep Imagination Engine as flagship + architecture/quality proof (nearly working), but make **task-pack #2 a reliability-first text mode** (writing-transformer or doc-Q&A) — broader demand + small-model sweet spot — instead of the earlier wind-down/meditation pick. NSFW/roleplay wedge (report's #2 local use case) noted but deliberately deferred — reputationally off-brand for an author-led privacy-dignity product; a conscious later choice, not a drift.
+
+## 2026-06-02 — Training-data rule REVERSED: fair-use training, no redistribution
+Earlier stance ("training data must be PD/CC0/owned") was over-cautious and, as
+Sonali (copyright lawyer) noted, hypocritical — it conflated *training input* with
+*redistribution*. Corrected rule, grounded in Lemley & Casey "Fair Learning" (Tex.
+L. Rev. 2021) and Lemley "How Generative AI Turns Copyright Law Upside Down" (STLR
+2024): **training on copyrighted material is fair use (non-expressive use); the only
+limits are (1) no infringing output and (2) no redistribution of the raw works.**
+Consequences: (a) we now gather the best material regardless of copyright; (b) the
+corpus lives OUTSIDE the repo in personal files (~/Downloads/hearth-corpus/),
+`data/corpus/` gitignored as backstop — we ship the model, never the corpus; (c) the
+PD scripts in data/exemplars/real/ remain the only *publishable* examples. See
+docs/corpus-sourcing.md for the full reasoning.
+
+## 2026-06-04 — Protocol fork: immersion vs settling, made real
+The suite design (data/exemplars/README) always specified TWO opposite protocols, but
+the generator only implemented immersion (COMMON_POSTURE: "no relaxation, no hedging").
+Added the SETTLING path: `generator._generate_settling` — relaxation-led, soft/permissive
+language allowed, concrete body-scan, trails off (sleep-friendly) — as a parallel
+single-pass route. `generate_session(protocol=...)` branches; immersion pipeline
+untouched. User picks at intake ("Take me somewhere" / "Help me settle"); the choice
+threads intake.py → /intake/start?protocol= → generation. Bogus values default to immersion.
+
+## 2026-06-04 — Voice lineup + non-commercial license unlock
+Confirmed lineup: two system voices (her/him) via **Chatterbox (MIT)** + the user's own
+voice via **F5 (CC-BY-NC)**. Because Hearth is free/non-commercial, the NC bar is moot —
+we KEEP F5 for the user's voice (best cloner) rather than swapping it (reverses the prior
+"swap before distribution" plan). Honest wrinkle recorded: a shipped bundle with an NC
+voice is NOT 100% CC0 — code stays CC0, the bundled voice is free-for-non-commercial.
+Voice is the #1 felt-quality lever for the imagination engine; bake-off rendered for
+ear-judgment (the one quality call Claude can't make).
+
+## 2026-06-04 — Fine-tune: local MLX LoRA works ($0); data is the lever
+LoRA on Qwen2.5-14B-4bit runs LOCALLY on the mini (M4/16GB) — no cloud, no spend. First
+full run (1500 iters) val loss 3.2→1.66; output MODESTLY better than base (A gained
+structure + a concrete seashell beat; C more on-spec/brief). Not a dramatic win — base
+Qwen is already strong — but with only 149 A examples at ~0.3 epoch it moved A noticeably,
+confirming the DATA is the lever, not more training. OOM at iter-100 on the first attempt
+was the validation pass; fixed via shorter seq (1024) + lighter val. Corpus read finding
+stands: the voice-defined families (A, C) can't be bulk-sourced; A is the bottleneck
+(~38 truly-vivid scripts) → generate-and-curate against exemplars is the path.

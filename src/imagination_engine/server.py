@@ -302,9 +302,11 @@ def intake_page() -> HTMLResponse:
 
 
 @app.post("/intake/start")
-def intake_start() -> JSONResponse:
-    session = get_intake_manager().start()
-    return JSONResponse({"session_id": session.id})
+def intake_start(protocol: str = "immersion") -> JSONResponse:
+    """Start an intake. `protocol` is the user-facing fork:
+    "immersion" (take me somewhere) | "settling" (help me settle / sleep)."""
+    session = get_intake_manager().start(protocol=protocol)
+    return JSONResponse({"session_id": session.id, "protocol": session.protocol})
 
 
 @app.post("/intake/turn")
@@ -377,8 +379,10 @@ async def intake_generate(session_id: str, voice: str = "kokoro") -> Response:
     update = _make_progress_updater(session)
 
     def _do_work() -> tuple[bytes, str, object]:
-        log.info("Generating session for %s (voice=%s) ...", session_id, voice)
-        script = generate_session(get_engine(), session.messages, on_progress=update)
+        log.info("Generating session for %s (voice=%s, protocol=%s) ...",
+                 session_id, voice, session.protocol)
+        script = generate_session(get_engine(), session.messages,
+                                  protocol=session.protocol, on_progress=update)
         log.info("Rendering audio for %s (%d-word script, voice=%s) ...",
                  session_id, len(script.split()), voice)
         voice_obj = get_voice(voice)
@@ -568,6 +572,152 @@ async def ask_query(req: AskRequest) -> JSONResponse:
     """Answer a question grounded ONLY in the indexed files. Refuses if not present."""
     ans = await run_in_threadpool(_get_docqa().ask, req.corpus, req.question)
     return JSONResponse({"answer": ans.text, "sources": ans.sources, "grounded": ans.grounded})
+
+
+# ---------------------------------------------------------------------------
+# Family B — the at-home secretary. Stateless text transforms on the user's own
+# words (draft / reply / summarize / rewrite / extract / organize). Streams.
+# ---------------------------------------------------------------------------
+_assistant = None
+
+
+def _get_assistant():
+    global _assistant
+    if _assistant is None:
+        from imagination_engine.utility import Assistant
+        _assistant = Assistant(get_engine())
+    return _assistant
+
+
+@app.get("/utility", response_class=HTMLResponse)
+def utility_page() -> HTMLResponse:
+    """The at-home secretary — draft, reply, summarize, rewrite, extract, organize."""
+    return HTMLResponse((WEB_DIR / "utility.html").read_text(encoding="utf-8"))
+
+
+@app.get("/utility/tasks")
+def utility_tasks() -> JSONResponse:
+    """The task catalog the page renders its selector from."""
+    from imagination_engine.utility import task_catalog
+    return JSONResponse({"tasks": task_catalog()})
+
+
+class UtilityRequest(BaseModel):
+    task: str
+    text: str
+    instruction: str = ""
+    tone: str = ""
+    style_sample: str = ""
+
+
+@app.post("/utility/run")
+def utility_run(req: UtilityRequest) -> StreamingResponse:
+    """Run one utility task, streaming the finished artifact back as it's written."""
+    assistant = _get_assistant()
+
+    def stream() -> Iterator[bytes]:
+        try:
+            for chunk in assistant.stream(
+                req.task, req.text, instruction=req.instruction,
+                tone=req.tone, style_sample=req.style_sample,
+            ):
+                yield chunk.encode("utf-8")
+        except (KeyError, ValueError) as e:
+            yield f"[error: {e}]".encode("utf-8")
+
+    return StreamingResponse(stream(), media_type="text/plain; charset=utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Family D — Build Your Own. The user describes a standing instrument (persona +
+# optional grounding on their files), keeps it, and returns to it. Registry +
+# RAG store live in local SQLite beside the other stores.
+# ---------------------------------------------------------------------------
+_instrument_registry = None
+_open_instruments: dict[str, object] = {}
+
+
+def _get_instrument_registry():
+    global _instrument_registry
+    if _instrument_registry is None:
+        from imagination_engine.instrument import InstrumentRegistry
+        _instrument_registry = InstrumentRegistry(MEMORY_DB.parent / "instruments.sqlite")
+    return _instrument_registry
+
+
+@app.get("/build", response_class=HTMLResponse)
+def build_page() -> HTMLResponse:
+    """Build Your Own — describe an instrument, keep it, return to it (Family D)."""
+    return HTMLResponse((WEB_DIR / "build.html").read_text(encoding="utf-8"))
+
+
+@app.get("/build/list")
+def build_list() -> JSONResponse:
+    """The instruments the user has built (for the picker)."""
+    specs = _get_instrument_registry().list()
+    return JSONResponse({"instruments": [
+        {"name": s.name, "grounded": s.grounded, "created": s.created} for s in specs
+    ]})
+
+
+class BuildCreateRequest(BaseModel):
+    name: str
+    description: str
+    files: str = ""   # optional path to ground on
+
+
+@app.post("/build/create")
+async def build_create(req: BuildCreateRequest) -> JSONResponse:
+    """Create + persist a new instrument from a description (+ optional folder)."""
+    from datetime import datetime
+    from imagination_engine.instrument import build_instrument
+
+    name = (req.name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="name required")
+    if _get_instrument_registry().get(name) is not None:
+        raise HTTPException(status_code=409, detail=f"an instrument named {name!r} already exists")
+    if not (req.description or "").strip():
+        raise HTTPException(status_code=400, detail="description required")
+
+    files_path = None
+    if (req.files or "").strip():
+        files_path = Path(req.files).expanduser()
+        if not files_path.exists():
+            raise HTTPException(status_code=400, detail=f"path not found: {files_path}")
+
+    def _do():
+        return build_instrument(
+            _get_instrument_registry(), name=name, description=req.description,
+            created=datetime.now().isoformat(timespec="seconds"), files=files_path,
+        )
+
+    spec = await run_in_threadpool(_do)
+    _open_instruments.pop(name, None)  # invalidate any cached open instance
+    return JSONResponse({"name": spec.name, "grounded": spec.grounded, "created": spec.created})
+
+
+class BuildAskRequest(BaseModel):
+    name: str
+    message: str
+
+
+@app.post("/build/ask")
+async def build_ask(req: BuildAskRequest) -> JSONResponse:
+    """Talk to a built instrument. Opens (and caches) it, then asks."""
+    from imagination_engine.instrument import open_instrument
+
+    inst = _open_instruments.get(req.name)
+    if inst is None:
+        inst = await run_in_threadpool(
+            open_instrument, get_engine(), _get_instrument_registry(), req.name
+        )
+        if inst is None:
+            raise HTTPException(status_code=404, detail=f"no instrument named {req.name!r}")
+        _open_instruments[req.name] = inst
+
+    reply = await run_in_threadpool(inst.ask, req.message)
+    return JSONResponse({"reply": reply, "grounded": inst.spec.grounded})
 
 
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")

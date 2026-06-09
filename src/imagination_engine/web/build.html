@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearth — Build Your Own</title>
+  <link rel="stylesheet" href="/static/hearth.css">
+  <style>
+    label.fld { display:block; font-family: var(--display, inherit); text-transform: uppercase;
+      letter-spacing: 0.05em; font-size: 0.72rem; color: var(--dim); margin: 1.1em 0 0.35em; }
+    textarea, input[type=text] { width: 100%; box-sizing: border-box; font: inherit;
+      padding: 11px 13px; border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); }
+    textarea#desc { min-height: 5.5em; resize: vertical; }
+    .mine { display:flex; flex-wrap: wrap; gap: 8px; margin: 0.4em 0 0.5em; }
+    .pill { font-family: var(--display, inherit); text-transform: uppercase; letter-spacing:0.04em;
+      font-size: 0.78rem; padding: 9px 14px; cursor:pointer; border:1.5px solid var(--ink);
+      background: var(--paper); color: var(--ink); }
+    .pill.on { background: var(--ink); color: var(--paper); }
+    .pill .g { font-size:0.62rem; opacity:0.7; }
+    .empty { color: var(--dim); font-size: 0.95rem; }
+    #status { color: var(--dim); font-size: 0.95rem; min-height:1.2em; margin: 0.6em 0; }
+    .panel { border-top: 2px solid var(--ink); margin-top: 1.8em; padding-top: 1.2em; }
+    #usearea { opacity: .35; pointer-events:none; transition: opacity .2s; }
+    #usearea.ready { opacity:1; pointer-events:auto; }
+    #log { margin-top: 1em; }
+    #log .q { font-weight:600; margin: 1em 0 0.2em; }
+    #log .a { white-space: pre-wrap; line-height:1.55; }
+    #log .src { color: var(--dim); font-size:0.85rem; margin-top:0.3em; }
+    .more { background:none; border:none; color: var(--dim); text-decoration: underline;
+      cursor:pointer; font: inherit; padding: 0; margin-top: 0.7em; }
+  </style>
+</head>
+<body>
+  <div class="narrow">
+    <a class="home" href="/">← Hearth</a>
+    <p class="kicker">Build Your Own</p>
+    <hr class="rule">
+    <div class="note">
+      Describe an instrument in plain words — <em>"a blunt editor who cuts my writing in half,"
+      "a patient Stoic I think out loud with."</em> Optionally point it at a folder so it knows
+      your stuff. It's saved on <strong>this machine</strong> and waits for you to come back.
+    </div>
+
+    <h2>Your instruments</h2>
+    <div class="mine" id="mine"></div>
+    <div id="mineEmpty" class="empty">You haven't built any yet. Make one below.</div>
+
+    <h2>Build a new one</h2>
+    <label class="fld" for="name">Name it</label>
+    <input type="text" id="name" placeholder="e.g. The Editor">
+    <label class="fld" for="desc">Describe it — what it is, how it talks, what it's for</label>
+    <textarea id="desc" placeholder="A blunt line editor. It cuts ruthlessly, never flatters, and explains each cut in a few words."></textarea>
+    <button class="more" id="groundToggle">+ Point it at my files (optional)</button>
+    <div id="groundWrap" style="display:none">
+      <label class="fld" for="files">Folder or file on this machine</label>
+      <input type="text" id="files" placeholder="/Users/you/Documents/project">
+    </div>
+    <div style="margin-top:1.2em"><button id="create">Create it</button></div>
+    <div id="status"></div>
+
+    <div class="panel" id="usearea">
+      <h2 id="useHead">Use it</h2>
+      <div class="row">
+        <input type="text" id="msg" placeholder="Say something to it…">
+        <button id="send">Send</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const el = id => document.getElementById(id);
+    let active = null;
+
+    async function loadMine() {
+      const r = await fetch("/build/list");
+      const list = (await r.json()).instruments;
+      const box = el("mine"); box.innerHTML = "";
+      el("mineEmpty").style.display = list.length ? "none" : "block";
+      list.forEach(it => {
+        const b = document.createElement("button");
+        b.className = "pill"; b.dataset.name = it.name;
+        b.innerHTML = it.name + (it.grounded ? ' <span class="g">· knows your files</span>' : '');
+        b.addEventListener("click", () => activate(it.name));
+        box.appendChild(b);
+      });
+    }
+
+    function activate(name) {
+      active = name;
+      document.querySelectorAll(".pill").forEach(p => p.classList.toggle("on", p.dataset.name === name));
+      el("useHead").textContent = "Use it — " + name;
+      el("usearea").classList.add("ready");
+      el("log").innerHTML = "";
+      el("msg").focus();
+    }
+
+    el("groundToggle").addEventListener("click", () => {
+      const w = el("groundWrap"); const show = w.style.display === "none";
+      w.style.display = show ? "block" : "none";
+      el("groundToggle").textContent = (show ? "–" : "+") + " Point it at my files (optional)";
+    });
+
+    el("create").addEventListener("click", async () => {
+      const name = el("name").value.trim(), desc = el("desc").value.trim();
+      const files = el("groundWrap").style.display === "none" ? "" : el("files").value.trim();
+      if (!name || !desc) { el("status").textContent = "give it a name and a description."; return; }
+      el("create").disabled = true;
+      el("status").textContent = files ? "creating + reading your files… (first run loads models)" : "creating…";
+      try {
+        const r = await fetch("/build/create", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ name, description: desc, files })
+        });
+        const d = await r.json();
+        if (!r.ok) { el("status").textContent = "couldn't create it: " + (d.detail || r.status); }
+        else {
+          el("status").textContent = `built “${d.name}”.`;
+          el("name").value = ""; el("desc").value = ""; el("files").value = "";
+          await loadMine(); activate(d.name);
+        }
+      } catch(e) { el("status").textContent = "(couldn't reach the local engine — is the server running?)"; }
+      finally { el("create").disabled = false; }
+    });
+
+    async function send() {
+      const text = el("msg").value.trim();
+      if (!active || !text) return;
+      el("msg").value = ""; el("send").disabled = true;
+      const q = document.createElement("div"); q.className="q"; q.textContent = text; el("log").appendChild(q);
+      const think = document.createElement("div"); think.className="a"; think.textContent="…"; el("log").appendChild(think);
+      window.scrollTo(0, document.body.scrollHeight);
+      try {
+        const r = await fetch("/build/ask", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ name: active, message: text })
+        });
+        const d = await r.json();
+        think.textContent = d.reply || "(no reply)";
+      } catch(e) { think.textContent = "(engine unreachable)"; }
+      finally { el("send").disabled = false; el("msg").focus(); window.scrollTo(0, document.body.scrollHeight); }
+    }
+    el("send").addEventListener("click", send);
+    el("msg").addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+
+    loadMine();
+  </script>
+</body>
+</html>

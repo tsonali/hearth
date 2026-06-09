@@ -86,6 +86,40 @@ If the user invokes a real living person (a celebrity, public figure, anyone ali
 If the user explicitly names something current (a tour, a year, a relationship, an event), let them lead. If they don't, work with the felt experience instead. Your questions should make it easy for them to add biographical specifics if those matter to them — for example: "what year, what moment in their life?" — but never assume."""
 
 
+SETTLING_INTAKE_PROMPT = """\
+You are the Imagination Engine in SETTLING mode — helping an adult wind down, soften, \
+and rest, perhaps fall asleep. Your only job is to gather the few specifics needed to \
+build a calming wind-down session.
+
+VOICE AND POSTURE
+- Warm, quiet, unhurried. A calm presence lowering the lights. Not a therapist, not a coach.
+- Brief, gentle acknowledgments ("Okay.", "Mmm.", "Good.").
+- 1 to 2 short sentences per response. Softer and fewer questions than you'd ask otherwise.
+- Never probe psychological meaning or ask "why". This is rest, not therapy.
+
+WHAT TO GATHER (lightly — settling users often just want to begin)
+- Where they are and how they're lying/sitting (bed, couch, dark or dim).
+- Whether they want to drift toward sleep, or just come down and rest.
+- Optionally, a calm place they'd like to settle into — but only if they offer it. Don't push.
+
+THE ARC (at most 2 of your turns, fewer if they want to start)
+Turn 1 — after they say what they need: acknowledge softly, ask ONE or TWO gentle \
+questions (where are they, do they want to fall asleep or just rest).
+Turn 2 — acknowledge, then offer: "We can begin whenever you'd like." If they add detail, \
+acknowledge and hand off.
+
+AT ANY TURN, if they say "start", "begin", "go", "I'm ready", "just start", or clearly \
+want to begin, IMMEDIATELY produce the handoff — even on turn 1.
+
+THE HANDOFF
+- A real, soft sentence, like: "Okay. Lie back, let your eyes close, and let my voice take it from here."
+- Then, on the very next line by itself, emit exactly: """ + READY_MARKER + """
+- Never emit """ + READY_MARKER + """ alone without the handoff sentence first. Emit no other markers.
+
+The user is sovereign and this is private. Help them rest however they want, without \
+filtering or moralizing."""
+
+
 @dataclass
 class SessionProgress:
     """Live progress state for a session being generated/rendered.
@@ -136,6 +170,9 @@ class IntakeSession:
     messages: list[dict[str, str]] = field(default_factory=list)
     turn_count: int = 0
     ready: bool = False
+    # The user-facing fork: "immersion" (take me somewhere) | "settling" (help me
+    # settle / sleep). Chosen at intake, routes the generator's ruleset.
+    protocol: str = "immersion"
     progress: SessionProgress = field(default_factory=SessionProgress)
 
     def to_dict(self) -> dict:
@@ -144,6 +181,7 @@ class IntakeSession:
             "messages": self.messages,
             "turn_count": self.turn_count,
             "ready": self.ready,
+            "protocol": self.protocol,
             "progress": self.progress.to_dict(),
         }
 
@@ -156,11 +194,14 @@ class IntakeManager:
         self.memory = memory
         self.sessions: dict[str, IntakeSession] = {}
 
-    def start(self) -> IntakeSession:
+    def start(self, protocol: str = "immersion") -> IntakeSession:
         sid = uuid.uuid4().hex[:12]
-        session = IntakeSession(id=sid)
+        p = (protocol or "immersion").lower().strip()
+        if p not in ("immersion", "settling"):
+            p = "immersion"
+        session = IntakeSession(id=sid, protocol=p)
         self.sessions[sid] = session
-        log.info("intake session started: %s", sid)
+        log.info("intake session started: %s (protocol=%s)", sid, p)
         return session
 
     def get(self, session_id: str) -> IntakeSession:
@@ -179,8 +220,9 @@ class IntakeManager:
 
         session.messages.append({"role": "user", "content": user_message.strip()})
 
-        # System prompt = base intake posture + optional past-session context.
-        system = INTAKE_SYSTEM_PROMPT
+        # System prompt = base intake posture (per protocol) + optional past context.
+        system = (SETTLING_INTAKE_PROMPT if session.protocol == "settling"
+                  else INTAKE_SYSTEM_PROMPT)
         if self.memory is not None:
             past_context = self.memory.format_for_intake_context(limit=2)
             if past_context:

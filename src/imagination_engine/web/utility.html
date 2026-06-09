@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearth — The Secretary</title>
+  <link rel="stylesheet" href="/static/hearth.css">
+  <style>
+    .tasks { display: flex; flex-wrap: wrap; gap: 8px; margin: 0.4em 0 1.6em; }
+    .taskchip { font-family: var(--display, inherit); text-transform: uppercase;
+      letter-spacing: 0.04em; font-size: 0.8rem; padding: 9px 14px; cursor: pointer;
+      border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); }
+    .taskchip.on { background: var(--ink); color: var(--paper); }
+    .taskblurb { color: var(--dim); font-size: 0.98rem; margin: -0.6em 0 1.2em; min-height: 1.2em; }
+    label.fld { display:block; font-family: var(--display, inherit); text-transform: uppercase;
+      letter-spacing: 0.05em; font-size: 0.72rem; color: var(--dim); margin: 1.1em 0 0.35em; }
+    textarea, input[type=text], select { width: 100%; box-sizing: border-box; font: inherit;
+      padding: 11px 13px; border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); }
+    textarea#input { min-height: 8.5em; resize: vertical; }
+    textarea#style { min-height: 4em; resize: vertical; }
+    .opts { display:flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+    .opts > div { flex: 1; min-width: 180px; }
+    .hidden { display: none; }
+    .runrow { margin: 1.4em 0 0.5em; display:flex; align-items:center; gap: 14px; }
+    #out { white-space: pre-wrap; border-top: 2px solid var(--ink); margin-top: 1.6em;
+      padding-top: 1.2em; min-height: 1.2em; line-height: 1.55; }
+    #outhead { display:none; justify-content: space-between; align-items: baseline; margin-top: 1.6em; }
+    #outhead.show { display:flex; }
+    #out.show + nothing {}
+    .copy { font-family: var(--display, inherit); text-transform: uppercase; letter-spacing:0.04em;
+      font-size: 0.72rem; padding: 6px 11px; border:1.5px solid var(--ink); background:var(--paper);
+      color: var(--ink); cursor:pointer; }
+    .more { background:none; border:none; color: var(--dim); text-decoration: underline;
+      cursor:pointer; font: inherit; padding: 0; margin-top: 0.8em; }
+  </style>
+</head>
+<body>
+  <div class="narrow">
+    <a class="home" href="/">← Hearth</a>
+    <p class="kicker">The Secretary</p>
+    <hr class="rule">
+    <div class="note">
+      Everyday writing work on <strong>your own words</strong> — draft a message, reply
+      to one, summarize something long, rewrite it, or pull the to-dos out of a mess.
+      It transforms what you give it; it never sends anything anywhere.
+    </div>
+
+    <div class="tasks" id="tasks"></div>
+    <div class="taskblurb" id="blurb"></div>
+
+    <label class="fld" id="inputLabel" for="input">Input</label>
+    <textarea id="input" placeholder="Paste or type here…"></textarea>
+
+    <div id="instrWrap">
+      <label class="fld" for="instr">Extra instruction <span style="text-transform:none">(optional)</span></label>
+      <input type="text" id="instr" placeholder="e.g. keep it under 4 sentences; mention I'm away next week">
+    </div>
+
+    <div class="opts">
+      <div id="toneWrap">
+        <label class="fld" for="tone">Tone</label>
+        <select id="tone">
+          <option value="">Leave as written</option>
+          <option value="plain">Plain &amp; clear</option>
+          <option value="warm">Warm</option>
+          <option value="formal">Formal</option>
+          <option value="concise">Concise</option>
+          <option value="firm">Polite but firm</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="more" id="styleToggle">+ Match my writing voice</button>
+    <div id="styleWrap" class="hidden">
+      <label class="fld" for="style">A sample of your own past writing <span style="text-transform:none">(it mirrors your voice, never keeps it)</span></label>
+      <textarea id="style" placeholder="Paste a few sentences you wrote — an old email, a note…"></textarea>
+    </div>
+
+    <div class="runrow">
+      <button id="run">Run</button>
+      <span id="status" style="color:var(--dim); font-size:0.95rem;"></span>
+    </div>
+
+    <div id="outhead">
+      <span class="kicker" style="margin:0;">Result</span>
+      <button class="copy" id="copy">Copy</button>
+    </div>
+    <div id="out"></div>
+  </div>
+
+  <script>
+    let TASKS = [], current = null;
+    const el = id => document.getElementById(id);
+
+    function selectTask(t) {
+      current = t;
+      document.querySelectorAll(".taskchip").forEach(c =>
+        c.classList.toggle("on", c.dataset.key === t.key));
+      el("blurb").textContent = t.blurb;
+      el("inputLabel").textContent = t.input_label;
+      el("instrWrap").classList.toggle("hidden", !t.wants_instruction);
+      el("toneWrap").classList.toggle("hidden", !t.wants_tone);
+    }
+
+    async function loadTasks() {
+      const r = await fetch("/utility/tasks");
+      TASKS = (await r.json()).tasks;
+      const box = el("tasks");
+      TASKS.forEach((t, i) => {
+        const b = document.createElement("button");
+        b.className = "taskchip"; b.dataset.key = t.key; b.textContent = t.label;
+        b.addEventListener("click", () => selectTask(t));
+        box.appendChild(b);
+      });
+      if (TASKS.length) selectTask(TASKS[0]);
+    }
+
+    el("styleToggle").addEventListener("click", () => {
+      const w = el("styleWrap"); const hidden = w.classList.toggle("hidden");
+      el("styleToggle").textContent = (hidden ? "+" : "–") + " Match my writing voice";
+    });
+
+    el("copy").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(el("out").textContent);
+      el("copy").textContent = "Copied"; setTimeout(() => el("copy").textContent = "Copy", 1200);
+    });
+
+    async function run() {
+      const text = el("input").value.trim();
+      if (!current) return;
+      if (!text) { el("status").textContent = "give it something to work on first."; return; }
+      el("run").disabled = true;
+      el("status").textContent = "working… (first run loads the model — give it a moment)";
+      el("out").textContent = ""; el("outhead").classList.remove("show");
+      try {
+        const r = await fetch("/utility/run", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            task: current.key, text,
+            instruction: el("instr").value || "",
+            tone: current.wants_tone ? el("tone").value : "",
+            style_sample: el("styleWrap").classList.contains("hidden") ? "" : (el("style").value || ""),
+          })
+        });
+        const reader = r.body.getReader(); const dec = new TextDecoder();
+        let first = true;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (first) { el("status").textContent = ""; el("outhead").classList.add("show"); first = false; }
+          el("out").textContent += dec.decode(value, { stream: true });
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+        if (first) el("status").textContent = "(no output)";
+      } catch (e) {
+        el("status").textContent = "(couldn't reach the local engine — is the server running?)";
+      } finally { el("run").disabled = false; }
+    }
+    el("run").addEventListener("click", run);
+
+    loadTasks();
+  </script>
+</body>
+</html>

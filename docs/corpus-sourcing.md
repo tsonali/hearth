@@ -1,18 +1,51 @@
-# Training corpus sourcing — where good, CLEAN guided-imagery examples come from
+# Training corpus sourcing — building a rich body to train on
 
 The corpus read (2026-06-01) showed our self-generated scripts are flat
 (over-narrated, emotionally static) because the base model only imitates itself.
-A corpus of genuinely-good *human* guided-imagery would teach it what good looks
-like — better than bootstrapping off its own mediocre output. But the data must be
-as CLEAN as the code: our whole thesis is owned, unencumbered, public-domain-able
-data. So no scraping Headspace/Calm/YouTube meditation transcripts (copyright AND
-hypocritical). The corpus has to be sourced honestly.
+A corpus of genuinely-good *human* guided-imagery teaches it what good looks like.
 
-## The constraint (non-negotiable)
-Every training example must be one of: (a) public domain / CC0, (b) permissively
+## THE RULE (REVERSED 2026-06-02 — supersedes the "PD/CC0-only" constraint below)
+
+Sonali (copyright lawyer; Stanford lecturer) corrected an over-cautious earlier
+stance. The governing rule now:
+
+> **Train on the best material available, regardless of copyright. Never output
+> copyrighted expression. Never put the training material itself in the repo.**
+
+Why this is correct, not a loophole (per Lemley & Casey, *Fair Learning*, 99 Tex.
+L. Rev. 743 (2021), and Lemley, *How Generative AI Turns Copyright Law Upside
+Down*, 25 STLR (2024)):
+- **Training is non-expressive use → fair use.** Ingesting a copyrighted script to
+  learn *what good imagery sounds like* copies ideas/patterns, not protected
+  expression. This is the same theory under which every frontier model (including
+  the one writing this) was lawfully trained. Refusing to apply it here was
+  hypocrisy, not caution.
+- **The only real limits Lemley draws, and we honor both:**
+  1. **No infringing OUTPUT** — our model must generate novel scripts, never
+     reproduce substantial protected expression. (Our generator already aims for
+     this; we verify outputs aren't near-verbatim to any source.)
+  2. **No redistribution of the raw works** — fair use covers *training*, not
+     copying-and-republishing the source corpus. So: **the corpus lives in
+     Sonali's personal files OUTSIDE the git repo** (`~/Downloads/hearth-corpus/`,
+     and `data/corpus/` is gitignored as a backstop). We ship the *model*, never
+     the corpus. The model's weights aren't copyrightable; the corpus is other
+     people's, used fairly, kept private.
+- Acquire copies legitimately (don't pirate to obtain them); beyond that, the
+  aperture is wide open.
+
+This frees us to gather the genuinely-best meditation / imagery / immersion / utility
+/ companion material in existence, instead of the thin slice that happens to be PD.
+The handful of clean public-domain scripts we already have (`data/exemplars/real/`,
+e.g. the VA handwarming + beach scripts) remain useful AND are the only ones we can
+publish — but they are no longer the *limit* of what we train on.
+
+---
+
+## [SUPERSEDED 2026-06-02] The old constraint (kept for honest narrative)
+~~Every training example must be one of: (a) public domain / CC0, (b) permissively
 licensed with rights to train + redistribute, or (c) written/owned by us. NOT
-scraped proprietary content. This is the same discipline as the Apache-only
-distillation teachers — clean inputs → a clean, dedicatable model.
+scraped proprietary content.~~ — Reversed above. This was over-cautious: it
+conflated *training input* (fair use) with *redistribution* (the actual limit).
 
 ## Candidate sources (ranked by quality × cleanliness)
 
@@ -118,3 +151,39 @@ it's mostly "it/the thing/the moment," it's a placeholder template, not imagery.
   pass — but framed by the clean-only constraint.)
 - For task pairs we need (intake → script); public-domain prose gives style, not
   pairs. So pairs come from #1 (hand) + #4 (generate+curate); prose (#2) is for voice.
+
+## SCREENING LOG — 2026-06-02 (real-script fetch round 2)
+
+Fetched four federal-hosted scripts, extracted with pypdf, screened against the
+concrete-nouns bar AND the license-cleanliness bar. Both bars matter — a script
+can pass one and fail the other.
+
+| Script | License | Quality (concrete-nouns) | Verdict |
+|---|---|---|---|
+| PTSD Coach "The Beach" | Federal (Nat'l Center for PTSD, VA) → PD | PASS — commits to specific scene | **KEEP → va-002** |
+| VA Body Scan | **Named external author (Shilagh Mirgain, PhD / UW)** | decent | **REJECT (license)** |
+| VA "Surroundings / Special Place" | Federal (VA OPCC&CT) → PD | weak — asks "what do you see?" (evasion) | structure-ref only |
+| Army "Meadow & Stream" | (federal, likely PD) | not yet read — HTTP 403 | RETRY |
+
+### The key finding: "hosted on VA.gov" ≠ "federal-authored / public domain"
+The Body Scan script is hosted in the VA Whole Health Library but its own footer
+credits a named university academic ("Script written by Shilagh Mirgain, PhD, for
+UW Cultivating Well-Being"). That is a copyrightable work by a non-federal author,
+merely redistributed by VA. **Per-item authorship must be checked, not assumed from
+the host domain.** This generalizes the va-001 caveat into a standing rule:
+→ RULE: clear the AUTHOR, not the host. Federal-employee authorship = PD; external/
+  contractor/academic authorship = copyrighted regardless of where VA posts it.
+
+### Quality finding: the "Surroundings" script IS the 011 failure, in the wild
+It never commits to a scene — "It might be a fishing spot. It might be a family
+member's house..." then "What do you see? What do you hear?" It offloads the
+imagining to the listener. Proof the evasion pattern isn't unique to our model;
+some human scripts do it too. So "real + clean" is necessary but NOT sufficient —
+real scripts still get screened for scene-commitment. va-002 (beach) commits; this
+one doesn't. Keep only the committers as gold.
+
+### Running real-corpus tally
+- va-001 handwarming (settling) — KEEP
+- va-002 beach (settling, scene-committed) — KEEP
+- Need: IMMERSION-protocol real scripts (hard-cut, second-person, present-tense
+  "you are there"). Both keepers so far are settling/relaxation. GAP to fill next.

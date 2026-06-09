@@ -71,3 +71,6 @@ docs/internal/
 
 # Test corpora — fetchable public-domain artifacts, not committed (see testing-plan.md)
 data/test_corpus/
+
+# Training corpus — fair-use inputs, NEVER redistributed (no copies in repo)
+data/corpus/

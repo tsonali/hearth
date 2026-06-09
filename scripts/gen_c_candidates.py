@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Generate Family-C (Companion) candidates — the A-style flywheel for the other
+voice family. Diverse 'someone shares a thought' -> honest-mirror response (smart,
+non-prescriptive, no fake feelings), using the real COMPANION_SYSTEM prompt.
+Writes C_generated.jsonl {context,response}. HEARTH_GEN_FRESH=1 = fresh each pass."""
+import json, os
+from imagination_engine.inference import Engine
+from imagination_engine.companion import COMPANION_SYSTEM
+
+C = os.path.expanduser("~/Downloads/hearth-corpus/C-companion")
+OUT = os.path.join(C, "C_generated.jsonl")
+
+SHARES = [
+  "I keep saying I'll quit my job but I never do.",
+  "I'm exhausted but I can't make myself actually rest.",
+  "I think I'm jealous of my best friend and I hate that about myself.",
+  "I said yes to something again that I really didn't want to do.",
+  "I don't know if I love him or I'm just scared of being alone.",
+  "I keep picking fights with my mom and I don't know why.",
+  "I feel behind everyone my age.",
+  "I can't tell if I'm being lazy or if I'm burned out.",
+  "I got the promotion and I just feel empty.",
+  "I keep checking if my ex has posted anything.",
+  "Everyone thinks I have it together and I don't.",
+  "I'm scared to start because I might find out I'm not good at it.",
+  "I keep apologizing for things that aren't my fault.",
+  "I don't actually know what I want, and that scares me.",
+  "I felt relieved when the plans got cancelled.",
+  "I'm angry at my dad but he's getting old and I feel guilty.",
+  "I keep waiting for life to start.",
+  "I think I use being busy to avoid myself.",
+  "I can't enjoy anything without thinking I should be doing more.",
+  "I miss who I used to be.",
+  "I keep score in my relationship and I hate it.",
+  "I'm proud of the work but I can't say it out loud.",
+  "I think I chose this career to make my parents happy.",
+  "I feel like a fraud at work.",
+  "I keep going back to someone who hurt me.",
+  "I don't trust good things when they happen.",
+  "I'm lonely even when I'm with people.",
+  "I keep starting things and never finishing them.",
+  "I think I'm afraid of being ordinary.",
+  "I said something cruel and I keep replaying it.",
+  "I want to be left alone but I'm scared of being forgotten.",
+  "I can't tell if I've grown or just gotten tired.",
+  "I keep planning the life I'll live later instead of now.",
+  "I feel guilty resting even when I've earned it.",
+  "I think I pick unavailable people on purpose.",
+  "I don't know how to want things without a reason.",
+]
+
+done = set()
+if os.path.exists(OUT) and not os.environ.get("HEARTH_GEN_FRESH"):
+    done = {json.loads(l).get("context") for l in open(OUT)}
+
+print("loading model…", flush=True)
+eng = Engine.load()
+todo = [s for s in SHARES if s not in done]
+print(f"generating {len(todo)} companion turns…", flush=True)
+
+n = 0
+with open(OUT, "a") as f:
+    for share in todo:
+        user = (f"User just said: {share}\n\nRespond per your rules: ONE genuinely "
+                "insightful move (a reframe, a connection, a pattern, or a possibility "
+                "they haven't considered), make it land, hand it back with a question. "
+                "Never tell them what to do; never claim feelings or personhood.")
+        try:
+            resp = "".join(eng.stream(
+                messages=[{"role": "system", "content": COMPANION_SYSTEM},
+                          {"role": "user", "content": user}],
+                max_tokens=160, temperature=0.7)).strip()
+        except Exception as e:
+            print("FAIL", share[:30], str(e)[:60], flush=True); continue
+        f.write(json.dumps({"context": f"Them: {share}", "response": resp,
+                            "src": "generated-companion"}, ensure_ascii=False) + "\n")
+        f.flush(); n += 1
+        print(f"[{n}/{len(todo)}] {share[:44]}", flush=True)
+print(f"done — {n} -> {OUT}")

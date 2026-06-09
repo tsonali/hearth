@@ -14,8 +14,32 @@
       <h1>Imagination<br>Engine</h1>
     </header>
 
+    <style>
+      .fork { margin: 0 0 1.8em; }
+      .fork-q { font-weight: 600; margin: 0 0 0.6em; }
+      .fork-choices { display: flex; gap: 12px; flex-wrap: wrap; }
+      .fork-card { flex: 1; min-width: 220px; text-align: left; cursor: pointer;
+        border: 1.5px solid #d8d8d8; background: #fff; padding: 14px 16px;
+        display: flex; flex-direction: column; gap: 4px; }
+      .fork-card .fk-title { font-weight: 700; font-size: 1.05rem; }
+      .fork-card .fk-note { color: #555; font-size: 0.95rem; }
+      .fork-card.selected { border-color: #0a0a0a; border-width: 2px; }
+    </style>
     <section id="opening" class="opening">
-      <p class="lede">Tell me what you want to imagine. <em>The world is open.</em> You could:</p>
+      <div id="fork" class="fork">
+        <p class="fork-q">What do you need right now?</p>
+        <div class="fork-choices">
+          <button id="fork-immersion" type="button" class="fork-card selected">
+            <span class="fk-title">Take me somewhere</span>
+            <span class="fk-note">Be dropped into a vivid scene — somewhere, someone, a moment. Eyes closed, fully there.</span>
+          </button>
+          <button id="fork-settling" type="button" class="fork-card">
+            <span class="fk-title">Help me settle</span>
+            <span class="fk-note">Wind down, soften, rest. A slow guided calm — to come down, or to fall asleep.</span>
+          </button>
+        </div>
+      </div>
+      <p class="lede" id="lede">Tell me what you want to imagine. <em>The world is open.</em> You could:</p>
       <ul class="seeds">
         <li>visualize yourself meeting a hard-fought goal</li>
         <li>imagine being a different character — someone braver, calmer, more curious</li>
@@ -279,9 +303,33 @@
     }
 
     let sessionId = null;
+    let chosenProtocol = "immersion";
+
+    // The intake fork: take-me-somewhere (immersion) vs help-me-settle (settling).
+    (function wireFork() {
+      const imm = document.getElementById("fork-immersion");
+      const set = document.getElementById("fork-settling");
+      const lede = document.getElementById("lede");
+      const prompt = document.getElementById("prompt");
+      if (!imm || !set) return;
+      function choose(which) {
+        chosenProtocol = which;
+        imm.classList.toggle("selected", which === "immersion");
+        set.classList.toggle("selected", which === "settling");
+        if (which === "settling") {
+          lede.innerHTML = "Tell me what would help you settle — a place to rest, a feeling to come down into. Or just say <em>“help me sleep.”</em>";
+          prompt.placeholder = "What would help you settle?";
+        } else {
+          lede.innerHTML = "Tell me what you want to imagine. <em>The world is open.</em> You could:";
+          prompt.placeholder = "What do you want to imagine?";
+        }
+      }
+      imm.addEventListener("click", () => choose("immersion"));
+      set.addEventListener("click", () => choose("settling"));
+    })();
 
     async function startSession() {
-      const res = await fetch("/intake/start", { method: "POST" });
+      const res = await fetch(`/intake/start?protocol=${encodeURIComponent(chosenProtocol)}`, { method: "POST" });
       if (!res.ok) throw new Error(`start: ${res.status}`);
       const data = await res.json();
       sessionId = data.session_id;

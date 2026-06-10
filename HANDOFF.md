@@ -60,10 +60,27 @@ defects found by honest reads + fixed + re-verified, all pushed. The big ones:
   input ceilings (60k/8k chars → clean 413); all pages 200, all bad input clean 4xx.
 - Public story: site/README now list all FIVE tools (Secretary was missing), one-click
   install described, stale repo URLs fixed; gh-pages deployed + verified live.
-STILL OPEN as of this writing: battery7 (20-scenario wide imagination sweep) was
-running — read logs/qc/battery7.log + score with scripts/qc/score_scripts.py; the
-full HTTP pipeline (intake→generate→audio→reflect) needs ONE green re-run post-TTS-fix
-(battery1's last section); ask-files "unassisted bridge" case in battery3b unverified.
+CAMPAIGN CLOSED OUT (06-10 morning) — everything that was open went green:
+- battery7 wide sweep: 20/20 scenarios ok, ZERO collapsed paragraphs (was up to
+  11/script), concreteness up ~40%; the 2 residual "degen" flags are the closing
+  reprising body anchors by design — scoreboard conservatism, not product defect.
+- Full HTTP pipeline GREEN: intake→generate→audio→mp3→reflect, with the whole net
+  stack visibly firing in one real session (decay-abort mid-stream → trim → clean
+  999w → 20MB WAV). Decay-abort = generation stops ~90s into a decayed pass instead
+  of burning 10 min of budget the trim would discard.
+- Ask-files: words-bridge PASS (assisted + unassisted), citations tight, stale-facts
+  gone.
+- **TRAINER BEAT THE RECORD: val loss 1.184 (was 1.193), plateaued + stopped clean.**
+  Best adapter pulled into data/model/adapters and re-QC'd through product e2e — no
+  regressions, all five tools behave. The mini is now IDLE (flywheel done — decide
+  next: restart flywheel with the QC-informed curation bar, or leave idle).
+- QC artifacts cleaned from user DBs (test instruments, qc companion summaries, qc
+  ask corpora) so real use isn't polluted by test conversations.
+KNOWN WOBBLES (logged, not blocking): instruments can still open with a hedge
+("I think we should reach out") — the mechanical gate covers personhood, not hedges;
+immersion latency is better but real (6-24 min/script incl. decay-aborts — the next
+model improvement is the true cure); companion cross-session bleed-in reads heavy
+when many sessions share one DB (normal single-user cadence should be gentler — watch).
 
 ## NEXT ACTIONS (the autonomous loop — keep going without asking)
 1. When the trainer beats 1.193, pull the best adapter to the product + re-QC:

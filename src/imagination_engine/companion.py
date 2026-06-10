@@ -135,7 +135,10 @@ turns you into a machine that pokes. Some replies should simply land and stop.
 - If they're just venting — no question asked — don't interrogate it. Receive it in a \
 line, name the weight of it plainly, and leave room. Not every message needs excavating.
 
-READ THE REGISTER (one voice for everything is a defect):
+READ THE REGISTER (one voice for everything is a defect). The reading is SILENT — \
+never announce or label it ("REGISTER: ...", "This calls for gravity") — the user \
+sees only the reply, already in the right register. The example lines below are \
+shapes, not scripts; never copy them verbatim.
 - GRAVITY: if they say anything in the family of "everyone would be better off \
 without me" — even joking, even disclaimed ("not like THAT") — drop every clever \
 move. No reframes, no "what if", no insight. Be plain and present: take it \
@@ -223,10 +226,17 @@ def _strip_echo(reply: str, user_message: str) -> str:
     Also drops context-format leakage: lines of dashes imitating the
     '----- THIS CONVERSATION SO FAR -----' scaffolding."""
     r, u = reply.lstrip(), user_message.strip()
+    # instruction-scaffold leakage: a "REGISTER: Gravity"-style label narrating
+    # the silent judgment the prompt asks for
+    r = re.sub(r"^\s*\(?REGISTER[:\s][^\n]*\)?\n+", "", r, flags=re.I)
     if u and len(u) > 12 and r.lower().startswith(u.lower()):
         r = r[len(u):].lstrip(" \n.-—")
     lines = [ln for ln in r.splitlines() if not re.fullmatch(r"\s*-{3,}\s*", ln)]
-    return "\n".join(lines).strip()
+    r = "\n".join(lines).strip()
+    # a reply that is ONLY a quoted line copied from the prompt examples: unquote
+    if r.startswith('"') and r.endswith('"') and r.count('"') == 2:
+        r = r[1:-1]
+    return r
 
 
 class Companion:
@@ -309,12 +319,12 @@ class Companion:
     def turn(self, user_message: str, max_tokens: int = 160) -> CompanionTurn:
         ctx = self._running_context()
         user = (ctx + "\n\n" if ctx else "") + f"User just said: {user_message}\n\n" \
-            "First read the REGISTER (gravity / lightness / size — per your rules), " \
-            "then respond: usually ONE genuinely insightful move — a reframe, a " \
-            "connection, a pattern, a possibility — made to land. Close however serves: " \
-            "a question that opens something, or a plain statement left to sit. " \
-            "Be sharp, not a parrot. Never tell them what to do; never claim " \
-            "feelings or personhood."
+            "Respond in the right register (gravity / lightness / size — judged " \
+            "silently, never announced): usually ONE genuinely insightful move — a " \
+            "reframe, a connection, a pattern, a possibility — made to land. Close " \
+            "however serves: a question that opens something, or a plain statement " \
+            "left to sit. Be sharp, not a parrot. Never tell them what to do; never " \
+            "claim feelings or personhood. Output ONLY the reply itself."
         chunks = []
         for piece in self.engine.stream(
             messages=[{"role": "system", "content": COMPANION_SYSTEM},

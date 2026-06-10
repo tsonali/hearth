@@ -91,8 +91,9 @@ def _b_draft(text, instruction, tone, style):
     user = (
         "Write a message (email/letter/note) based on this brief. Output only the "
         "message itself, ready to send. If it's an email or letter, give it a normal "
-        "frame — a brief greeting line and a sign-off, with [bracketed blanks] for any "
-        "names not in the brief. Tone shapes the words, not whether the frame exists: "
+        "frame — a brief greeting line, and a sign-off ending with the sender's name (use "
+        "[bracketed blanks] for any names not in the brief, including [Your name] at the "
+        "end). Tone shapes the words, not whether the frame exists: "
         "a firm email still opens and signs like an email.\n\n"
         f"BRIEF (what it's about / who it's to / what to say):\n{text}"
         + (f"\n\nADDITIONAL INSTRUCTION: {instruction}" if instruction.strip() else "")

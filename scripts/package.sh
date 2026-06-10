@@ -21,9 +21,10 @@ rm -rf "$STAGE/data/corpus" "$STAGE/data/dataset" "$STAGE/data/recordings" \
 find "$STAGE" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 find "$STAGE" -name '*.safetensors' -delete 2>/dev/null || true
 find "$STAGE" -name '*.wav' -delete 2>/dev/null || true
+find "$STAGE" -name '*.sqlite*' -delete 2>/dev/null || true  # per-user stores self-create
 
 # audit: fail loudly if anything risky remains
-RISK=$(find "$STAGE" \( -name '*.safetensors' -o -name '*.wav' -o -name '*.pt' -o -name '*.gguf' \) 2>/dev/null | head)
+RISK=$(find "$STAGE" \( -name '*.safetensors' -o -name '*.wav' -o -name '*.pt' -o -name '*.gguf' -o -name '*.sqlite*' \) 2>/dev/null | head)
 if [ -n "$RISK" ]; then echo "ABORT — risky files in bundle:"; echo "$RISK"; exit 1; fi
 
 ZIP="$OUT/hearth-$VER.zip"

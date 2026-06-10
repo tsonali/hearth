@@ -57,12 +57,11 @@ data/system_voices/*.wav
 data/memory.sqlite
 data/memory.sqlite-*
 
-# Same posture for the other per-user stores: the Ask-Your-Files index and
-# the user's built instruments. Both are created on first run.
-data/ask.sqlite
-data/ask.sqlite-*
-data/instruments.sqlite
-data/instruments.sqlite-*
+# Same posture for ALL per-user stores (Ask-Your-Files index, built
+# instruments, companion log, instrument corpora). Every store creates
+# itself on first run; none belongs in git.
+data/*.sqlite
+data/*.sqlite-*
 
 # Rendered session audio (WAV + MP3) — same privacy posture as memory:
 # local-only, never transmitted, never committed. Regenerable from the

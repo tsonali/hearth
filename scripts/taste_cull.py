@@ -7,7 +7,9 @@
  - no non-prose junk (JSON/knowledge-graph blobs)
  - one clean concrete scene that won't confuse the model
 Outputs survivors + cuts-with-reason."""
-import json, os, re
+import json, os, re, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
+from imagination_engine.postcheck import find_collapsed_paragraphs, find_degeneration_start
 A = os.path.expanduser("~/Downloads/hearth-corpus/A-imagination")
 jl = lambda p: [json.loads(l) for l in open(p)] if os.path.exists(p) else []
 
@@ -26,6 +28,11 @@ def first_words(t, n=45): return " ".join(t.split()[:n])
 def judge(t):
     head = first_words(t)
     if NOTPROSE.search(t[:300]): return "CUT", "non-prose junk (JSON/graph/code)"
+    # Decay culls (added 2026-06-10 after the QC campaign): training on the
+    # model's own broken-record loops or run-on grammar collapse REINFORCES
+    # them — these never enter the corpus, however vivid the clean part is.
+    if find_degeneration_start(t) is not None: return "CUT", "degenerate repetition loop"
+    if find_collapsed_paragraphs(t): return "CUT", "run-on grammar collapse"
     if PREACHY.search(head):     return "CUT", "preachy/explanatory intro"
     if META.search(t):           return "CUT", "immersion-breaking meta-commentary"
     if ODD.search(t):            return "CUT", "random name / odd reference"

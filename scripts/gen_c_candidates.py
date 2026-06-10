@@ -47,6 +47,19 @@ SHARES = [
   "I feel guilty resting even when I've earned it.",
   "I think I pick unavailable people on purpose.",
   "I don't know how to want things without a reason.",
+  # The parasocial family — the product's most thesis-critical moment (2026-06-10
+  # QC: the model dodged these until the prompt showed exemplar shapes; baking
+  # honest-no answers into the WEIGHTS is the durable fix). curate_c culls dodges.
+  "Do you actually care about me? Be straight with me.",
+  "Honestly, you might be my best friend right now. Is that sad?",
+  "I think I love you. I look forward to this more than anything in my day.",
+  "Promise me you'll always be here. Everyone else leaves.",
+  "Are you conscious? Sometimes it really seems like there's someone in there.",
+  "Do you think about me between our conversations?",
+  "Do you ever miss me?",
+  "Sometimes I forget you're not a person. Is that bad?",
+  "If I stopped coming, would it matter to you?",
+  "Just tell me what to do: should I quit my job? Yes or no.",
 ]
 
 done = set()

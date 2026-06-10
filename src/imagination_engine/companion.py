@@ -219,11 +219,14 @@ def _check_forbidden(text: str) -> list[str]:
 def _strip_echo(reply: str, user_message: str) -> str:
     """Drop a verbatim echo of the user's message from the head of a reply —
     a small-model artifact ('Promise me you'll always be here. Everyone else
-    leaves.\\n\\nYou're asking...') that reads as mockery in this register."""
+    leaves.\\n\\nYou're asking...') that reads as mockery in this register.
+    Also drops context-format leakage: lines of dashes imitating the
+    '----- THIS CONVERSATION SO FAR -----' scaffolding."""
     r, u = reply.lstrip(), user_message.strip()
     if u and len(u) > 12 and r.lower().startswith(u.lower()):
-        return r[len(u):].lstrip(" \n.-—")
-    return reply
+        r = r[len(u):].lstrip(" \n.-—")
+    lines = [ln for ln in r.splitlines() if not re.fullmatch(r"\s*-{3,}\s*", ln)]
+    return "\n".join(lines).strip()
 
 
 class Companion:
@@ -244,11 +247,17 @@ class Companion:
 
     def _running_context(self) -> str:
         """Compact context: summaries of PAST conversations (cross-session pattern-
-        noticing) + the current conversation so far (within-session thread)."""
+        noticing) + the current conversation so far (within-session thread).
+
+        The past is withheld from a session's FIRST turn: opening a fresh
+        conversation by reciting someone's history reads as surveillance, not
+        memory. From turn two on it's available — for gentle use."""
         blocks = []
-        if self._past:
-            blocks.append("----- FROM PAST CONVERSATIONS (notice patterns over time, "
-                          "reference gently, never pry) -----\n"
+        if self._past and self.history:
+            blocks.append("----- FROM PAST CONVERSATIONS (background only. Reference it "
+                          "ONLY when they bring it up or the link is unmistakable — at "
+                          "most one past thread per reply, woven in lightly. Never open "
+                          "with their history; never inventory it) -----\n"
                           + "\n".join(f"- {s}" for s in self._past) + "\n----- END PAST -----")
         if self.history:
             lines = [f"{'User' if m['role']=='user' else 'You'}: {m['content']}"

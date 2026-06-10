@@ -1,0 +1,8 @@
+#!/bin/bash
+# Hearth.app — opens the installer/runner so the user sees progress.
+REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ -f "$REPO/Start Hearth.command" ]; then
+  open -a Terminal "$REPO/Start Hearth.command"
+else
+  osascript -e 'display dialog "Keep Hearth.app inside the Hearth folder you downloaded." buttons {"OK"}'
+fi

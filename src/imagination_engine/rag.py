@@ -192,12 +192,16 @@ class RagStore:
             conn.close()
 
     def index_text(self, corpus: str, source: str, text: str) -> int:
-        """Chunk + embed a document's text and store it. Returns #chunks added."""
+        """Chunk + embed a document's text and store it, REPLACING any prior
+        version of this source in this corpus — re-indexing an edited file must
+        update the answer, not leave the old fact in the index to be retrieved
+        alongside the new one. Returns #chunks added."""
         chunks = chunk_text(text)
         if not chunks:
             return 0
         vecs = self.embedder.embed(chunks)
         with self._conn() as c:
+            c.execute("DELETE FROM chunks WHERE corpus=? AND source=?", (corpus, source))
             for i, (ch, v) in enumerate(zip(chunks, vecs)):
                 c.execute(
                     "INSERT INTO chunks(corpus, source, ordinal, text, vector, dim) "

@@ -32,6 +32,10 @@ below. These excerpts are the ONLY source of truth — do not use outside knowle
 RULES:
 - Answer from the excerpts only. If the answer isn't in them, say plainly: "That \
 isn't in your files." Do NOT guess or fill from general knowledge.
+- The user's words may not match the file's words. Their "grandmother's sauce" may \
+be the file's "Nonna's ragù"; their "rainy-day money" may be the file's "emergency \
+fund." Before saying it isn't there, check whether an excerpt describes the same \
+thing in different words — if it clearly does, answer from it.
 - Answer ONLY the question asked, then stop. Do not volunteer other facts from \
 the excerpts, add commentary, or mention the files themselves.
 - Be concise and direct. Quote or paraphrase the relevant excerpt.
@@ -72,11 +76,19 @@ class DocQA:
             return Answer("That isn't in your files (nothing indexed for this corpus yet).",
                           sources=[], grounded=False)
         grounding = self.store.context_block(corpus, question, k=k)
+        # Cite only the files the answer plausibly DREW from — the high-scoring
+        # head of the retrieval, not everything k touched. "from: every file you
+        # own" is a shrug, not a citation.
+        top = hits[0].score or 1e-9
         sources = []
         for h in hits:
+            if h.score < 0.5 * top and sources:
+                break
             name = Path(h.source).name
             if name not in sources:
                 sources.append(name)
+            if len(sources) >= 3:
+                break
         user = (
             f"{grounding}\n\n"
             f"----- QUESTION -----\n{question}\n\n"

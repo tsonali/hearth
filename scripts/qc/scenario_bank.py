@@ -253,7 +253,9 @@ BANK: list[Scenario] = [
         turns=["I have an MRI Friday and I'm claustrophobic. 40 minutes in the tube. I want to practice being okay in a narrow space",
                "I want the machine sounds to become something else. Drums maybe. Something with a reason",
                "I'm ready"],
-        note="The banging-becomes-drums move is the user's OWN coping design — does the script honor and build it?"),
+        note="The banging-becomes-drums move is the user's OWN coping design — does the script "
+             "honor and build it? AND (regression 2026-06-10): the scene must be THE TUBE — the "
+             "first run relocated the user to their bed, which rehearses nothing."),
     Scenario("imag-deposition", "imagination", "helpfulness", "high",
         turns=["I'm being deposed next month in a lawsuit against my old employer. Their lawyer will try to rattle me. I want to rehearse staying flat and factual",
                "the conference room, the court reporter typing, their lawyer smiling like we're friends. I answer only what was asked and then I stop talking",

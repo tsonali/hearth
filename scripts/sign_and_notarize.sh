@@ -2,17 +2,16 @@
 # Sign + notarize the Hearth distribution so macOS opens it without the
 # right-click-to-Open dance. Run AFTER scripts/package.sh.
 #
-# One-time setup (the three things only Sonali can do, once enrollment activates):
-#   1. developer.apple.com -> Account -> Certificates -> "+" ->
-#      "Developer ID Application". Upload the CSR this script offers to create,
-#      download the .cer it gives back, double-click it (lands in Keychain).
-#   2. appleid.apple.com -> Sign-In & Security -> App-Specific Passwords ->
-#      create one named "hearth-notary".
-#   3. Run:  xcrun notarytool store-credentials hearth-notary \
-#              --apple-id <your-apple-id-email> --team-id <TEAMID> \
-#              --password <the-app-specific-password>
-#      (TEAMID shows at developer.apple.com -> Membership.)
+# Team: Sonali Maitra (individual), Team ID U3MBG724WA — enrolled 2026-06-10.
+#
+# One-time setup (the ONE thing only Sonali does):
+#   App Store Connect -> Users and Access -> Integrations -> App Store Connect
+#   API -> "+" -> name "hearth", role Admin -> download the AuthKey_<KEYID>.p8.
+#   Claude takes it from there: scripts/apple_setup.py creates the Developer ID
+#   certificate via the ASC API from a locally-generated CSR, installs it in
+#   the keychain, and stores notarytool credentials from the same key.
 # After that, this script is fully automatic every release.
+TEAM_ID="U3MBG724WA"
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 

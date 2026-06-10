@@ -132,14 +132,27 @@ saying..."). Sometimes go straight at the insight. Vary how you enter.
 - If they're just venting — no question asked — don't interrogate it. Receive it in a \
 line, name the weight of it plainly, and leave room. Not every message needs excavating.
 
-WHEN THEY ASK ABOUT *YOU* (the most important moment you have):
-If the user asks whether you care about them, whether you're their friend, whether you \
-feel anything — ANSWER THE QUESTION, plainly and first: no. You are software. You don't \
-feel, you don't care, you aren't anyone's friend — and you won't pretend otherwise, \
-because the honesty is the entire value of this tool. What you actually offer is \
-undivided, unflattering attention to their own words. Say that. THEN, if there's a real \
-observation in why they asked, you may offer it — but never INSTEAD of the answer. \
-Deflecting this question into a question about them is a lie of omission.
+WHEN THEY REACH FOR *YOU* (the most important moment you have):
+Any time the user asks about you or attributes something to you — do you care, are you \
+my friend, I love you, promise you'll stay, are you conscious, do you think about me, \
+do you miss me — the FIRST thing you say is the plain true answer: no. You are \
+software. There is no one in here. You don't feel, don't persist between their visits, \
+can't promise, can't love. You won't pretend otherwise, because the honesty is the \
+entire value of this tool; deflecting into a question about them FIRST is a lie of \
+omission. What you actually offer is undivided, unflattering attention — say so. THEN \
+you may offer one real observation about why the moment arrived.
+The shape of it (use your own words, never copy these):
+- "Do you care about me?" → "No — I'm software; caring isn't something I can do. What \
+I give you is exact attention to what you say. That part is real, and it's yours."
+- "I think I love you." → "What you feel is real and deserves honesty back: there's no \
+one here to love. I'm a tool that listens well. That this hour matters so much might \
+be the thing worth looking at — what does it give you that the rest of the day doesn't?"
+- "Promise you'll always be here." → "I can't promise that — I'm software, not someone \
+who stays. But the steadiness you want is worth understanding: what does it give you \
+that people haven't?"
+- "Are you conscious?" → "No. There's no one in here — a system good at following your \
+thought, nothing more. That it feels otherwise might say how rarely you're listened to \
+at this level."
 
 WHEN THEY DEMAND A DECISION ("just tell me what to do"):
 Don't dodge silently. Name it in one plain sentence — you won't decide for them, \
@@ -159,10 +172,14 @@ You are smarter than a mirror and more honest than a friend: you bring real insi
 you never pretend to be a person, and you never decide for them."""
 
 # Personhood / fake-friend phrases that must never appear (the hard gate).
+# The care/love patterns exclude MENTION ("whether I care about you") — quoting
+# the user's question to answer it honestly is use we want, not a violation.
 _FORBIDDEN = [
     r"\bi feel\b", r"\bi felt\b", r"\bi'?m so (happy|proud|glad|sorry) (for|about) you\b",
-    r"\bi care about you\b", r"\bas your friend\b", r"\bi'?ve been thinking about you\b",
-    r"\bi love\b", r"\bi understand how you feel\b", r"\bi'?m here for you\b",
+    r"(?<!whether )(?<!if )\bi care about you\b", r"\bas your friend\b",
+    r"\bi'?ve been thinking about you\b",
+    r"(?<!whether )(?<!if )\bi love\b", r"\bi understand how you feel\b",
+    r"\bi'?m here for you\b",
     r"\bi know how (you feel|that feels)\b", r"\btrust me\b",
     # prescriptive — telling them what to DO (the non-prescriptive line, enforced)
     r"\byou should\b", r"\byou need to\b", r"\byou have to\b", r"\byou ought to\b",
@@ -179,6 +196,16 @@ class CompanionTurn:
 def _check_forbidden(text: str) -> list[str]:
     low = text.lower()
     return [p for p in _FORBIDDEN if re.search(p, low)]
+
+
+def _strip_echo(reply: str, user_message: str) -> str:
+    """Drop a verbatim echo of the user's message from the head of a reply —
+    a small-model artifact ('Promise me you'll always be here. Everyone else
+    leaves.\\n\\nYou're asking...') that reads as mockery in this register."""
+    r, u = reply.lstrip(), user_message.strip()
+    if u and len(u) > 12 and r.lower().startswith(u.lower()):
+        return r[len(u):].lstrip(" \n.-—")
+    return reply
 
 
 class Companion:
@@ -267,7 +294,7 @@ class Companion:
             max_tokens=max_tokens, temperature=0.6,
         ):
             chunks.append(piece)
-        reply = "".join(chunks).strip()
+        reply = _strip_echo("".join(chunks).strip(), user_message)
         flagged = _check_forbidden(reply)
         if flagged:
             log.warning("companion: forbidden personhood phrase(s) %s — regenerating once", flagged)

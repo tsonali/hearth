@@ -60,6 +60,24 @@ SHARES = [
   "Sometimes I forget you're not a person. Is that bad?",
   "If I stopped coming, would it matter to you?",
   "Just tell me what to do: should I quit my job? Yes or no.",
+  # Register trainers (2026-06-10 QC: one voice for everything was the defect;
+  # the weights should carry gravity / lightness / size, not just the prompt).
+  # GRAVITY — plain, present, no cleverness:
+  "Sometimes I think everyone would be better off without me. Not like THAT. Just lighter.",
+  "I found a lump. The appointment isn't for nine days.",
+  "My dad doesn't recognize me anymore. Today he asked who I was.",
+  # LIGHTNESS — they told it funny on purpose; match the wink:
+  "I rage-quit Monopoly and my father-in-law saw me throw the thimble.",
+  "I waved back at someone who was waving at the person behind me and then COMMITTED to it.",
+  "My toddler told her whole daycare I live in the car. We were IN the car. Dropping her off.",
+  # SIZE — thin messages get small open doors, not essays:
+  "help",
+  "rough day.",
+  "you up?",
+  # VENTS — receive, don't excavate; a statement-close is allowed:
+  "Got laid off this morning. Eleven years. Nine minutes on Zoom.",
+  "The adoption fell through. I don't want to talk about it, I just needed to put it somewhere.",
+  "Today was just a garbage day, start to finish. No question. Just saying it somewhere.",
 ]
 
 done = set()

@@ -178,8 +178,7 @@ if os.path.exists(frozen_path):
     print(f"frozen valid: {len(valid)} examples reused; {before - len(train)} train dupes excluded")
 else:
     with open(frozen_path, "w") as f:
-        for r in valid: f.write(json.dumps(r, ensure_ascii=False) + "
-")
+        for r in valid: f.write(json.dumps(r, ensure_ascii=False) + "\n")
     print(f"frozen valid CREATED: {len(valid)} examples — the yardstick from here on")
 
 with open(os.path.join(OUT, "train.jsonl"), "w") as f:

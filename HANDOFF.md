@@ -32,6 +32,15 @@ Hearth is a **functionally complete, working v0** — all four tools run end-to-
   adapter (`_train/best_adapters/`), stops at plateau. Logs: `_logs/recursive.log`.
 - **caffeinate ON** mini + laptop (don't sleep).
 
+## LATEST QC PASS (2026-06-09, evening — all five tools re-read through the real model)
+Companion + Imagination intake passed clean. Three weak spots found and FIXED (prompt
+layer, verified by re-run): Ask-Your-Files no longer rambles or cites in-text (UI shows
+sources); Build-Your-Own personas can't open with assistant hedges ("I think…");
+Secretary firm drafts keep a real email frame ([Landlord's Name] / [Your name]).
+Also: NO sqlite ships anymore — all per-user stores untracked + blanket-ignored +
+stripped/audited in package.sh (zip went 15MB→5.3MB). The old committed ask.sqlite held
+only public-domain Gutenberg test text — no private leak, no history rewrite needed.
+
 ## NEXT ACTIONS (the autonomous loop — keep going without asking)
 1. When the trainer beats 1.193, pull the best adapter to the product + re-QC:
    `scp 'smaitra@mac-mini.localdomain:~/Downloads/hearth-corpus/_train/best_adapters/*.safetensors' data/model/adapters/`

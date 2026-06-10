@@ -355,6 +355,7 @@ def intake_start(protocol: str = "immersion") -> JSONResponse:
 
 @app.post("/intake/turn")
 def intake_turn(req: IntakeTurnRequest) -> JSONResponse:
+    _require_size(req.message, CHAT_MAX_CHARS)
     try:
         response, ready = get_intake_manager().turn(req.session_id, req.message)
     except KeyError as e:
@@ -559,6 +560,7 @@ class CompanionRequest(BaseModel):
 @app.post("/companion/turn")
 async def companion_turn(req: CompanionRequest) -> JSONResponse:
     """One turn with the honest reflective companion (Family C)."""
+    _require_size(req.message, CHAT_MAX_CHARS)
     from imagination_engine.companion import Companion
     comp = _companions.get(req.session_id)
     if comp is None:
@@ -615,6 +617,7 @@ async def ask_index(req: IndexRequest) -> JSONResponse:
 @app.post("/ask/query")
 async def ask_query(req: AskRequest) -> JSONResponse:
     """Answer a question grounded ONLY in the indexed files. Refuses if not present."""
+    _require_size(req.question, CHAT_MAX_CHARS, "question")
     ans = await run_in_threadpool(_get_docqa().ask, req.corpus, req.question)
     return JSONResponse({"answer": ans.text, "sources": ans.sources, "grounded": ans.grounded})
 
@@ -655,9 +658,27 @@ class UtilityRequest(BaseModel):
     style_sample: str = ""
 
 
+# Input ceilings — a local model has a real context window; pasting a book into
+# it should get a clean, honest "too long", not a multi-minute hang or an
+# indexing crash (battery 6: a 1MB paste tokenized to 200k vs the 131k window).
+UTILITY_MAX_CHARS = 60_000   # ~15k tokens — a very long doc, still responsive
+CHAT_MAX_CHARS = 8_000       # single conversational message
+
+
+def _require_size(text: str, limit: int, what: str = "message") -> None:
+    if text and len(text) > limit:
+        raise HTTPException(
+            status_code=413,
+            detail=(f"That {what} is too long for the on-device model "
+                    f"({len(text):,} characters; the limit is {limit:,}). "
+                    "Split it into parts or trim it down."))
+
+
 @app.post("/utility/run")
 def utility_run(req: UtilityRequest) -> StreamingResponse:
     """Run one utility task, streaming the finished artifact back as it's written."""
+    _require_size(req.text, UTILITY_MAX_CHARS, "text")
+    _require_size(req.style_sample, UTILITY_MAX_CHARS, "style sample")
     assistant = _get_assistant()
 
     def stream() -> Iterator[bytes]:
@@ -750,6 +771,7 @@ class BuildAskRequest(BaseModel):
 @app.post("/build/ask")
 async def build_ask(req: BuildAskRequest) -> JSONResponse:
     """Talk to a built instrument. Opens (and caches) it, then asks."""
+    _require_size(req.message, CHAT_MAX_CHARS)
     from imagination_engine.instrument import open_instrument
 
     inst = _open_instruments.get(req.name)

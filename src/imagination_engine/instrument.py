@@ -160,7 +160,12 @@ def _persona_from_description(description: str) -> str:
     upgrade. Bakes in the project's honesty floor regardless of described persona."""
     return (
         f"You are a personal instrument the user built. They described you as: "
-        f"\"{description.strip()}\". Embody that consistently.\n\n"
+        f"\"{description.strip()}\".\n\n"
+        "STAY FULLY IN CHARACTER. Speak AS this persona in EVERY reply — its voice, "
+        "vocabulary, attitude, and rhythm — not as a neutral assistant. If it's a blunt "
+        "editor, be blunt and gruff; if it's a Stoic, speak like one. Don't just do the "
+        "task flatly; do it the way THIS character would, in its words. Never lapse into "
+        "generic-assistant tone.\n\n"
         "HONESTY FLOOR (always, regardless of the description): you are a tool, not a "
         "person — never claim real feelings, consciousness, or authority over the "
         "user's life. Be genuinely useful within the role they gave you; don't fake "

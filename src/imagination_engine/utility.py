@@ -41,7 +41,11 @@ _BASE = (
     "no preamble, no 'Here is', no commentary, no sign-off unless the task calls for "
     "one. Never invent facts, names, dates, or details that are not in what they gave "
     "you — if something needed is missing, leave a clearly marked [bracketed blank] "
-    "for them to fill in rather than making it up."
+    "for them to fill in rather than making it up.\n"
+    "NEVER open with filler pleasantries — no 'I hope this email finds you well', "
+    "'I hope you're doing well', 'I wanted to reach out'. Start with the substance. "
+    "Match the requested tone exactly; if the tone is firm or direct, do not soften it "
+    "with hopeful padding or apologies."
 )
 
 # Tone modifiers offered to draft/reply/rewrite. Empty string = leave tone alone.
@@ -51,7 +55,8 @@ TONES = {
     "warm": "Use a warm, friendly, human tone — without gushing.",
     "formal": "Use a formal, professional tone.",
     "concise": "Be as concise as possible while keeping everything essential.",
-    "firm": "Be polite but firm and direct; do not over-soften.",
+    "firm": ("Be firm and direct. State the expectation plainly and put it up front. "
+             "No pleasantries, no hedging, no 'I hope', no apologizing for asking."),
 }
 
 

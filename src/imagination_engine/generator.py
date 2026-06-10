@@ -52,6 +52,7 @@ from typing import Callable, Optional
 
 from imagination_engine.comprehension import Classification, classify_intake
 from imagination_engine.inference import Engine
+from imagination_engine.postcheck import degeneration_report, trim_degenerate_tail
 from imagination_engine.scene_bibles import get_bible
 from imagination_engine.structured import extract_array
 
@@ -493,6 +494,14 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
             "Now write the full settling session per the rules above.")
     body = _generate(engine, SETTLING_PROMPT, user, max_tokens=BODY_MAX_TOKENS)
 
+    # Long single-pass generations can decay into broken-record loops (the same
+    # sentence recycled with tiny variations, grammar degrading). Cut the rot
+    # BEFORE deciding whether we need more — a shorter clean wind-down beats a
+    # long looping one, and the continuation below restores length honestly.
+    body, trimmed = trim_degenerate_tail(body)
+    if trimmed:
+        log.warning("[settling] degenerate tail trimmed -> %d words", len(body.split()))
+
     if len(body.split()) < SETTLING_MIN_WORDS:
         emit("writing_body", "Deepening the wind-down.", 3, 3, 45.0)
         cont = _generate(engine, SETTLING_PROMPT,
@@ -502,7 +511,12 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
                          "Let it trail off at the very end.",
                          max_tokens=BODY_MAX_TOKENS)
         if cont.strip():
-            body = body.rstrip() + "\n\n" + cont.strip()
+            # Trim the JOINED text: a continuation that loops against the body
+            # (not just against itself) is the same defect.
+            body, trimmed2 = trim_degenerate_tail(body.rstrip() + "\n\n" + cont.strip())
+            if trimmed2:
+                log.warning("[settling] continuation loop trimmed -> %d words",
+                            len(body.split()))
 
     emit("writing_return", "Softening the close.", 3, 3, 3.0)
     log.info("[settling] session ready: %d words", len(body.split()))
@@ -704,6 +718,12 @@ def generate_session(
     log.info("  back: %.1fs, %d words", time.time() - t0, len(closing.split()))
 
     full = f"{open_text}\n\n{body}\n\n{closing}"
+    # Report-only for the staged pipeline (short per-beat calls rarely loop):
+    # log if degeneration is ever detected here so we have the data before
+    # deciding whether the immersion path needs the trim too.
+    rep = degeneration_report(full)
+    if rep.get("degenerate"):
+        log.warning("[v6] degeneration DETECTED in staged script (not trimmed): %s", rep)
     log.info(
         "[v6] session ready: %d total words (open=%d, body=%d from %d-beat plan, back=%d)",
         len(full.split()),

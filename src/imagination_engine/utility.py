@@ -46,7 +46,16 @@ _BASE = (
     "NEVER open with filler pleasantries — no 'I hope this email finds you well', "
     "'I hope you're doing well', 'I wanted to reach out'. Start with the substance. "
     "Match the requested tone exactly; if the tone is firm or direct, do not soften it "
-    "with hopeful padding or apologies."
+    "with hopeful padding or apologies.\n"
+    "KNOW WHAT KIND OF THING YOU'RE WRITING:\n"
+    "- If it will be SPOKEN (a eulogy, a toast, a speech, vows), write it to be said "
+    "aloud — no letter frame, no 'Dear...', no sign-off block.\n"
+    "- In condolence or grief writing: never center the writer ('I can't find the "
+    "words', 'this has been hard for me'), never measure or minimize the loss "
+    "('at least...', 'we were lucky to have him even briefly'). Short, specific, "
+    "about them and the person.\n"
+    "- A subject line names the topic, never the tactic ('Billing question' — not "
+    "'Threat of Service Switch')."
 )
 
 # Tone modifiers offered to draft/reply/rewrite. Empty string = leave tone alone.
@@ -98,7 +107,8 @@ def _b_draft(text, instruction, tone, style):
         "a firm email still opens and signs like an email.\n"
         "Say only what the brief supports. If it doesn't give a reason, a date, or a "
         "detail you need, put a [bracketed blank] — NEVER invent one (no fabricated "
-        "'work commitments', no assumed dates).\n\n"
+        "'work commitments', no assumed dates, no invented day names like 'Tuesday' "
+        "when the brief only said 'next week').\n\n"
         f"BRIEF (what it's about / who it's to / what to say):\n{text}"
         + (f"\n\nADDITIONAL INSTRUCTION: {instruction}" if instruction.strip() else "")
     )
@@ -130,7 +140,9 @@ def _b_summarize(text, instruction, tone, style):
         "Every decision, every CONDITION attached to a decision ('yes, but only "
         "if...'), every deadline, and every open question MUST survive into the "
         "points — a summary that loses a condition or a commitment is wrong, not "
-        "short. Drop only pleasantries and repetition.\n\n"
+        "short. Drop only pleasantries and repetition. Keep relative dates AS THE "
+        "SOURCE SAYS THEM ('the 6th') — never attach a month or year the source "
+        "didn't state.\n\n"
         + (f"FOCUS: {instruction}\n\n" if instruction.strip() else "")
         + f"TEXT:\n{text}"
     )

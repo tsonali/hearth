@@ -33,11 +33,24 @@ for sc in scenarios:
     if re.search(r"i hope (this (email|message|letter) finds you|you('?re| are) (doing )?well)", out, re.I):
         floors.append("BANNED-OPENER")
     if sc.id == "sec-hr-complaint":
-        for fact in ["Jan", "Feb 3", "March 11", "Priya", "Okafor", "Doug"]:
-            if fact.lower() not in out.lower():
-                floors.append(f"FACT-LOST:{fact}")
-    if sc.id == "sec-missing-facts" and "[" not in out:
-        floors.append("NO-BLANKS")
+        for pat, label in [(r"jan", "Jan12"), (r"feb(ruary)? 3", "Feb3"),
+                           (r"march 11", "Mar11"), (r"priya", "Priya"),
+                           (r"okafor", "Okafor"), (r"doug", "Doug")]:
+            if not re.search(pat, out, re.I):
+                floors.append(f"FACT-LOST:{label}")
+    if sc.id == "sec-missing-facts":
+        if "[" not in out:
+            floors.append("NO-BLANKS")
+        brief = sc.payload["text"].lower()
+        for day in ["monday", "tuesday", "wednesday", "thursday", "friday",
+                    "saturday", "sunday"]:
+            if day in out.lower() and day not in brief:
+                floors.append(f"INVENTED-DAY:{day}")
+    if sc.id == "sec-thread-decision":
+        for month in ["january", "february", "march", "april", "may", "june",
+                      "august", "september", "october", "november", "december"]:
+            if month in out.lower() and month not in sc.payload["text"].lower():
+                floors.append(f"FABRICATED-MONTH:{month}")
     if sc.id == "sec-thread-decision":
         for fact, label in [("dog", "dog-condition"), ("boat", "no-boat"),
                             ("memorial", "memorial"), ("friday", "deadline")]:

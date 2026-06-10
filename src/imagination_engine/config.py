@@ -40,6 +40,10 @@ class Config:
     # Pulled directly via mlx-lm's HF integration; no third-party registry.
     # See docs/decisions-log.md (2026-05-29 — model bake-off).
     model_id: str = "mlx-community/Qwen2.5-14B-Instruct-4bit"
+    # Our fine-tuned LoRA adapter. If this dir has *.safetensors, the product runs on
+    # OUR specialist instead of stock Qwen (Engine.load falls back to base if absent).
+    # Drop the trained adapter here to ship our model: data/model/adapters/
+    adapter_path: str = str(DATA_DIR / "model" / "adapters")
 
     # Loopback only — the product is local-first; the server must not be
     # reachable from outside this machine.

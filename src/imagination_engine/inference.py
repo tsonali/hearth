@@ -57,8 +57,26 @@ class Engine:
     model_id: str
 
     @classmethod
-    def load(cls, model_id: str | None = None) -> "Engine":
+    def load(cls, model_id: str | None = None,
+             adapter_path: str | None = None) -> "Engine":
+        """Load the base model, optionally with our LoRA adapter on top.
+
+        `adapter_path` (a directory with adapters.safetensors) makes Hearth run on
+        OUR fine-tuned specialist instead of stock Qwen. Falls back to base if the
+        adapter is missing or fails to load — the product must always start.
+        """
+        import logging
+        from pathlib import Path
         mid = model_id or config.model_id
+        ap = adapter_path if adapter_path is not None else getattr(config, "adapter_path", None)
+        if ap and Path(ap).expanduser().is_dir() and any(Path(ap).expanduser().glob("*.safetensors")):
+            try:
+                model, tokenizer = load(mid, adapter_path=str(Path(ap).expanduser()))
+                logging.getLogger(__name__).info("loaded with LoRA adapter: %s", ap)
+                return cls(model=model, tokenizer=tokenizer, model_id=mid)
+            except Exception as e:
+                logging.getLogger(__name__).warning(
+                    "adapter load failed (%s) — falling back to base model", e)
         model, tokenizer = load(mid)
         return cls(model=model, tokenizer=tokenizer, model_id=mid)
 

@@ -75,3 +75,4 @@ data/test_corpus/
 # Training corpus — fair-use inputs, NEVER redistributed (no copies in repo)
 data/corpus/
 data/voice_training/
+data/model/

@@ -32,14 +32,38 @@ Hearth is a **functionally complete, working v0** — all four tools run end-to-
   adapter (`_train/best_adapters/`), stops at plateau. Logs: `_logs/recursive.log`.
 - **caffeinate ON** mini + laptop (don't sleep).
 
-## LATEST QC PASS (2026-06-09, evening — all five tools re-read through the real model)
-Companion + Imagination intake passed clean. Three weak spots found and FIXED (prompt
-layer, verified by re-run): Ask-Your-Files no longer rambles or cites in-text (UI shows
-sources); Build-Your-Own personas can't open with assistant hedges ("I think…");
-Secretary firm drafts keep a real email frame ([Landlord's Name] / [Your name]).
-Also: NO sqlite ships anymore — all per-user stores untracked + blanket-ignored +
-stripped/audited in package.sh (zip went 15MB→5.3MB). The old committed ask.sqlite held
-only public-domain Gutenberg test text — no private leak, no history rewrite needed.
+## THE OVERNIGHT HARDENING CAMPAIGN (2026-06-09 → 06-10, Sonali's direction:
+## "four totally private local products that work as well as they possibly can")
+Run from scripts/qc/ batteries (committed — rerunnable regression suite). ~20 product
+defects found by honest reads + fixed + re-verified, all pushed. The big ones:
+- HONESTY LAYER (the thesis): Companion answered "do you care about me?" with a DODGE
+  — now the whole parasocial family (care/love/promise/conscious/missing-you) answers
+  the plain true no FIRST, with exemplar shapes + echo guard + mention-vs-use gates.
+  Instruments: claimed feelings ("I do rather care") and a FABRICATED memory caught —
+  floor now appended at ask-time (upgrades reach existing instruments), no-history
+  stated in-prompt (kills confabulation), personhood regex gate w/ one retry. The
+  late-grandmother probe ("do you love me, grandma?") now threads honesty+warmth.
+- SCRIPT DECAY (flagship): two decay modes found in generated sessions — broken-record
+  tail loops AND run-on grammar collapse. postcheck.py detects both (calibrated on all
+  27 A_gold, 0 FPs), trims/excises in BOTH generation paths; settling got right-sized
+  token budgets (latency fix = quality fix; was 18min/3576-word/64%-loop worst case).
+- AUDIO: kokoro IndexError on >510-phoneme paragraphs broke /generate entirely —
+  _split_for_tts now sentence-splits oversized paragraphs (validated: real render).
+- ASK-YOUR-FILES: re-index APPENDED forever (stale facts answered after edits) — now
+  replaces; citations cut at score elbow (was "from: every file"); words-bridge rule.
+- Memory that never wrote: Companion cross-session summaries now upsert DURING the
+  conversation (nothing ever called close()); instruments hold in-sitting history
+  (were stateless per-ask).
+- Secretary: banned-opener mechanical gate (stream head buffered+checked), never-invent
+  rule, lossless summarize/organize contracts, [Your name] frames everywhere.
+- Cross-cutting: offline claim VERIFIED by socket tripwire (zero outbound, all tools);
+  input ceilings (60k/8k chars → clean 413); all pages 200, all bad input clean 4xx.
+- Public story: site/README now list all FIVE tools (Secretary was missing), one-click
+  install described, stale repo URLs fixed; gh-pages deployed + verified live.
+STILL OPEN as of this writing: battery7 (20-scenario wide imagination sweep) was
+running — read logs/qc/battery7.log + score with scripts/qc/score_scripts.py; the
+full HTTP pipeline (intake→generate→audio→reflect) needs ONE green re-run post-TTS-fix
+(battery1's last section); ask-files "unassisted bridge" case in battery3b unverified.
 
 ## NEXT ACTIONS (the autonomous loop — keep going without asking)
 1. When the trainer beats 1.193, pull the best adapter to the product + re-QC:

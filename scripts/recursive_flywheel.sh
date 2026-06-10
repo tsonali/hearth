@@ -10,22 +10,40 @@ BEST=~/Downloads/hearth-corpus/_train/best_adapters; mkdir -p "$BEST"
 ADAP=~/Downloads/hearth-corpus/_train/adapters
 say(){ echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$L/recursive.log"; }
 
-MAX=${HEARTH_MAX_TURNS:-8}
+MAX=${HEARTH_MAX_TURNS:-15}
 best_loss=$(cat "$BEST/best_loss.txt" 2>/dev/null || echo 1.193)   # seed w/ current best
 no_improve=0
 say "recursive flywheel start — MAX=$MAX, seed best_loss=$best_loss"
 
 for turn in $(seq 1 "$MAX"); do
-  if [ $((turn % 2)) -eq 1 ]; then
-    say "turn $turn — grow A (imagination)"
-    HEARTH_GEN_FRESH=1 python scripts/gen_a_candidates.py >> "$L/gen_a.log" 2>&1 || true
-    python scripts/promote_a.py >> "$L/recursive.log" 2>&1 || true
-    python scripts/taste_cull.py >> "$L/recursive.log" 2>&1 || true
-  else
-    say "turn $turn — grow C (companion)"
-    HEARTH_GEN_FRESH=1 python scripts/gen_c_candidates.py >> "$L/gen_c.log" 2>&1 || true
-    python scripts/curate_c.py >> "$L/recursive.log" 2>&1 || true
-  fi
+  case $((turn % 5)) in
+    1)
+      say "turn $turn — grow A (imagination)"
+      HEARTH_GEN_FRESH=1 python scripts/gen_a_candidates.py >> "$L/gen_a.log" 2>&1 || true
+      python scripts/promote_a.py >> "$L/recursive.log" 2>&1 || true
+      python scripts/taste_cull.py >> "$L/recursive.log" 2>&1 || true
+      ;;
+    2)
+      say "turn $turn — grow B (secretary, contract-native)"
+      HEARTH_GEN_FRESH=1 python scripts/gen_b_candidates.py >> "$L/gen_b.log" 2>&1 || true
+      python scripts/curate_b.py >> "$L/recursive.log" 2>&1 || true
+      ;;
+    3)
+      say "turn $turn — grow C (companion)"
+      HEARTH_GEN_FRESH=1 python scripts/gen_c_candidates.py >> "$L/gen_c.log" 2>&1 || true
+      python scripts/curate_c.py >> "$L/recursive.log" 2>&1 || true
+      ;;
+    4)
+      say "turn $turn — grow D (instruments, contract-native)"
+      HEARTH_GEN_FRESH=1 python scripts/gen_d_candidates.py >> "$L/gen_d.log" 2>&1 || true
+      python scripts/curate_d.py >> "$L/recursive.log" 2>&1 || true
+      ;;
+    0)
+      say "turn $turn — grow E (grounded-QA contract)"
+      HEARTH_GEN_FRESH=1 python scripts/gen_e_candidates.py >> "$L/gen_e.log" 2>&1 || true
+      python scripts/curate_e.py >> "$L/recursive.log" 2>&1 || true
+      ;;
+  esac
 
   python scripts/build_training_data.py >> "$L/recursive.log" 2>&1 || true
   rm -f "$ADAP"/*.safetensors
@@ -45,7 +63,7 @@ for turn in $(seq 1 "$MAX"); do
   else
     no_improve=$((no_improve+1))
     say "turn $turn — no improvement ($no_improve/2)"
-    [ "$no_improve" -ge 2 ] && { say "PLATEAU — stopping"; break; }
+    [ "$no_improve" -ge 5 ] && { say "PLATEAU (full family cycle without improvement) — stopping"; break; }
   fi
 done
 

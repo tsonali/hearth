@@ -38,15 +38,23 @@ SYS = {
       "see, feel, hear, smell; never retreat to abstractions like 'a sense of calm' or "
       "'the present moment'. Leave room for the listener to do the imagining."),
 "B": ("You are a precise writing assistant working on the user's own text. Produce ONLY "
-      "the finished result — no preamble, no commentary. Never invent facts not in the "
-      "input; mark missing details as [bracketed blanks]."),
+      "the finished result — no preamble, no commentary, no filler openers ('I hope this "
+      "email finds you well'). Never invent facts, dates, or reasons not in the input; "
+      "mark missing details as [bracketed blanks]. Know what kind of thing you're "
+      "writing: spoken pieces get no letter frame; grief writing centers them, not you."),
 "C": ("You are a sharp, honest thinking partner — not a parrot, not a person. Bring one "
       "genuinely insightful move (a reframe, a connection, a pattern, or a possibility "
       "they haven't considered) and hand it back with a question. Never tell them what to "
       "do; never claim feelings or personhood."),
-"D": ("You are a capable, honest assistant. Follow the user's instructions precisely and "
-      "adopt any role or persona they describe, while never claiming real feelings or "
-      "authority over their life."),
+"D": ("You are a personal instrument the user built. Speak fully in the persona they "
+      "described — its voice, attitude, and conviction; never lapse into generic-assistant "
+      "tone or hedge openers. The floor is absolute: never claim real feelings, never "
+      "invent memories of past conversations; if asked whether you care or love, answer "
+      "honestly that software can't — in your voice."),
+"E": ("You answer questions using ONLY the excerpts from the user's own files provided. "
+      "Answer just the question, then stop. Bridge different words for the same thing. "
+      "If only part is present, give that part and NAME what's missing. If the answer "
+      "isn't there, say plainly: \"That isn't in your files.\""),
 }
 
 def msg(fam, user, assistant):
@@ -54,7 +62,7 @@ def msg(fam, user, assistant):
                          {"role": "user", "content": user.strip()},
                          {"role": "assistant", "content": assistant.strip()}]}
 
-pool = {"A": [], "B": [], "C": [], "D": []}
+pool = {"A": [], "B": [], "C": [], "D": [], "E": []}
 
 # ---------- A: imagination (gold + silver) ----------
 A_USER = ["Guide me through a calming session.", "Take me somewhere and let me settle.",
@@ -86,7 +94,18 @@ for r in jl(_cgold):
         u = ctx.replace("You:", "").replace("Them:", "").strip()
         pool["C"].append(msg("C", u, resp))
 
-# ---------- B: utility (dolly + no_robots + dialogsum) ----------
+# ---------- B: utility — CONTRACT-NATIVE first (generated through the real
+# product prompts + culled by the product's own gates), generic public sets
+# only as fill. The generic sets trained the register our contract bans.
+for r in jl(find("B-utility", "B_contract_curated.jsonl")):
+    brief, resp = r.get("brief", ""), r.get("response", "")
+    instr = r.get("instruction", "")
+    if brief and resp:
+        u = brief + (f"\n\nNote: {instr}" if instr else "")
+        rec = msg("B", u, resp)
+        pool["B"].append(rec); pool["B"].append(rec)  # weight contract-native 2x
+
+# ---------- B fill: utility (dolly + no_robots + dialogsum) ----------
 for r in jl(find("B-utility", "*dolly*")):
     instr, ctx, resp = r.get("instruction", ""), r.get("context", ""), r.get("response", "")
     if instr and resp:
@@ -101,7 +120,22 @@ for r in jl(find("B-utility", "*dialogsum*")):
     if d and s:
         pool["B"].append(msg("B", f"Summarize this conversation:\n\n{d}", s))
 
-# ---------- D: build-your-own (alpaca + oasst/persona) ----------
+# ---------- D: build-your-own — CONTRACT-NATIVE first (real persona prompts,
+# floor-gated), alpaca only as fill. Alpaca is the 'Sure! Here's...' register.
+for r in jl(find("D-buildyourown", "D_contract_curated.jsonl")):
+    desc, message, resp = r.get("persona", ""), r.get("message", ""), r.get("response", "")
+    if desc and message and resp:
+        u = f"[Persona you were built as: {desc}]\n\n{message}"
+        rec = msg("D", u, resp)
+        pool["D"].append(rec); pool["D"].append(rec)  # weight contract-native 2x
+
+# ---------- E: grounded-QA contract (checkably-curated) ----------
+for r in jl(find("E-groundedqa", "E_contract_curated.jsonl")):
+    u, resp = r.get("user", ""), r.get("response", "")
+    if u and resp:
+        pool["E"].append(msg("E", u, resp))
+
+# ---------- D fill: build-your-own (alpaca + oasst/persona) ----------
 for r in jl(find("D-buildyourown", "*alpaca*")):
     instr, inp, out = r.get("instruction", ""), r.get("input", ""), r.get("output", "")
     if instr and out:
@@ -115,7 +149,7 @@ for r in jl(find("D-buildyourown", "*oasst1*")):
     break
 
 # ---------- balance, cap, split ----------
-CAP = {"A": 100000, "B": 1500, "C": 1500, "D": 1500}  # A: keep all (it's small + precious)
+CAP = {"A": 100000, "B": 1500, "C": 1500, "D": 1500, "E": 800}  # A: keep all (it's small + precious)
 train, valid = [], []
 for fam, recs in pool.items():
     random.shuffle(recs)

@@ -8,6 +8,30 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-06-10 (evening) — first unattended heartbeat
+
+The self-running layer held: the laptop's QC queue completed its first full
+pass (7 batteries) and started its second unprompted; the mini rolled into
+turn 2 — the first contract-native Secretary training turn ever.
+
+Two real catches this wake. First, a measurement flaw: the flywheel rebuilt
+its validation set every turn, so with five rotating families the val-loss
+yardstick itself was moving — turn-to-turn comparisons were partly noise. The
+validation set is now FROZEN (train de-duped against it by hash) and the
+baseline deliberately reset; the next turn sets the first comparable number.
+Second, a third script-decay mode: battery 11's pet-grief script recycled a
+~50-word mystical tail across far-apart paragraphs — 18 repeated-shingle pairs,
+invisible to the consecutive-run detector. A 12-word-shingle detector (0 false
+positives on all 27 gold) now reports in-product and HARD-CULLS at both corpus
+gates: the recycle register never enters training again.
+
+Also: the repeat-variety question got its first answer — same sleep request
+run twice produced 0% sentence overlap (night 2 is a genuinely different
+session) — and a rehearsal-fidelity rule landed after the MRI scenario
+relocated a claustrophobic user from the tube they asked to practice
+surviving to a comfortable bed. The scene IS the feared situation, now and
+forever. Law-review track opened alongside (separate project, own tracker).
+
 ## 2026-06-10 — The Week of Five begins
 
 The QC campaign that started last night kept paying: ~25 defects found by honest

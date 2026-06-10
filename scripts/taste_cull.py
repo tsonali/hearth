@@ -43,7 +43,8 @@ def judge(t):
     return "KEEP", ""
 
 rows = []
-for tier_file, tier in [("A_gold.jsonl","gold"), ("A_silver.jsonl","silver")]:
+for tier_file, tier in [("A_gold.jsonl","gold"), ("A_silver.jsonl","silver"),
+                        ("A_qc_harvest.jsonl","silver")]:
     for r in jl(f"{A}/{tier_file}"):
         t = re.sub(r"\[\d+(\.\d+)?\]","",r["text"]).strip()
         # strip provenance/frontmatter contamination (Sonali caught the va-001 leak)

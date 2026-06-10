@@ -99,6 +99,49 @@ def trim_degenerate_tail(text: str) -> tuple[str, bool]:
     return text[:start].rstrip(), True
 
 
+# --- run-on collapse: the OTHER decay mode -----------------------------------
+# Nothing repeats, but grammar disintegrates into an unpunctuated word-stream
+# ("vast empty stretch Half Moon Bay's beach offers during this quietest time
+# year where usually tourists flock instead remain few..."). Discriminator: a
+# very long sentence with almost no internal punctuation. Deliberate long
+# guided-script sentences breathe — commas every 8-12 words; collapsed ones
+# run 60+ words with punctuation rarer than 1 per 15 words.
+RUNON_WORDS = 60
+RUNON_PUNCT_RATIO = 1 / 15
+
+_PUNCT = re.compile(r"[,;:—–-]")
+
+
+def _is_collapsed(sentence: str) -> bool:
+    words = len(sentence.split())
+    if words < RUNON_WORDS:
+        return False
+    punct = len(_PUNCT.findall(sentence))
+    return (punct / words) < RUNON_PUNCT_RATIO
+
+
+def find_collapsed_paragraphs(text: str) -> list[int]:
+    """Indices of paragraphs containing a run-on grammar collapse."""
+    out = []
+    for i, para in enumerate(text.split("\n\n")):
+        if any(_is_collapsed(s) for s in _sentences(para)):
+            out.append(i)
+    return out
+
+
+def drop_collapsed_paragraphs(text: str) -> tuple[str, int]:
+    """Remove collapsed paragraphs entirely. Paragraphs in these long bodies are
+    semi-independent moments, so excising one reads as a pause, not a hole —
+    while a collapsed paragraph read aloud shatters the session. Returns
+    (text, n_dropped)."""
+    paras = text.split("\n\n")
+    bad = set(find_collapsed_paragraphs(text))
+    if not bad:
+        return text, 0
+    kept = [p for i, p in enumerate(paras) if i not in bad]
+    return "\n\n".join(kept), len(bad)
+
+
 def degeneration_report(text: str) -> dict:
     """Diagnostic summary for QC harnesses and logs."""
     start = find_degeneration_start(text)

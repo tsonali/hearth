@@ -15,7 +15,7 @@ import re, sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from imagination_engine.postcheck import degeneration_report
+from imagination_engine.postcheck import degeneration_report, find_collapsed_paragraphs
 
 CONCRETE = re.compile(r"\b(feel|feeling|notice|see|look|watch|hear|listen|touch|smell|"
   r"taste|skin|hand|hands|finger|fingers|feet|foot|toes|face|jaw|shoulder|shoulders|"
@@ -53,6 +53,7 @@ def score(text: str) -> dict:
         "guided": per100(len(GUIDED.findall(text))),
         "degen": rep.get("degenerate", False),
         "degen_lost": rep.get("lost_fraction", 0.0) if rep.get("degenerate") else 0.0,
+        "collapsed": len(find_collapsed_paragraphs(text)),
     }
 
 
@@ -68,16 +69,16 @@ def main(paths):
         print("no GENERATED SCRIPT blocks found")
         return
     print(f"{'scenario':46s} {'words':>5s} {'conc':>5s} {'abst':>5s} {'meta':>4s} "
-          f"{'guid':>5s} {'degen':>6s}")
+          f"{'guid':>5s} {'degen':>6s} {'collap':>6s}")
     for label, s in rows:
         flag = f"{s['degen_lost']:.0%}" if s["degen"] else "-"
         # Calibrated against A_gold 2026-06-09: gold concreteness ranges 1.2-12.8
-        # (style-dependent), so it's a soft flag only; degen + meta are hard flags
-        # (zero gold exemplars trip either).
-        warn = " <-- READ ME" if (s["degen"] or s["meta"] or s["abstract"] > 3
-                                  or s["concrete"] < 4) else ""
+        # (style-dependent), so it's a soft flag only; degen + meta + collapsed
+        # are hard flags (zero gold exemplars trip any of them).
+        warn = " <-- READ ME" if (s["degen"] or s["meta"] or s["collapsed"]
+                                  or s["abstract"] > 3 or s["concrete"] < 4) else ""
         print(f"{label:46s} {s['words']:5d} {s['concrete']:5.1f} {s['abstract']:5.1f} "
-              f"{s['meta']:4d} {s['guided']:5.1f} {flag:>6s}{warn}")
+              f"{s['meta']:4d} {s['guided']:5.1f} {flag:>6s} {s['collapsed']:6d}{warn}")
 
 
 if __name__ == "__main__":

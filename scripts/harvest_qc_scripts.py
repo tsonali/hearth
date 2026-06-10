@@ -45,7 +45,7 @@ with open(SILVER, "a") as out:
             scanned += 1
             script = m.group(1).strip()
             s = score(script)
-            if (s["degen"] or s["collapsed"] or s["meta"] or s["abstract"] > 2.5
+            if (s["degen"] or s["collapsed"] or s.get("phrase_rep", 0) or s["meta"] or s["abstract"] > 2.5
                     or s["concrete"] < MIN_CONCRETE
                     or not (MIN_WORDS <= s["words"] <= MAX_WORDS)):
                 continue

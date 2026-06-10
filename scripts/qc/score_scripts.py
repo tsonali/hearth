@@ -15,7 +15,8 @@ import re, sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-from imagination_engine.postcheck import degeneration_report, find_collapsed_paragraphs
+from imagination_engine.postcheck import (degeneration_report, find_collapsed_paragraphs,
+                                          phrase_repeat_count)
 
 CONCRETE = re.compile(r"\b(feel|feeling|notice|see|look|watch|hear|listen|touch|smell|"
   r"taste|skin|hand|hands|finger|fingers|feet|foot|toes|face|jaw|shoulder|shoulders|"
@@ -54,6 +55,7 @@ def score(text: str) -> dict:
         "degen": rep.get("degenerate", False),
         "degen_lost": rep.get("lost_fraction", 0.0) if rep.get("degenerate") else 0.0,
         "collapsed": len(find_collapsed_paragraphs(text)),
+        "phrase_rep": phrase_repeat_count(text),
     }
 
 

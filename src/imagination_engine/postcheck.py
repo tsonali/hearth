@@ -156,6 +156,42 @@ def drop_collapsed_paragraphs(text: str) -> tuple[str, int]:
     return out, len(bad)
 
 
+# --- non-adjacent verbatim repetition: the THIRD decay mode ------------------
+# A long phrase recycled verbatim in two far-apart paragraphs (the grief-pet
+# bench script repeated a ~50-word mystical tail twice). The consecutive-run
+# detector can't see it; n-gram shingles can. Threshold: a 12-word verbatim
+# shingle recurring outside its own paragraph. Calibrated against A_gold
+# (anchor phrases are short; 12 words verbatim is machinery, not cadence).
+NGRAM = 12
+
+
+def find_phrase_repeats(text: str) -> list[tuple[int, int]]:
+    """(first_para_idx, repeat_para_idx) pairs with a shared 12-word shingle."""
+    paras = [p for p in re.split(r"\n+", text) if p.strip()]
+    seen: dict[tuple, int] = {}
+    out = []
+    for i, para in enumerate(paras):
+        words = _NORM.sub(" ", para.lower()).split()
+        flagged = False
+        for j in range(len(words) - NGRAM + 1):
+            sh = tuple(words[j:j + NGRAM])
+            if sh in seen and seen[sh] != i and not flagged:
+                out.append((seen[sh], i))
+                flagged = True  # one report per paragraph
+            elif sh not in seen:
+                seen[sh] = i
+    return out
+
+
+def phrase_repeat_count(text: str) -> int:
+    """Count of repeated-shingle paragraph pairs. Heavily-recycled scripts
+    (the grief-pet case: 18 pairs) are beyond surgical excision — this is a
+    REPORT for the generation log and a CULL gate for the corpus, not an
+    editing tool. In-product surgery can come later if data shows isolated
+    single repeats are common."""
+    return len(find_phrase_repeats(text))
+
+
 def degeneration_report(text: str) -> dict:
     """Diagnostic summary for QC harnesses and logs."""
     start = find_degeneration_start(text)

@@ -9,7 +9,8 @@
 Outputs survivors + cuts-with-reason."""
 import json, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
-from imagination_engine.postcheck import find_collapsed_paragraphs, find_degeneration_start
+from imagination_engine.postcheck import (find_collapsed_paragraphs, find_degeneration_start,
+                                          phrase_repeat_count)
 A = os.path.expanduser("~/Downloads/hearth-corpus/A-imagination")
 jl = lambda p: [json.loads(l) for l in open(p)] if os.path.exists(p) else []
 
@@ -33,6 +34,7 @@ def judge(t):
     # them — these never enter the corpus, however vivid the clean part is.
     if find_degeneration_start(t) is not None: return "CUT", "degenerate repetition loop"
     if find_collapsed_paragraphs(t): return "CUT", "run-on grammar collapse"
+    if phrase_repeat_count(t): return "CUT", "non-adjacent verbatim phrase repetition"
     if PREACHY.search(head):     return "CUT", "preachy/explanatory intro"
     if META.search(t):           return "CUT", "immersion-breaking meta-commentary"
     if ODD.search(t):            return "CUT", "random name / odd reference"

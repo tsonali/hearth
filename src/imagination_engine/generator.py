@@ -772,6 +772,11 @@ def generate_session(
         log.warning("[v6] %d collapsed run-on paragraph(s) dropped", dropped)
     # Backstop: if the assembled script STILL reads degenerate after the body
     # trim + collapse drop, log it loudly — that's a case the nets don't cover.
+    from imagination_engine.postcheck import phrase_repeat_count
+    n_rep = phrase_repeat_count(full)
+    if n_rep:
+        log.warning('[v6] %d non-adjacent phrase-repeat pair(s) in final script'
+                    ' (>=3 = quality-floor; the corpus gates cull these)', n_rep)
     rep = degeneration_report(full)
     if rep.get("degenerate"):
         log.warning("[v6] degeneration STILL detected post-trim: %s", rep)

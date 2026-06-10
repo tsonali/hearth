@@ -78,6 +78,39 @@ def _ensure_weights() -> tuple[Path, Path]:
     return model_path, voices_path
 
 
+def _split_for_tts(paragraph: str, max_chars: int = 360) -> list[str]:
+    """Split an oversized paragraph at sentence boundaries for TTS.
+
+    Every local TTS engine has a per-call ceiling (Kokoro's style table is
+    indexed by phoneme count and tops out ~510 tokens; a long run-on paragraph
+    IndexErrors inside the engine). 360 chars ≈ well under that ceiling.
+    Sub-chunks render back-to-back with no inserted silence, so the listener
+    still hears one continuous paragraph."""
+    if len(paragraph) <= max_chars:
+        return [paragraph]
+    import re as _re
+    sentences = _re.split(r"(?<=[.!?…])\s+", paragraph)
+    chunks, cur = [], ""
+    for s in sentences:
+        if cur and len(cur) + 1 + len(s) > max_chars:
+            chunks.append(cur)
+            cur = s
+        else:
+            cur = f"{cur} {s}".strip()
+        # a single sentence longer than the ceiling: hard-split at commas/spaces
+        while len(cur) > max_chars:
+            cut = cur.rfind(",", 0, max_chars)
+            if cut < max_chars // 2:
+                cut = cur.rfind(" ", 0, max_chars)
+            if cut <= 0:
+                cut = max_chars
+            chunks.append(cur[:cut + 1].strip())
+            cur = cur[cut + 1:].strip()
+    if cur:
+        chunks.append(cur)
+    return [c for c in chunks if c]
+
+
 @dataclass
 class Voice:
     """A loaded local TTS engine, ready to render text into audio."""
@@ -156,20 +189,27 @@ class Voice:
         paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
         if not paragraphs:
             raise ValueError("empty script")
+        # Oversized paragraphs are split for the engine's per-call ceiling;
+        # sub-chunks get only a breath (0.35s) between them, real paragraph
+        # breaks keep the full settling pause.
+        units: list[tuple[str, bool]] = []
+        for p in paragraphs:
+            subs = _split_for_tts(p)
+            units.extend((sub, j == len(subs) - 1) for j, sub in enumerate(subs))
 
         effective_speed = speed if speed is not None else self.speed
 
         rendered: list[np.ndarray] = []
         sample_rate = 24000  # Kokoro outputs 24 kHz
         durations: list[float] = []
-        for i, paragraph in enumerate(paragraphs):
+        for i, (paragraph, paragraph_end) in enumerate(units):
             if on_progress is not None:
-                eta = _estimate_eta(durations, total=len(paragraphs), done=i)
+                eta = _estimate_eta(durations, total=len(units), done=i)
                 on_progress(
                     stage="rendering",
-                    detail=_render_detail(i + 1, len(paragraphs), eta),
+                    detail=_render_detail(i + 1, len(units), eta),
                     step=i + 1,
-                    total=len(paragraphs),
+                    total=len(units),
                     eta_seconds=eta,
                 )
             t0 = time.time()
@@ -182,12 +222,9 @@ class Voice:
             durations.append(time.time() - t0)
             sample_rate = sr
             rendered.append(np.asarray(audio, dtype=np.float32))
-            if i < len(paragraphs) - 1:
-                silence = np.zeros(
-                    int(pause_between_paragraphs * sample_rate),
-                    dtype=np.float32,
-                )
-                rendered.append(silence)
+            if i < len(units) - 1:
+                pause = pause_between_paragraphs if paragraph_end else 0.35
+                rendered.append(np.zeros(int(pause * sample_rate), dtype=np.float32))
 
         full = np.concatenate(rendered)
         buf = io.BytesIO()
@@ -306,23 +343,27 @@ class F5Voice:
         paragraphs = [p.strip() for p in script.split("\n\n") if p.strip()]
         if not paragraphs:
             raise ValueError("empty script")
+        units: list[tuple[str, bool]] = []
+        for p in paragraphs:
+            subs = _split_for_tts(p)
+            units.extend((sub, j == len(subs) - 1) for j, sub in enumerate(subs))
 
         eff_speed = speed if speed is not None else self.speed
         sample_rate = 24000  # F5-TTS Vocos vocoder outputs 24 kHz
 
         rendered: list[np.ndarray] = []
         durations: list[float] = []
-        for i, paragraph in enumerate(paragraphs):
+        for i, (paragraph, paragraph_end) in enumerate(units):
             if on_progress is not None:
-                eta = _estimate_eta(durations, total=len(paragraphs), done=i)
+                eta = _estimate_eta(durations, total=len(units), done=i)
                 on_progress(
                     stage="rendering",
-                    detail=_render_detail(i + 1, len(paragraphs), eta),
+                    detail=_render_detail(i + 1, len(units), eta),
                     step=i + 1,
-                    total=len(paragraphs),
+                    total=len(units),
                     eta_seconds=eta,
                 )
-            log.info("F5 render paragraph %d/%d (%d chars)", i + 1, len(paragraphs), len(paragraph))
+            log.info("F5 render paragraph %d/%d (%d chars)", i + 1, len(units), len(paragraph))
             t0 = time.time()
             audio, sr, _ = self.engine.infer(
                 ref_file=str(self.ref_file),
@@ -336,12 +377,9 @@ class F5Voice:
             durations.append(time.time() - t0)
             sample_rate = sr
             rendered.append(np.asarray(audio, dtype="float32"))
-            if i < len(paragraphs) - 1:
-                silence = np.zeros(
-                    int(pause_between_paragraphs * sample_rate),
-                    dtype="float32",
-                )
-                rendered.append(silence)
+            if i < len(units) - 1:
+                pause = pause_between_paragraphs if paragraph_end else 0.35
+                rendered.append(np.zeros(int(pause * sample_rate), dtype="float32"))
 
         full = np.concatenate(rendered)
         buf = io.BytesIO()

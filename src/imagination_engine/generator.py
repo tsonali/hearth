@@ -668,6 +668,14 @@ def generate_session(
     log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
              time.time() - t0, len(body.split()), len(beats))
 
+    # Same broken-record failure the settling path had (battery 1 on 2026-06-10:
+    # 70%/36%/11% degenerate tails on three of six immersion scripts). Trim the
+    # rot FIRST — the beat-advancing continuation below then rebuilds the length
+    # with new material instead of stacking on top of a loop.
+    body, trimmed = trim_degenerate_tail(body)
+    if trimmed:
+        log.warning("[v6] degenerate body tail trimmed -> %d words", len(body.split()))
+
     # v6.3 — BEAT-ADVANCING continuation. The full-corpus run (2026-06-01) showed
     # single-pass-aiming-long collapses on most scenarios: 64/100 came in too short
     # (median 948w vs ~1800 target) — the model declares the scene "done" early.
@@ -706,7 +714,15 @@ def generate_session(
         extension = _generate(engine, BODY_PROMPT, cont_user, max_tokens=BODY_MAX_TOKENS)
         if not extension.strip():
             break
-        body = body.rstrip() + "\n\n" + extension.strip()
+        # Trim the JOIN — an extension that loops against the body (or itself)
+        # is the failure we're extending to avoid. If trimming ate the whole
+        # extension, stop extending: more rounds would only loop again.
+        joined, trimmed = trim_degenerate_tail(body.rstrip() + "\n\n" + extension.strip())
+        if trimmed:
+            log.warning("[v6.3] extension loop trimmed -> %d words", len(joined.split()))
+        if len(joined.split()) <= len(body.split()):
+            break
+        body = joined
         log.info("[v6.3]   +%.1fs, body now %d words (round %d, %d beats remaining)",
                  time.time() - t0, len(body.split()), rounds, len(remaining))
 

@@ -77,6 +77,13 @@ MIN_BEATS = 8
 # v6 single-pass body: one generation writes the whole ~1500-2200 word body
 # from the visible plan. Needs a large token budget (≈ 1.4 tokens/word + slack).
 BODY_MAX_TOKENS = 4096
+
+# Settling is a shorter form (~900-1300 words) and gets its OWN budgets: a pass
+# that runs 3x past target is ~10 minutes of wait AND the zone where degenerate
+# loops live — the latency defect and the broken-record defect are the same
+# defect. ~1.4 tokens/word + slack over the 1300-word ceiling:
+SETTLING_MAX_TOKENS = 2048
+SETTLING_CONT_MAX_TOKENS = 1024
 # Length floor: if the single pass wraps early, extend ONCE with new material.
 BODY_MIN_WORDS = 1500
 
@@ -492,7 +499,7 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
     emit("writing_body", "Writing your wind-down — settling the body, easing in.", 2, 3, 90.0)
     user = (intake_str + "\n\n" + class_block + "\n\n"
             "Now write the full settling session per the rules above.")
-    body = _generate(engine, SETTLING_PROMPT, user, max_tokens=BODY_MAX_TOKENS)
+    body = _generate(engine, SETTLING_PROMPT, user, max_tokens=SETTLING_MAX_TOKENS)
 
     # Long single-pass generations can decay into broken-record loops (the same
     # sentence recycled with tiny variations, grammar degrading). Cut the rot
@@ -509,7 +516,7 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
                          "CONTINUE softly from where it stopped — go slower and deeper into "
                          "the body and breath with NEW gentle detail; do not repeat anything. "
                          "Let it trail off at the very end.",
-                         max_tokens=BODY_MAX_TOKENS)
+                         max_tokens=SETTLING_CONT_MAX_TOKENS)
         if cont.strip():
             # Trim the JOINED text: a continuation that loops against the body
             # (not just against itself) is the same defect.

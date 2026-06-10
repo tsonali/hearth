@@ -16,6 +16,18 @@ ssh -o IdentitiesOnly=yes smaitra@mac-mini.localdomain '
 # If caffeinate OFF: nohup caffeinate -dimsu >/dev/null 2>&1 &   (on BOTH mini and laptop)
 ```
 
+## THE WEEK OF FIVE (operating mode through Sun 2026-06-14)
+Sonali's mandate: ALL FIVE tools get the full excellence loop — corpus, flywheel,
+QC, brainstorm — "by the end of the week these 5 files are fucking awesome, better
+than anything else local." Operating doc: docs/qc/week-plan.md. The flywheel now
+rotates A->B->C->D->E with contract-native generation for Secretary (B),
+instruments (D), and the NEW grounded-QA family (E) — the generic dolly/alpaca
+data that trained AGAINST the product contracts is demoted to fill. Mini
+relaunched 06-10 12:50 on the 5-family script (MAX=15, plateau window = one full
+cycle). Competitive research (docs/internal/competitive-landscape.md, NEVER push):
+the intersection is unoccupied; moat = taste + stance + public artifact, not
+plumbing.
+
 ## WHERE WE ARE
 Hearth is a **functionally complete, working v0** — all four tools run end-to-end on
 **our own fine-tuned model** (not base Qwen), and it's installable + public.

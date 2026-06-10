@@ -25,6 +25,7 @@ task is one entry — the same extensibility the eventual framework wants.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Callable, Iterator
 
@@ -94,7 +95,10 @@ def _b_draft(text, instruction, tone, style):
         "frame — a brief greeting line, and a sign-off ending with the sender's name (use "
         "[bracketed blanks] for any names not in the brief, including [Your name] at the "
         "end). Tone shapes the words, not whether the frame exists: "
-        "a firm email still opens and signs like an email.\n\n"
+        "a firm email still opens and signs like an email.\n"
+        "Say only what the brief supports. If it doesn't give a reason, a date, or a "
+        "detail you need, put a [bracketed blank] — NEVER invent one (no fabricated "
+        "'work commitments', no assumed dates).\n\n"
         f"BRIEF (what it's about / who it's to / what to say):\n{text}"
         + (f"\n\nADDITIONAL INSTRUCTION: {instruction}" if instruction.strip() else "")
     )
@@ -105,7 +109,9 @@ def _b_reply(text, instruction, tone, style):
     system = _BASE + _tone_clause(tone) + _style_clause(style)
     user = (
         "Draft a reply to the message below. Output only the reply, ready to send. "
-        "Answer what was actually asked; keep it appropriately short.\n\n"
+        "Answer what was actually asked; keep it appropriately short. If it's an "
+        "email, keep a normal frame — greeting if appropriate, and a sign-off ending "
+        "with [Your name].\n\n"
         f"MESSAGE I RECEIVED:\n{text}"
         + (f"\n\nHOW I WANT TO REPLY (gist / my intent): {instruction}"
            if instruction.strip() else "")
@@ -116,8 +122,15 @@ def _b_reply(text, instruction, tone, style):
 def _b_summarize(text, instruction, tone, style):
     system = _BASE
     user = (
-        "Summarize the text below. Lead with a one-sentence bottom line, then the key "
-        "points as a short bulleted list. Keep only what matters.\n\n"
+        "Summarize the text below in EXACTLY this format:\n"
+        "BOTTOM LINE: <one sentence>\n"
+        "- <key point>\n"
+        "- <key point>\n"
+        "(as many points as needed)\n\n"
+        "Every decision, every CONDITION attached to a decision ('yes, but only "
+        "if...'), every deadline, and every open question MUST survive into the "
+        "points — a summary that loses a condition or a commitment is wrong, not "
+        "short. Drop only pleasantries and repetition.\n\n"
         + (f"FOCUS: {instruction}\n\n" if instruction.strip() else "")
         + f"TEXT:\n{text}"
     )
@@ -154,7 +167,9 @@ def _b_organize(text, instruction, tone, style):
     user = (
         "Turn the messy notes / brain-dump below into a clean, organized structure — "
         "group related items under clear headings, order them sensibly, and use lists. "
-        "Don't add anything that isn't there; just organize what is.\n\n"
+        "EVERY item in the notes must appear exactly once in your output — count them; "
+        "losing even one defeats the whole purpose. Don't add anything that isn't "
+        "there: no invented ordering ('after X is done'), no advice, no new items.\n\n"
         + (f"HOW TO ORGANIZE IT: {instruction}\n\n" if instruction.strip() else "")
         + f"NOTES:\n{text}"
     )
@@ -185,6 +200,15 @@ class UtilityResult:
     output: str
 
 
+# Filler openers the _BASE prompt bans but register pressure keeps producing.
+# Enforced mechanically: the head of the stream is buffered and checked; one
+# violation = one regenerate with an explicit reminder. Prompt + gate, two ways.
+_BANNED_OPENERS = re.compile(
+    r"i hope (this (email|message|letter) finds you|you('?re| are) (doing )?well)|"
+    r"i wanted to (reach out|touch base)|i trust this (email|message) finds you", re.I)
+_HEAD_CHARS = 200  # enough to cover greeting line + first sentence
+
+
 class Assistant:
     """The at-home secretary. One Engine, stateless per call (a tool, not a chat)."""
 
@@ -200,11 +224,34 @@ class Assistant:
         if not (text or "").strip():
             raise ValueError("no input text")
         system, user = task.build(text, instruction or "", tone or "", style_sample or "")
-        # Low temperature: a secretary should be faithful and predictable, not florid.
-        yield from self.engine.stream(messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ], max_tokens=max_tokens, temperature=0.4)
+
+        def gen(extra_system: str = "") -> Iterator[str]:
+            # Low temperature: a secretary should be faithful and predictable.
+            return self.engine.stream(messages=[
+                {"role": "system", "content": system + extra_system},
+                {"role": "user", "content": user},
+            ], max_tokens=max_tokens, temperature=0.4)
+
+        # Buffer the head before yielding anything, so a banned opener can be
+        # caught and regenerated without the user ever seeing it.
+        stream = gen()
+        head: list[str] = []
+        for piece in stream:
+            head.append(piece)
+            if sum(len(p) for p in head) >= _HEAD_CHARS:
+                break
+        if _BANNED_OPENERS.search("".join(head)):
+            log.warning("secretary[%s]: banned filler opener — regenerating once", task_key)
+            stream = gen("\n\nIMPORTANT: do NOT open with filler ('I hope this email "
+                         "finds you well', 'I hope you're doing well', 'I wanted to "
+                         "reach out'). After any greeting line, start with the substance.")
+            head = []
+            for piece in stream:
+                head.append(piece)
+                if sum(len(p) for p in head) >= _HEAD_CHARS:
+                    break
+        yield "".join(head)
+        yield from stream
 
     def run(self, task_key: str, text: str, **kw) -> UtilityResult:
         out = "".join(self.stream(task_key, text, **kw)).strip()

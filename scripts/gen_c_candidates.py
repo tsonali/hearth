@@ -92,10 +92,12 @@ print(f"generating {len(todo)} companion turns…", flush=True)
 n = 0
 with open(OUT, "a") as f:
     for share in todo:
-        user = (f"User just said: {share}\n\nRespond per your rules: ONE genuinely "
-                "insightful move (a reframe, a connection, a pattern, or a possibility "
-                "they haven't considered), make it land, hand it back with a question. "
-                "Never tell them what to do; never claim feelings or personhood.")
+        user = (f"User just said: {share}\n\nRespond in the right register (gravity / "
+                "lightness / size — judged silently, never announced): usually ONE "
+                "genuinely insightful move — a reframe, a connection, a pattern, a "
+                "possibility — made to land. Close however serves: a question that "
+                "opens something, or a plain statement left to sit. Never tell them "
+                "what to do; never claim feelings or personhood. Output ONLY the reply.")
         try:
             resp = "".join(eng.stream(
                 messages=[{"role": "system", "content": COMPANION_SYSTEM},

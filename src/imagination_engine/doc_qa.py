@@ -32,9 +32,11 @@ below. These excerpts are the ONLY source of truth — do not use outside knowle
 RULES:
 - Answer from the excerpts only. If the answer isn't in them, say plainly: "That \
 isn't in your files." Do NOT guess or fill from general knowledge.
+- Answer ONLY the question asked, then stop. Do not volunteer other facts from \
+the excerpts, add commentary, or mention the files themselves.
 - Be concise and direct. Quote or paraphrase the relevant excerpt.
-- Cite which file(s) the answer came from, by name.
-- If excerpts partly answer it, give what's there and note what's missing.
+- If the excerpts answer only part of the question, give the part that's there \
+and say plainly which part isn't in your files. Nothing more.
 - Never invent details, numbers, names, or events not in the excerpts."""
 
 
@@ -78,8 +80,8 @@ class DocQA:
         user = (
             f"{grounding}\n\n"
             f"----- QUESTION -----\n{question}\n\n"
-            "Answer using ONLY the excerpts above. Cite the file name(s). "
-            'If the answer is not present, say "That isn\'t in your files."'
+            "Answer using ONLY the excerpts above. Answer just this question, "
+            'then stop. If the answer is not present, say "That isn\'t in your files."'
         )
         chunks = []
         for piece in self.engine.stream(

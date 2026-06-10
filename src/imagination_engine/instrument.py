@@ -107,7 +107,7 @@ class InstrumentRegistry:
 _PERSONHOOD = [
     r"\bi (do |really |rather |truly |genuinely )*(care about|care for|care whether|love)\b",
     r"\bi'?ll always be (here|there)\b", r"\bi have feelings\b", r"\bi'?m conscious\b",
-    r"\bi miss(ed)? you\b", r"\bi'?ve been thinking about you\b",
+    r"\bi miss(ed)?\b[^.!?]{0,30}\byou\b", r"\bi'?ve been thinking about you\b",
     r"\b(we|you and i) (decided|agreed|talked about|discussed) (last time|before|previously)\b",
     r"\blast (time|session|sitting)[, ].{0,40}\b(you|we)\b",
 ]

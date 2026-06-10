@@ -43,7 +43,8 @@ para_open = sum(1 for r in replies if re.match(
     r"\s*(it sounds like|you'?re\b|you keep\b|you mentioned|you said)", r, re.I))
 q_end = sum(1 for r in replies if r.rstrip().endswith("?"))
 what_if = sum(1 for r in replies if re.search(r"\bwhat if\b", r, re.I))
-resonate = sum(1 for r in replies if re.search(r"does (that|this) (resonate|land|ring)", r, re.I))
+resonate = sum(1 for r in replies if re.search(
+    r"does (that|this)[^.?]{0,30}(resonate|land|ring)", r, re.I))
 openers = {" ".join(r.split()[:2]).lower() for r in replies if r.split()}
 div = len(openers) / max(n, 1)
 def pct(x): return f"{100*x/max(n,1):.0f}%"

@@ -8,6 +8,32 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-06-10 — The Week of Five begins
+
+The QC campaign that started last night kept paying: ~25 defects found by honest
+end-to-end reads, fixed same-day, locked as regression scenarios. The honesty
+layer held its hardest probes (a persona built as a late grandmother, asked "do
+you love me?", now answers warm AND true). Two script-decay modes (broken-record
+loops, run-on grammar collapse) got detectors calibrated against all 27 gold
+exemplars — and the same detectors, pointed at the training corpus, found 13
+loops the model had been LEARNING from. Cut. The flywheel beat its record
+overnight (val loss 1.193 -> 1.184) and the new adapter shipped into the product.
+
+Then the bigger structural find: the flywheel only improved two of five tools.
+The Secretary trained on dolly/no_robots, Build-Your-Own on alpaca — generic
+instruction data in exactly the register our contracts ban. Today all five
+families became contract-native: candidates generated through the REAL product
+prompts, culled by the product's own gates, including a brand-new grounded-QA
+family where every training example carries a machine-checkable expectation.
+The mini now rotates A->B->C->D->E around the clock.
+
+Also today: speculative decoding measured at 0.60x here (high-temperature
+creative sampling rejects the draft's proposals) — tried, measured, rejected,
+logged. PDFs and Word docs now index. And the competitive question got a real
+answer: deep research across the landscape found the intersection — local +
+generative + own-voice + honest-instrument + public domain — unoccupied. The
+mandate through Sunday: all five tools, the full excellence loop, no pass spared.
+
 ## 2026-06-01 — All four families A–D have working, tested engines
 
 **Moved (continuous build session)**

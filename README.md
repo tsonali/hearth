@@ -63,10 +63,22 @@ Not yet a polished consumer app. If you're comfortable with a terminal, install 
 
 ---
 
-## Install (development build)
+## Install
 
-Requires an Apple Silicon Mac. Core install needs no TTS (generation + the tools);
-add `--extra voice` for audio.
+Requires an Apple Silicon Mac.
+
+### Easiest — double-click
+1. [Download the repo](https://github.com/tsonali/hearth) (green **Code → Download ZIP**), unzip it.
+2. Double-click **`Start Hearth.command`**.
+
+First run installs everything and does a one-time ~8 GB model download, then opens Hearth
+in your browser. After that, double-clicking just starts it. Everything runs on your
+machine; nothing is uploaded. *(macOS may ask you to confirm opening a downloaded script —
+right-click → Open the first time.)*
+
+### Manual (development build)
+
+Core install needs no TTS (generation + the tools); add `--extra voice` for audio.
 
 ```bash
 # 1. Clone

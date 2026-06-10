@@ -8,6 +8,12 @@
 </head>
 <body>
   <div class="wrap">
+    <div id="firstrun" hidden style="border:2px solid var(--ink); padding:0.9em 1.1em; margin-bottom:1.8em;">
+      <strong>First time here?</strong> Everything runs on this computer — nothing you type
+      or hear is uploaded. The very first session takes about a minute to wake the model up
+      (one time); after that it's quick. Pick a tool below to begin.
+      <button id="firstrun-x" style="float:right; border:none; background:none; cursor:pointer; font-size:1.1rem;">✕</button>
+    </div>
     <p class="kicker">Hearth</p>
     <hr class="rule">
     <h1>Private AI that lives<br>in your house.</h1>
@@ -49,5 +55,16 @@
       By Sonali Maitra.
     </div>
   </div>
+  <script>
+    // first-run notice: show once, remember dismissal locally
+    (function(){
+      const el = document.getElementById("firstrun");
+      const seen = localStorage.getItem("hearth.seen");
+      if (!seen) el.hidden = false;
+      document.getElementById("firstrun-x").addEventListener("click", () => {
+        el.hidden = true; localStorage.setItem("hearth.seen", "1");
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -159,6 +159,29 @@ for fam, recs in pool.items():
     print(f"{fam}: {len(recs)} examples")
 random.shuffle(train); random.shuffle(valid)
 
+# FROZEN VALIDATION SET (2026-06-10): with five families regenerating on
+# rotation, a per-build valid split changes composition every turn — making
+# turn-to-turn val loss partly NOISE and the flywheel's best/plateau decisions
+# unreliable. The first valid split is frozen to valid_frozen.jsonl and reused
+# forever after; frozen examples are excluded from train by content hash so
+# regenerated duplicates can't leak across the split. Delete valid_frozen.jsonl
+# ONLY with a deliberate decision to reset the yardstick (logged).
+import hashlib
+def _h(rec):
+    return hashlib.sha1(json.dumps(rec, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+frozen_path = os.path.join(OUT, "valid_frozen.jsonl")
+if os.path.exists(frozen_path):
+    valid = [json.loads(l) for l in open(frozen_path)]
+    frozen_hashes = {_h(r) for r in valid}
+    before = len(train)
+    train = [r for r in train if _h(r) not in frozen_hashes]
+    print(f"frozen valid: {len(valid)} examples reused; {before - len(train)} train dupes excluded")
+else:
+    with open(frozen_path, "w") as f:
+        for r in valid: f.write(json.dumps(r, ensure_ascii=False) + "
+")
+    print(f"frozen valid CREATED: {len(valid)} examples — the yardstick from here on")
+
 with open(os.path.join(OUT, "train.jsonl"), "w") as f:
     for r in train: f.write(json.dumps(r, ensure_ascii=False) + "\n")
 with open(os.path.join(OUT, "valid.jsonl"), "w") as f:

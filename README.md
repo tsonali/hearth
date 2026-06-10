@@ -7,6 +7,7 @@ Most AI runs on someone else's computer: your data goes to a company, and you pa
 Hearth is a growing suite of focused, private tools — and the means to build your own:
 
 - 🧘 **Imagination Engine** — guided sessions in *your own voice*, you close your eyes and imagine.
+- ✍️ **The Secretary** — drafts, replies, summaries, rewrites, action items — on your words, in your voice, never uploaded.
 - 🪞 **Honest companion** — a reflective mirror that helps you think; it refuses to pretend it's your friend.
 - 📂 **Ask your own files** — point it at your notes/docs and ask; it answers from what's there, says so when it isn't, sends nothing anywhere.
 - 🛠️ **Build your own** — describe an instrument, point it at your data, keep it. Yours, on your machine.
@@ -15,7 +16,7 @@ Everything runs on a small model on your laptop. Released into the **public doma
 
 > By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This is both arguments made operational.
 
-> **Status — honest:** real, working software under active development. The engines for all of the above run locally today. It is *not yet* a one-click app — right now it takes some comfort with a terminal (see [install](#install-development-build) below). That part is coming.
+> **Status — honest:** real, working software under active development — a beta, not a polished product. All five tools run locally today, and there's a [double-click install](#install) (download, unzip, double-click; macOS will ask you to right-click → Open the first time, because the app isn't notarized yet).
 
 ---
 
@@ -53,13 +54,15 @@ Working software, in active development. The engines for all four tools run loca
 today (see `docs/roadmap.md` and `docs/own-model-plan.md` for the live plan):
 
 - ✅ **Imagination Engine** — intake → staged script generation → audio in your own voice
+- ✅ **The Secretary** — draft / reply / summarize / rewrite / extract / organize, with tones and your own voice-style
 - ✅ **Companion** — honest reflective companion (+ cross-session memory)
 - ✅ **Ask Your Files** — local RAG: index your files, ask, grounded answers that refuse to hallucinate
-- 🚧 **Build Your Own** — engine built (`instrument.py`), UI pending
-- 🚧 **One-click app** — today it takes a terminal; a packaged double-click app is the current last-mile work
-- 🚧 **Our own fine-tuned model** — distilling a clean, owned specialist (see `docs/own-model-plan.md`)
+- ✅ **Build Your Own** — describe an instrument (optionally ground it on a folder), keep it; full UI at `/build`
+- ✅ **Double-click app** — download the zip, double-click `Start Hearth.command`; no terminal needed
+- 🚧 **Our own fine-tuned model** — trains locally, already better than base and improving each cycle (see `docs/own-model-plan.md`)
+- 🚧 **Signed/notarized installer** — today macOS asks you to right-click → Open the first time; a notarized `.dmg` is coming
 
-Not yet a polished consumer app. If you're comfortable with a terminal, install below; otherwise, the one-click app is coming.
+Honest residual: it's a beta. The first model download is ~8 GB, sessions take real minutes to render, and it wants an Apple Silicon Mac. Everything else works today.
 
 ---
 

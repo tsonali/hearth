@@ -34,4 +34,4 @@ You don't need me, and you don't need them. You need a machine you already own.
 
 ---
 
-*Status, honestly:* this is real, working software, still under active development. The tools above run locally today, but it is not yet something a non-technical person can install with one click; at the moment it takes some comfort with a command line. That is the part I'm still building. Everything here is in the public domain ([CC0](LICENSE)).
+*Status, honestly:* this is real, working software, still under active development — a beta. The tools above run locally today, and installing is now download → unzip → double-click (Apple Silicon Mac; macOS asks you to right-click → Open the first time, because the app isn't notarized yet — that polish is still coming). Everything here is in the public domain ([CC0](LICENSE)).

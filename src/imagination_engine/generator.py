@@ -53,7 +53,7 @@ from typing import Callable, Optional
 from imagination_engine.comprehension import Classification, classify_intake
 from imagination_engine.inference import Engine
 from imagination_engine.postcheck import (degeneration_report, drop_collapsed_paragraphs,
-                                          trim_degenerate_tail)
+                                          find_degeneration_start, trim_degenerate_tail)
 from imagination_engine.scene_bibles import get_bible
 from imagination_engine.structured import extract_array
 
@@ -184,8 +184,14 @@ def _classification_block(c: Classification) -> str:
 
 
 def _generate(engine: Engine, system: str, user: str, max_tokens: int,
-              temperature: float = 0.85) -> str:
+              temperature: float = 0.85, abort_on_decay: bool = False) -> str:
+    """One model call. With abort_on_decay, the stream is checked periodically
+    and STOPPED the moment degeneration establishes itself — a decayed long
+    pass otherwise burns its whole token budget (~10 min) writing text the
+    post-trim throws away. Latency fix and quality fix are the same fix; the
+    caller still runs trim_degenerate_tail on the result."""
     chunks: list[str] = []
+    chars_at_last_check = 0
     for chunk in engine.stream(
         messages=[
             {"role": "system", "content": system},
@@ -195,6 +201,19 @@ def _generate(engine: Engine, system: str, user: str, max_tokens: int,
         temperature=temperature,
     ):
         chunks.append(chunk)
+        if not abort_on_decay:
+            continue
+        total = sum(len(c) for c in chunks)
+        if total - chars_at_last_check >= 2000:  # ~every 500 tokens
+            chars_at_last_check = total
+            text = "".join(chunks)
+            start = find_degeneration_start(text)
+            # abort only once the loop is ESTABLISHED (well past its seed),
+            # not on the first hint — early sentences echo legitimately.
+            if start is not None and len(text) - start > 1200:
+                log.warning("[gen] decay established mid-stream (%d chars past seed) "
+                            "— aborting pass at %d chars", len(text) - start, total)
+                break
     return "".join(chunks).strip()
 
 
@@ -500,7 +519,8 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
     emit("writing_body", "Writing your wind-down — settling the body, easing in.", 2, 3, 90.0)
     user = (intake_str + "\n\n" + class_block + "\n\n"
             "Now write the full settling session per the rules above.")
-    body = _generate(engine, SETTLING_PROMPT, user, max_tokens=SETTLING_MAX_TOKENS)
+    body = _generate(engine, SETTLING_PROMPT, user, max_tokens=SETTLING_MAX_TOKENS,
+                     abort_on_decay=True)
 
     # Long single-pass generations can decay into broken-record loops (the same
     # sentence recycled with tiny variations, grammar degrading). Cut the rot
@@ -517,7 +537,7 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
                          "CONTINUE softly from where it stopped — go slower and deeper into "
                          "the body and breath with NEW gentle detail; do not repeat anything. "
                          "Let it trail off at the very end.",
-                         max_tokens=SETTLING_CONT_MAX_TOKENS)
+                         max_tokens=SETTLING_CONT_MAX_TOKENS, abort_on_decay=True)
         if cont.strip():
             # Trim the JOINED text: a continuation that loops against the body
             # (not just against itself) is the same defect.
@@ -668,7 +688,8 @@ def generate_session(
         "plan in order, spending each anchor once and never repeating. Stay in the "
         "scene; do not bring the listener back."
     )
-    body = _generate(engine, BODY_PROMPT, body_user, max_tokens=BODY_MAX_TOKENS)
+    body = _generate(engine, BODY_PROMPT, body_user, max_tokens=BODY_MAX_TOKENS,
+                     abort_on_decay=True)
     log.info("[v6] body: %.1fs, %d words (single-pass, %d beats in plan)",
              time.time() - t0, len(body.split()), len(beats))
 
@@ -715,7 +736,8 @@ def generate_session(
             "NOT restate, summarize, or re-describe anything already written — that is "
             "the worst failure. New territory only. Do not bring the listener back."
         )
-        extension = _generate(engine, BODY_PROMPT, cont_user, max_tokens=BODY_MAX_TOKENS)
+        extension = _generate(engine, BODY_PROMPT, cont_user, max_tokens=BODY_MAX_TOKENS,
+                              abort_on_decay=True)
         if not extension.strip():
             break
         # Trim the JOIN — an extension that loops against the body (or itself)

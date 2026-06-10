@@ -562,7 +562,8 @@ async def companion_turn(req: CompanionRequest) -> JSONResponse:
     from imagination_engine.companion import Companion
     comp = _companions.get(req.session_id)
     if comp is None:
-        comp = Companion(get_engine(), memory=_get_companion_memory())
+        comp = Companion(get_engine(), memory=_get_companion_memory(),
+                         session_key=req.session_id)
         _companions[req.session_id] = comp
     turn = await run_in_threadpool(comp.turn, req.message)
     return JSONResponse({"reply": turn.reply, "flagged": turn.flagged})

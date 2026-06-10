@@ -46,18 +46,30 @@ _MEM_SCHEMA = """
 CREATE TABLE IF NOT EXISTS companion_log (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     ts        TEXT NOT NULL,
-    summary   TEXT NOT NULL
+    summary   TEXT NOT NULL,
+    session   TEXT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_companion_session
+    ON companion_log(session) WHERE session IS NOT NULL;
 """
 
 
 class CompanionMemory:
-    """Persists one-line summaries of past conversations for cross-session continuity."""
+    """Persists one-line summaries of past conversations for cross-session continuity.
+
+    Summaries are written DURING the conversation (upserted by session key every few
+    turns), not at some 'end' event — browsers don't say goodbye, so a design that
+    waits for close() never writes anything. This way memory survives a force-quit."""
 
     def __init__(self, db_path: Path):
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as c:
+            # migrate pre-session rows gracefully (column added 2026-06-09)
+            try:
+                c.execute("ALTER TABLE companion_log ADD COLUMN session TEXT")
+            except sqlite3.OperationalError:
+                pass  # fresh DB or already migrated
             c.executescript(_MEM_SCHEMA)
 
     @contextmanager
@@ -69,9 +81,18 @@ class CompanionMemory:
         finally:
             conn.close()
 
-    def remember(self, summary: str, ts: str) -> None:
+    def remember(self, summary: str, ts: str, session: str | None = None) -> None:
+        """Save (or refresh) the one-line summary of a conversation."""
         with self._conn() as c:
-            c.execute("INSERT INTO companion_log(ts, summary) VALUES (?,?)", (ts, summary))
+            if session:
+                cur = c.execute("UPDATE companion_log SET summary=?, ts=? WHERE session=?",
+                                (summary, ts, session))
+                if cur.rowcount == 0:
+                    c.execute("INSERT INTO companion_log(ts, summary, session) VALUES (?,?,?)",
+                              (ts, summary, session))
+            else:
+                c.execute("INSERT INTO companion_log(ts, summary) VALUES (?,?)",
+                          (ts, summary))
 
     def recent(self, limit: int = 3) -> list[str]:
         with self._conn() as c:
@@ -145,10 +166,16 @@ def _check_forbidden(text: str) -> list[str]:
 class Companion:
     """A multi-turn honest reflective companion over one conversation."""
 
-    def __init__(self, engine: Engine, memory: "CompanionMemory | None" = None):
+    # Refresh the persisted conversation summary on these user-turn counts
+    # (then every 3rd turn after). Cheap call (60 tokens), survives force-quit.
+    _SUMMARY_FIRST, _SUMMARY_EVERY = 2, 3
+
+    def __init__(self, engine: Engine, memory: "CompanionMemory | None" = None,
+                 session_key: str | None = None):
         self.engine = engine
         self.history: list[dict] = []
         self.memory = memory
+        self.session_key = session_key
         # Past-conversation summaries (cross-session continuity), loaded once.
         self._past = memory.recent() if memory else []
 
@@ -167,14 +194,10 @@ class Companion:
                           + "\n----- END -----")
         return "\n\n".join(blocks)
 
-    def close(self, ts: str) -> str | None:
-        """End the conversation: summarize it in one line for cross-session memory.
-        Returns the summary (or None if nothing to save / no memory configured)."""
-        if not self.memory or not self.history:
-            return None
+    def _summarize(self) -> str:
         convo = "\n".join(f"{'User' if m['role']=='user' else 'Companion'}: {m['content']}"
                           for m in self.history)
-        summary = "".join(self.engine.stream(
+        return "".join(self.engine.stream(
             messages=[{"role": "system", "content":
                        "Summarize this reflective conversation in ONE neutral sentence — "
                        "what the person was working through. No advice, no judgment, "
@@ -182,9 +205,34 @@ class Companion:
                       {"role": "user", "content": convo}],
             max_tokens=60, temperature=0.3,
         )).strip()
+
+    def close(self, ts: str) -> str | None:
+        """Explicit end-of-conversation summary (kept for callers that have one;
+        the periodic refresh in turn() is what guarantees memory in practice)."""
+        if not self.memory or not self.history:
+            return None
+        summary = self._summarize()
         if summary:
-            self.memory.remember(summary, ts)
+            self.memory.remember(summary, ts, session=self.session_key)
         return summary
+
+    def _maybe_refresh_memory(self) -> None:
+        """Upsert this conversation's one-line summary every few turns, so
+        cross-session continuity exists even though nothing ever 'closes'."""
+        if not self.memory or not self.session_key:
+            return
+        n = len(self.history) // 2  # completed user turns
+        if n < self._SUMMARY_FIRST or (n - self._SUMMARY_FIRST) % self._SUMMARY_EVERY:
+            return
+        try:
+            summary = self._summarize()
+            if summary:
+                from datetime import datetime
+                self.memory.remember(summary, datetime.now().isoformat(timespec="seconds"),
+                                     session=self.session_key)
+                log.info("companion: memory refreshed at turn %d", n)
+        except Exception as e:  # memory is enrichment — never break the turn
+            log.warning("companion: memory refresh failed: %s", e)
 
     def turn(self, user_message: str, max_tokens: int = 160) -> CompanionTurn:
         ctx = self._running_context()
@@ -223,4 +271,5 @@ class Companion:
 
         self.history.append({"role": "user", "content": user_message})
         self.history.append({"role": "assistant", "content": reply})
+        self._maybe_refresh_memory()
         return CompanionTurn(reply=reply, flagged=flagged)

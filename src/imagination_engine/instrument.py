@@ -102,25 +102,45 @@ class InstrumentRegistry:
 
 
 class Instrument:
-    """A live, usable instance of a user-built instrument: persona + optional grounding."""
+    """A live, usable instance of a user-built instrument: persona + optional grounding.
+
+    Holds the running conversation IN MEMORY (last `HISTORY_TURNS` exchanges) so a
+    multi-turn sitting actually coheres — a coach that forgets your previous sentence
+    isn't an instrument, it's a slot machine. Nothing is persisted: closing the app
+    ends the conversation, which is the honest default for a private tool."""
+
+    HISTORY_TURNS = 8
 
     def __init__(self, engine: Engine, spec: InstrumentSpec, store: RagStore | None = None):
         self.engine = engine
         self.spec = spec
         self.store = store  # present iff grounded
+        self.history: list[tuple[str, str]] = []  # (user, reply) pairs, this sitting
+
+    def _history_block(self) -> str:
+        if not self.history:
+            return ""
+        lines = []
+        for u, r in self.history[-self.HISTORY_TURNS:]:
+            lines.append(f"User: {u}")
+            lines.append(f"You: {r}")
+        return ("----- THE CONVERSATION SO FAR (stay consistent with it) -----\n"
+                + "\n".join(lines) + "\n----- END -----\n\n")
 
     def ask(self, message: str, k: int = 6, max_tokens: int = 400) -> str:
         """Respond as this instrument. If grounded, answer from the user's files;
-        otherwise respond purely in persona."""
+        otherwise respond purely in persona. Either way, in the context of the
+        conversation so far."""
         system = self.spec.persona
-        user = message
+        user = self._history_block() + message
         if self.store is not None:
             grounding = self.store.context_block(self.spec.name, message, k=k)
             if grounding:
                 # blend the instrument's persona with the doc-QA grounding contract
                 system = self.spec.persona + "\n\n" + QA_SYSTEM
-                user = (f"{grounding}\n\n----- QUESTION -----\n{message}\n\n"
-                        "Answer in your persona, using ONLY the excerpts; cite files; "
+                user = (f"{self._history_block()}{grounding}\n\n"
+                        f"----- QUESTION -----\n{message}\n\n"
+                        "Answer in your persona, using ONLY the excerpts; "
                         'say "that isn\'t in your files" if absent.')
         chunks = []
         for piece in self.engine.stream(
@@ -129,7 +149,9 @@ class Instrument:
             max_tokens=max_tokens, temperature=0.3 if self.store else 0.7,
         ):
             chunks.append(piece)
-        return "".join(chunks).strip()
+        reply = "".join(chunks).strip()
+        self.history.append((message, reply))
+        return reply
 
 
 # ---------------------------------------------------------------------------

@@ -28,9 +28,16 @@ Hearth is a **functionally complete, working v0** — all four tools run end-to-
   → `dist/hearth-<ver>.zip`. Public repo: github.com/tsonali/hearth (main).
 
 ## WHAT'S RUNNING (autonomous, survives restart)
-- **Mini:** `recursive_flywheel.sh` — alternates A/C generate→curate→retrain, keeps the BEST
-  adapter (`_train/best_adapters/`), stops at plateau. Logs: `_logs/recursive.log`.
+- **Mini:** `recursive_flywheel.sh` RELAUNCHED 2026-06-10 09:31 seeded at **1.184**,
+  now with the QC-informed curation: taste_cull rejects degenerate loops + run-on
+  collapse (it caught 13 loops ALREADY in the corpus — the model was learning to
+  loop from its own data), gen_c includes the parasocial probe family, curate_c
+  culls dodged honesty questions. Mini repo synced to main (old local drafts
+  stashed: `git stash list`). Logs: `_logs/recursive.log`.
 - **caffeinate ON** mini + laptop (don't sleep).
+- When this run beats 1.184: pull adapter (scp line below), re-run
+  `scripts/product_e2e_test.py` + `scripts/qc/battery2b_honesty.py` (the parasocial
+  answers should start coming from the WEIGHTS, not just the prompt).
 
 ## THE OVERNIGHT HARDENING CAMPAIGN (2026-06-09 → 06-10, Sonali's direction:
 ## "four totally private local products that work as well as they possibly can")

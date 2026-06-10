@@ -45,6 +45,16 @@ class Config:
     # Drop the trained adapter here to ship our model: data/model/adapters/
     adapter_path: str = str(DATA_DIR / "model" / "adapters")
 
+    # Speculative decoding — MEASURED A SLOWDOWN HERE, default off. The
+    # 2026-06-10 benchmark (Qwen2.5-0.5B draft, order-controlled): 0.60x vs
+    # baseline. Cause: our creative sampling (temp 0.85 + top_p + repetition
+    # penalty) diverges from the draft's proposals, so most drafts are rejected
+    # and verification is wasted work. Spec decoding wins at low temperature;
+    # sessions run hot by design. Plumbing kept for future low-temp use.
+    # See docs/decisions-log.md.
+    draft_model_id: str = ""
+    num_draft_tokens: int = 4
+
     # Loopback only — the product is local-first; the server must not be
     # reachable from outside this machine.
     host: str = "127.0.0.1"

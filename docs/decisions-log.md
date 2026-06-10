@@ -298,3 +298,19 @@ confirming the DATA is the lever, not more training. OOM at iter-100 on the firs
 was the validation pass; fixed via shorter seq (1024) + lighter val. Corpus read finding
 stands: the voice-defined families (A, C) can't be bulk-sourced; A is the bottleneck
 (~38 truly-vivid scripts) → generate-and-curate against exemplars is the path.
+
+## 2026-06-10 — Speculative decoding: tried, measured, rejected (for now)
+
+Sessions are decode-dominated (~8.5 tok/s on the 14B), so a 0.5B same-family
+draft model looked like the latency lever — typical claims are 1.5-2x. The
+order-controlled benchmark said otherwise: **0.60x — a slowdown.** Why: Hearth's
+creative sampling (temperature 0.85, nucleus 0.92, repetition penalty 1.15)
+makes the 14B's accepted tokens diverge constantly from the greedy-ish draft
+proposals; most drafts are rejected and the verification batches are wasted
+compute. Speculative decoding pays off at low temperature — our flagship runs
+hot on purpose. Plumbing kept behind `config.draft_model_id` (default "") in
+case low-temperature stages (classify/extract) ever justify per-call drafting.
+Quality of speculative output was unaffected, as theory predicts — this was
+purely a throughput loss. The latency roadmap therefore stays: tighter budgets
++ decay-abort (shipped), and the long-term answer is the model itself (smaller
+specialist or better quantization), not decode tricks.

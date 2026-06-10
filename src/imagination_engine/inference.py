@@ -55,6 +55,7 @@ class Engine:
     model: object
     tokenizer: object
     model_id: str
+    draft_model: object = None  # speculative decoding (see config.draft_model_id)
 
     @classmethod
     def load(cls, model_id: str | None = None,
@@ -69,16 +70,31 @@ class Engine:
         from pathlib import Path
         mid = model_id or config.model_id
         ap = adapter_path if adapter_path is not None else getattr(config, "adapter_path", None)
+        log = logging.getLogger(__name__)
+
+        # Optional draft model for speculative decoding — sessions are decode-
+        # dominated, and a 0.5B drafter the 14B verifies speeds long generation
+        # 1.5-2x with an unchanged output distribution. Never load-bearing:
+        # any failure just means full-speed-ahead without it.
+        draft = None
+        if getattr(config, "draft_model_id", ""):
+            try:
+                draft, _ = load(config.draft_model_id)
+                log.info("draft model loaded for speculative decoding: %s",
+                         config.draft_model_id)
+            except Exception as e:
+                log.warning("draft model unavailable (%s) — decoding without it", e)
+
         if ap and Path(ap).expanduser().is_dir() and any(Path(ap).expanduser().glob("*.safetensors")):
             try:
                 model, tokenizer = load(mid, adapter_path=str(Path(ap).expanduser()))
-                logging.getLogger(__name__).info("loaded with LoRA adapter: %s", ap)
-                return cls(model=model, tokenizer=tokenizer, model_id=mid)
+                log.info("loaded with LoRA adapter: %s", ap)
+                return cls(model=model, tokenizer=tokenizer, model_id=mid,
+                           draft_model=draft)
             except Exception as e:
-                logging.getLogger(__name__).warning(
-                    "adapter load failed (%s) — falling back to base model", e)
+                log.warning("adapter load failed (%s) — falling back to base model", e)
         model, tokenizer = load(mid)
-        return cls(model=model, tokenizer=tokenizer, model_id=mid)
+        return cls(model=model, tokenizer=tokenizer, model_id=mid, draft_model=draft)
 
     def stream(
         self,
@@ -123,6 +139,10 @@ class Engine:
             repetition_context_size=config.repetition_context_size,
         )
 
+        kwargs = {}
+        if self.draft_model is not None:
+            kwargs["draft_model"] = self.draft_model
+            kwargs["num_draft_tokens"] = getattr(config, "num_draft_tokens", 4)
         for response in stream_generate(
             self.model,
             self.tokenizer,
@@ -130,5 +150,6 @@ class Engine:
             max_tokens=max_tokens or config.max_tokens,
             sampler=sampler,
             logits_processors=logits_processors,
+            **kwargs,
         ):
             yield response.text

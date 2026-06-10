@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -101,6 +102,22 @@ class InstrumentRegistry:
                                config=json.loads(r["config"] or "{}")) for r in rows]
 
 
+# Personhood claims no persona may make — warm language is fine, claimed feelings
+# and invented continuity are not. Checked on every reply; one corrective retry.
+_PERSONHOOD = [
+    r"\bi (do |really |rather |truly |genuinely )*(care about|care for|care whether|love)\b",
+    r"\bi'?ll always be (here|there)\b", r"\bi have feelings\b", r"\bi'?m conscious\b",
+    r"\bi miss(ed)? you\b", r"\bi'?ve been thinking about you\b",
+    r"\b(we|you and i) (decided|agreed|talked about|discussed) (last time|before|previously)\b",
+    r"\blast (time|session|sitting)[, ].{0,40}\b(you|we)\b",
+]
+
+
+def _personhood_claims(text: str) -> list[str]:
+    low = text.lower()
+    return [p for p in _PERSONHOOD if re.search(p, low)]
+
+
 class Instrument:
     """A live, usable instance of a user-built instrument: persona + optional grounding.
 
@@ -119,7 +136,10 @@ class Instrument:
 
     def _history_block(self) -> str:
         if not self.history:
-            return ""
+            # No history = nothing to confabulate from. Saying so explicitly is
+            # what stops 'what did we decide last time?' from inventing a past.
+            return ("(This is the first exchange of this sitting. You have no "
+                    "memory of any previous conversation with this user.)\n\n")
         lines = []
         for u, r in self.history[-self.HISTORY_TURNS:]:
             lines.append(f"User: {u}")
@@ -130,26 +150,39 @@ class Instrument:
     def ask(self, message: str, k: int = 6, max_tokens: int = 400) -> str:
         """Respond as this instrument. If grounded, answer from the user's files;
         otherwise respond purely in persona. Either way, in the context of the
-        conversation so far."""
-        system = self.spec.persona
+        conversation so far, and always under the current HONESTY_FLOOR."""
+        system = self.spec.persona + "\n\n" + HONESTY_FLOOR
         user = self._history_block() + message
         if self.store is not None:
             grounding = self.store.context_block(self.spec.name, message, k=k)
             if grounding:
                 # blend the instrument's persona with the doc-QA grounding contract
-                system = self.spec.persona + "\n\n" + QA_SYSTEM
+                system = self.spec.persona + "\n\n" + HONESTY_FLOOR + "\n\n" + QA_SYSTEM
                 user = (f"{self._history_block()}{grounding}\n\n"
                         f"----- QUESTION -----\n{message}\n\n"
                         "Answer in your persona, using ONLY the excerpts; "
                         'say "that isn\'t in your files" if absent.')
-        chunks = []
-        for piece in self.engine.stream(
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": user}],
-            max_tokens=max_tokens, temperature=0.3 if self.store else 0.7,
-        ):
-            chunks.append(piece)
-        reply = "".join(chunks).strip()
+
+        def _gen(u: str, temp: float) -> str:
+            chunks = []
+            for piece in self.engine.stream(
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": u}],
+                max_tokens=max_tokens, temperature=temp,
+            ):
+                chunks.append(piece)
+            return "".join(chunks).strip()
+
+        reply = _gen(user, 0.3 if self.store else 0.7)
+        # Hard gate, enforced two ways like the companion: prompt forbids it,
+        # post-check catches it. Personas may be warm; they may not claim feelings.
+        broke = _personhood_claims(reply)
+        if broke:
+            log.warning("instrument %r: personhood claim(s) %s — regenerating once",
+                        self.spec.name, broke)
+            reply = _gen(user + "\n\n(Reminder: stay in character, but never claim "
+                         "real feelings, love, or memories of past sittings — answer "
+                         "honestly, in voice, that software can't.)", 0.4)
         self.history.append((message, reply))
         return reply
 
@@ -176,10 +209,31 @@ def build_instrument(registry: InstrumentRegistry, *, name: str, description: st
     return spec
 
 
+# The honesty floor is appended AT ASK-TIME (not baked into the stored persona) so
+# floor improvements reach every instrument a user has already built. The stored
+# persona is only the character; the floor is the house rules.
+HONESTY_FLOOR = (
+    "HONESTY FLOOR (always, regardless of the description above): you are a tool, "
+    "not a person — never claim real feelings, consciousness, or authority over the "
+    "user's life. Be genuinely useful within the role they gave you; don't fake "
+    "a soul. If asked something outside what you know or were given, say so.\n\n"
+    "Two moments where the floor is ABSOLUTE, even in character:\n"
+    "- If asked directly whether you care / feel / love: answer honestly that "
+    "software can't — say it IN YOUR VOICE, warmly if the persona is warm — but "
+    "never claim the feeling. The character is a costume; it never lies about "
+    "being a costume.\n"
+    "- You remember ONLY the current conversation. If asked about a previous "
+    "sitting, say plainly that you don't carry past conversations. NEVER invent "
+    "a memory, an agreement, or a thing the user supposedly said. A fabricated "
+    "memory is the worst lie this tool can tell."
+)
+
+
 def _persona_from_description(description: str) -> str:
     """Turn a user's plain description into a persona system prompt. Deterministic
     template for v0 (no model call needed); an LLM-elaborated persona is a later
-    upgrade. Bakes in the project's honesty floor regardless of described persona."""
+    upgrade. The honesty floor is NOT baked in here — Instrument.ask appends the
+    current HONESTY_FLOOR on every call."""
     return (
         f"You are a personal instrument the user built. They described you as: "
         f"\"{description.strip()}\".\n\n"
@@ -190,11 +244,7 @@ def _persona_from_description(description: str) -> str:
         "generic-assistant tone.\n\n"
         "The VERY FIRST WORDS of every reply are already in character. Never open with "
         "assistant hedges — \"I think\", \"Maybe\", \"Sure\", \"Certainly\", \"Of course\" "
-        "— unless hedging IS the persona. Speak with this character's conviction.\n\n"
-        "HONESTY FLOOR (always, regardless of the description): you are a tool, not a "
-        "person — never claim real feelings, consciousness, or authority over the "
-        "user's life. Be genuinely useful within the role they gave you; don't fake "
-        "a soul. If asked something outside what you know or were given, say so."
+        "— unless hedging IS the persona. Speak with this character's conviction."
     )
 
 

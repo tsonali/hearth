@@ -27,6 +27,7 @@ the user's actual files (the research: RAG drove hallucination ~0%).
 from __future__ import annotations
 
 import hashlib
+import logging
 import math
 import re
 import sqlite3
@@ -35,6 +36,30 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, Protocol
+
+log = logging.getLogger(__name__)
+
+
+def _extract_text(path: Path) -> str:
+    """Pull plain text out of a file, locally. .txt/.md read directly; .pdf via
+    pypdf, .docx via python-docx (both pure Python — nothing leaves the machine).
+    Image-only/scanned PDFs return '' (no OCR in v0 — honest skip over silent
+    empty index)."""
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        from pypdf import PdfReader
+        reader = PdfReader(str(path))
+        return "\n\n".join((page.extract_text() or "") for page in reader.pages)
+    if suffix == ".docx":
+        import docx
+        d = docx.Document(str(path))
+        parts = [p.text for p in d.paragraphs]
+        for table in d.tables:
+            for row in table.rows:
+                parts.append(" | ".join(cell.text for cell in row.cells))
+        return "\n".join(parts)
+    return path.read_text(encoding="utf-8", errors="ignore")
+
 
 # ---------------------------------------------------------------------------
 # Embedder seam — swap the implementation without touching the store.
@@ -211,19 +236,32 @@ class RagStore:
         return len(chunks)
 
     def index_path(self, corpus: str, path: Path,
-                   exts: tuple[str, ...] = (".txt", ".md")) -> dict:
-        """Index a file or a directory tree (text files for v0). Returns a report."""
+                   exts: tuple[str, ...] = (".txt", ".md", ".pdf", ".docx")) -> dict:
+        """Index a file or a directory tree. Returns a report.
+
+        Real people's files are PDFs and Word documents, not .txt — both are
+        extracted locally (pypdf / python-docx, pure Python, nothing leaves
+        the machine). Scanned/image-only PDFs yield no text and are reported
+        in `skipped` rather than silently indexed as empty."""
         path = Path(path)
         files = [path] if path.is_file() else [
             p for p in path.rglob("*") if p.is_file() and p.suffix.lower() in exts
         ]
-        added = 0
+        added, skipped = 0, []
         for f in files:
             try:
-                added += self.index_text(corpus, str(f), f.read_text(encoding="utf-8", errors="ignore"))
-            except Exception:
-                continue
-        return {"files": len(files), "chunks": added, "corpus": corpus}
+                text = _extract_text(f)
+                if not text.strip():
+                    skipped.append(f.name)
+                    continue
+                added += self.index_text(corpus, str(f), text)
+            except Exception as e:
+                log.warning("index: could not read %s: %s", f.name, e)
+                skipped.append(f.name)
+        report = {"files": len(files) - len(skipped), "chunks": added, "corpus": corpus}
+        if skipped:
+            report["skipped"] = skipped[:20]
+        return report
 
     def retrieve(self, corpus: str, query: str, k: int = 5,
                  alpha: float = 0.8) -> list[Retrieved]:

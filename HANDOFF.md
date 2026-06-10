@@ -1,6 +1,6 @@
 # HANDOFF — resume here (read this first)
 
-_Last updated mid-session, 2026-06-09. This file is the single source of truth for a
+_Last updated 2026-06-10 13:20. This file is the single source of truth for a
 fresh session to pick up EXACTLY where we left off. Everything below is real and
 running; nothing here depends on the previous chat staying alive._
 
@@ -15,6 +15,30 @@ ssh -o IdentitiesOnly=yes smaitra@mac-mini.localdomain '
 # If trainer stopped and not at plateau: cd ~/imagination-engine && nohup bash scripts/recursive_flywheel.sh &
 # If caffeinate OFF: nohup caffeinate -dimsu >/dev/null 2>&1 &   (on BOTH mini and laptop)
 ```
+
+## UNATTENDED WEEK PROTOCOL (Sonali returns WEDNESDAY 2026-06-17 — do not wait for her)
+Standing orders for ANY session that picks this up:
+1. NEVER BLOCK on a question. Decide with your best judgment, apply it, and log
+   the decision + reasoning in docs/internal/review-queue.md for her Wednesday
+   read. Her words: "constant bettering/iteration is the key" — there is no
+   "done"; every cycle ends by starting the next pass.
+2. WHAT RUNS WITHOUT ANY CLAUDE SESSION (verify, don't duplicate):
+   - laptop: scripts/qc_queue.sh (nohup, pid in logs/qc/queue.log) — rotates ALL
+     QC batteries forever, one model process at a time (16GB RAM — never two),
+     and watchdogs the mini's flywheel over ssh once per pass.
+   - mini: recursive_flywheel.sh — 5-family rotation (A->B->C->D->E), restarted
+     by the laptop watchdog whenever it stops (plateau restarts are productive:
+     each run regrows candidates).
+   If the LAPTOP rebooted, relaunch the queue runner:
+   `cd ~/Downloads/imagination-engine && nohup bash scripts/qc_queue.sh >/dev/null 2>&1 &`
+   then `nohup caffeinate -dimsu >/dev/null 2>&1 &` (launchd can't touch
+   ~/Downloads under TCC — nohup is the mechanism).
+3. THE JUDGMENT LOOP (your job each time you wake): read new logs/qc/queue_*.log
+   honestly; fix defects; lock them into scripts/qc/scenario_bank.py; harvest
+   clean scripts (scripts/harvest_qc_scripts.py); when the mini beats best_loss,
+   pull the adapter + full-bank comparative re-read; append docs/daily-log.md
+   daily; keep this file current; push everything except docs/internal + corpus.
+4. The review queue for Wednesday: docs/internal/review-queue.md.
 
 ## THE WEEK OF FIVE (operating mode through Sun 2026-06-14)
 Sonali's mandate: ALL FIVE tools get the full excellence loop — corpus, flywheel,

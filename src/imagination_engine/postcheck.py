@@ -26,7 +26,9 @@ MIN_RUN = 3
 # Ignore tiny fragments ("Good.", "Once more.") — legitimate cadence beats.
 MIN_WORDS = 6
 
-_SENT_SPLIT = re.compile(r"(?<=[.!?…])\s+")
+# split after end punctuation followed by whitespace OR a bracket annotation
+# (transcribed exemplars carry "[2.0]" pause marks straight after the period)
+_SENT_SPLIT = re.compile(r"(?<=[.!?…])(?:\s+|(?=\[))")
 _NORM = re.compile(r"[^a-z0-9\s]")
 
 
@@ -102,12 +104,15 @@ def trim_degenerate_tail(text: str) -> tuple[str, bool]:
 # --- run-on collapse: the OTHER decay mode -----------------------------------
 # Nothing repeats, but grammar disintegrates into an unpunctuated word-stream
 # ("vast empty stretch Half Moon Bay's beach offers during this quietest time
-# year where usually tourists flock instead remain few..."). Discriminator: a
-# very long sentence with almost no internal punctuation. Deliberate long
-# guided-script sentences breathe — commas every 8-12 words; collapsed ones
-# run 60+ words with punctuation rarer than 1 per 15 words.
-RUNON_WORDS = 60
-RUNON_PUNCT_RATIO = 1 / 15
+# year where usually tourists flock instead remain few..."). Calibration against
+# A_gold (2026-06-10) showed spoken-register gold legitimately runs 90+ word
+# sentences with near-zero commas, so only the EXTREME tail is safely separable:
+# the real catastrophe is 125w at 0.016 punctuation/word; the longest genuine
+# gold sentence is 92w. Thresholds sit in the gap — this net catches only
+# unambiguous salad, by design. Subtler decay is the fine-tune's job, not a
+# regex's.
+RUNON_WORDS = 110
+RUNON_PUNCT_RATIO = 0.03
 
 _PUNCT = re.compile(r"[,;:—–-]")
 
@@ -120,26 +125,35 @@ def _is_collapsed(sentence: str) -> bool:
     return (punct / words) < RUNON_PUNCT_RATIO
 
 
+def _lines(text: str) -> list[str]:
+    """Excision units: scripts mix '\\n\\n' paragraphs and single-'\\n' breaks;
+    a line is the finest unit that can be dropped without orphaning syntax."""
+    return text.split("\n")
+
+
 def find_collapsed_paragraphs(text: str) -> list[int]:
-    """Indices of paragraphs containing a run-on grammar collapse."""
+    """Indices (line-granular) of units containing a run-on grammar collapse."""
     out = []
-    for i, para in enumerate(text.split("\n\n")):
-        if any(_is_collapsed(s) for s in _sentences(para)):
+    for i, line in enumerate(_lines(text)):
+        if any(_is_collapsed(s) for s in _sentences(line)):
             out.append(i)
     return out
 
 
 def drop_collapsed_paragraphs(text: str) -> tuple[str, int]:
-    """Remove collapsed paragraphs entirely. Paragraphs in these long bodies are
-    semi-independent moments, so excising one reads as a pause, not a hole —
-    while a collapsed paragraph read aloud shatters the session. Returns
-    (text, n_dropped)."""
-    paras = text.split("\n\n")
+    """Remove collapsed lines. The moments in these long bodies are
+    semi-independent, so excising one reads as a pause, not a hole — while a
+    collapsed run-on read aloud shatters the session. Granularity is the LINE,
+    not the blank-line paragraph: scripts that break with single newlines would
+    otherwise lose good sentences along with the salad. Returns (text, n_dropped)."""
+    lines = _lines(text)
     bad = set(find_collapsed_paragraphs(text))
     if not bad:
         return text, 0
-    kept = [p for i, p in enumerate(paras) if i not in bad]
-    return "\n\n".join(kept), len(bad)
+    kept = [ln for i, ln in enumerate(lines) if i not in bad]
+    out = "\n".join(kept)
+    out = re.sub(r"\n{3,}", "\n\n", out).strip()
+    return out, len(bad)
 
 
 def degeneration_report(text: str) -> dict:

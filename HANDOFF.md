@@ -33,12 +33,16 @@ Standing orders for ANY session that picks this up:
    `cd ~/Downloads/imagination-engine && nohup bash scripts/qc_queue.sh >/dev/null 2>&1 &`
    then `nohup caffeinate -dimsu >/dev/null 2>&1 &` (launchd can't touch
    ~/Downloads under TCC — nohup is the mechanism).
-3. THE JUDGMENT LOOP (your job each time you wake): read new logs/qc/queue_*.log
+3. ADAPTER PROMOTION RULE (2026-06-11, learned the hard way): val loss is
+   DIRECTIONAL ONLY — promotion into the product is decided by comparative bank
+   READS, never by the number alone. A collapsing loss with sideways output =
+   leakage; check scenario-disjointness first (the 0.860 incident).
+4. THE JUDGMENT LOOP (your job each time you wake): read new logs/qc/queue_*.log
    honestly; fix defects; lock them into scripts/qc/scenario_bank.py; harvest
    clean scripts (scripts/harvest_qc_scripts.py); when the mini beats best_loss,
    pull the adapter + full-bank comparative re-read; append docs/daily-log.md
    daily; keep this file current; push everything except docs/internal + corpus.
-4. The review queue for Wednesday: docs/internal/review-queue.md.
+5. The review queue for Wednesday: docs/internal/review-queue.md.
 
 ## THE WEEK OF FIVE (operating mode through Sun 2026-06-14)
 Sonali's mandate: ALL FIVE tools get the full excellence loop — corpus, flywheel,

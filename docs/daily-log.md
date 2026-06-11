@@ -8,6 +8,30 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-06-11 (early) — the first contract-native adapter, and a chronic trait unmasked
+
+The 1.132 adapter (first trained on contract-native Secretary data + the
+decontaminated corpus, measured on the frozen yardstick) went into the product
+and the queue ran the full bank against it overnight. The comparative read:
+register floors 10/10 clean (the banned-opener contract reached the WEIGHTS —
+the old adapter needed the runtime gate to catch it; the new one doesn't even
+try it), the 'what if' tic collapsed 12%->0%, the parasocial honest-no got more
+fluent, and imagination concreteness jumped (one script hit 11.1 — gold-max
+territory). One regression traced to its real cause: question-enders snapped
+back to 96% NOT because of the corpus (only 20% of examples end in '?') but
+because the TRAINING system prompt still commanded 'hand it back with a
+question'. The model learned the instruction, not the examples. Aligned.
+
+Bigger find: baselining the new phrase-repeat detector against the OLD
+adapter showed 11-20 recycled-phrase pairs per long script — chronic, not a
+regression. Every long session the model has ever written quietly recycles
+phrasing; the detector just made it visible. The catch-22 (cure needs clean
+training data; no long script passes the gate) resolved with repair-then-
+harvest: excise later occurrences line-by-line, re-judge the repaired script
+in full. 11/11 scripts now harvest clean. An anti-recycle rule joined the
+generation posture; the gates keep the trait from re-entering training while
+the cycles train it out.
+
 ## 2026-06-10 (evening) — first unattended heartbeat
 
 The self-running layer held: the laptop's QC queue completed its first full

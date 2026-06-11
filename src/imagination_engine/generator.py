@@ -781,6 +781,18 @@ def generate_session(
     log.info("  back: %.1fs, %d words", time.time() - t0, len(closing.split()))
 
     full = f"{open_text}\n\n{body}\n\n{closing}"
+    # Quality floor (2026-06-11): the nets (decay-abort + trims + drops) can
+    # occasionally gut a body to a stub — a 196-word "session" shipped in QC.
+    # A too-short session is a broken promise; regenerate the body once.
+    if len(full.split()) < 450 and not getattr(generate_session, "_retried", False):
+        log.warning("[v6] script gutted to %d words by the nets — one body retry",
+                    len(full.split()))
+        generate_session._retried = True
+        try:
+            return generate_session(engine, transcript, protocol=protocol,
+                                    on_progress=on_progress)
+        finally:
+            generate_session._retried = False
     full, dropped = drop_collapsed_paragraphs(full)
     if dropped:
         log.warning("[v6] %d collapsed run-on paragraph(s) dropped", dropped)

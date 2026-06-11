@@ -174,9 +174,18 @@ frozen_path = os.path.join(OUT, "valid_frozen.jsonl")
 if os.path.exists(frozen_path):
     valid = [json.loads(l) for l in open(frozen_path)]
     frozen_hashes = {_h(r) for r in valid}
+    # SCENARIO-LEVEL disjointness (2026-06-11): exact-hash dedupe wasn't enough.
+    # Daily QC reruns harvest SIBLING scripts of the same bank scenarios that
+    # seeded the frozen set — training on near-copies of val members collapsed
+    # val loss (1.054 -> 0.860) while actual output quality went sideways.
+    # A train example whose USER PROMPT matches a frozen-val member's is
+    # excluded entirely: same prompt = sibling risk.
+    frozen_users = {r["messages"][1]["content"].strip() for r in valid}
     before = len(train)
-    train = [r for r in train if _h(r) not in frozen_hashes]
-    print(f"frozen valid: {len(valid)} examples reused; {before - len(train)} train dupes excluded")
+    train = [r for r in train if _h(r) not in frozen_hashes
+             and r["messages"][1]["content"].strip() not in frozen_users]
+    print(f"frozen valid: {len(valid)} examples reused; {before - len(train)} "
+          f"train rows excluded (exact dupes + same-prompt siblings)")
 else:
     with open(frozen_path, "w") as f:
         for r in valid: f.write(json.dumps(r, ensure_ascii=False) + "\n")

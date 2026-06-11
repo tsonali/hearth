@@ -218,3 +218,9 @@ toward training scale.
 **Operating constraint**
 - Heavy model runs are tied to the local Mac's GPU; a cloud routine can't
   drive them. Overnight compute needs the machine awake + plugged in.
+
+## 2026-06-11 (evening heartbeat)
+- **Machines:** laptop qc_queue.sh alive (PID 1807), rotating batteries all afternoon (4b floor, 3b ask-retest, e2e, battery 11 imagination-bank ×2 runs). Mini flywheel alive; previous cycle completed, next family training (val 3.10→1.288@1200 this cycle — no promotion signal; promotion stays comparative-reads-only).
+- **QC reads:** battery 3b all PASS (BRIDGE2/CITATION/STALE/OWNER). 4b floor recall clean. Battery 11: one final script tripped the phrase-repeat quality floor (5 non-adjacent pairs, ≥3 = floor) — detector working; corpus gates cull it from harvest; repeat-variety scenario doing exactly its job. No new product defects to fix this pass.
+- **Law track (judgment lane):** BOTH articles reached purge-complete editing files today — CODE-WITHOUT-COPYRIGHT-EDITING.md (296 linked fns) and C3PO-EDITING.md (357 linked fns; full from-scratch rebuild ordered by Sonali this morning, Her/ScarJo open, 3 parts + intro/conc). Cold purges: M=0 on both; all S/T triaged with receipts. Next pass queued: adversarial review of the rebuilt Part III (the heartbeat's "Part III adversarial re-run," now pointed at the new draft) + June lit sweep incl. BTLJ scoop-watch.
+- **Usage note:** Sonali hit the Max cap midday (first ever) — cause: yesterday's 25k-word article build + triple verifier fan-outs. She OK'd burning windows for product; heavy fan-outs nonetheless paced sequentially where quality allows.

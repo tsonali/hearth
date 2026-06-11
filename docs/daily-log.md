@@ -8,6 +8,16 @@ The journey is part of the public diligent narrative — see `strategy.md`.
 
 ---
 
+## 2026-06-11 (morning) — turn 6 breaks 1.054
+
+The flywheel's turn 6 — the first trained on the repaired-harvest scripts and
+the expanded-universe intakes — dropped val loss from 1.132 to 1.054 on the
+frozen yardstick, the largest single-turn improvement yet recorded. The
+adapter is in the product; the queue's current pass is its comparative read.
+The loop is now visibly compounding: QC finds a defect, the gates keep it out
+of training, the corpus grows cleaner, the next adapter measures better, and
+its scripts feed back through the same gates.
+
 ## 2026-06-11 (early) — the first contract-native adapter, and a chronic trait unmasked
 
 The 1.132 adapter (first trained on contract-native Secretary data + the

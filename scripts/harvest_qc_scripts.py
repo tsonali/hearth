@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "qc"))
 from score_scripts import score  # noqa: E402
+from imagination_engine.postcheck import repair_phrase_repeats  # noqa: E402
 
 A = Path.home() / "Downloads" / "hearth-corpus" / "A-imagination"
 SILVER = A / "A_qc_harvest.jsonl"
@@ -46,6 +47,11 @@ with open(SILVER, "a") as out:
             scanned += 1
             script = m.group(1).strip()
             s = score(script)
+            if s.get("phrase_rep"):
+                # chronic model trait (every long script recycles phrases):
+                # repair by dropping later occurrences, then re-judge in full
+                script, _ = repair_phrase_repeats(script)
+                s = score(script)
             if (s["degen"] or s["collapsed"] or s.get("phrase_rep", 0) or s["meta"] or s["abstract"] > 2.5
                     or s["concrete"] < MIN_CONCRETE
                     or not (MIN_WORDS <= s["words"] <= MAX_WORDS)):

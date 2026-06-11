@@ -192,6 +192,38 @@ def phrase_repeat_count(text: str) -> int:
     return len(find_phrase_repeats(text))
 
 
+def repair_phrase_repeats(text: str, max_rounds: int = 4) -> tuple[str, int]:
+    """Drop the LINES carrying the later occurrence of a repeated shingle.
+    For TRAINING-DATA harvesting (a slightly shorter clean script teaches more
+    good than a recycled phrase teaches harm) — not wired into the live product.
+    Iterates because dropping lines can reveal new adjacencies. Returns
+    (text, lines_dropped)."""
+    dropped = 0
+    for _ in range(max_rounds):
+        lines = text.split("\n")
+        nonempty = [k for k, ln in enumerate(lines) if ln.strip()]
+        # map shingle -> first nonempty-line index
+        seen: dict[tuple, int] = {}
+        kill: set[int] = set()
+        for pos, k in enumerate(nonempty):
+            words = _NORM.sub(" ", lines[k].lower()).split()
+            hit = False
+            for j in range(len(words) - NGRAM + 1):
+                sh = tuple(words[j:j + NGRAM])
+                if sh in seen and seen[sh] != k:
+                    hit = True
+                    break
+                seen.setdefault(sh, k)
+            if hit:
+                kill.add(k)
+        if not kill:
+            break
+        dropped += len(kill)
+        text = "\n".join(ln for k, ln in enumerate(lines) if k not in kill)
+        text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return text, dropped
+
+
 def degeneration_report(text: str) -> dict:
     """Diagnostic summary for QC harnesses and logs."""
     start = find_degeneration_start(text)

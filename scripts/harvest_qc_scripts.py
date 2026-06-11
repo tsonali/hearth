@@ -32,7 +32,8 @@ existing = set()
 if SILVER.exists():
     for line in open(SILVER):
         try:
-            existing.add(re.sub(r"\s+", " ", json.loads(line)["text"])[:120])
+            import hashlib
+            existing.add(hashlib.sha1(re.sub(r"\s+", " ", json.loads(line)["text"]).encode()).hexdigest())
         except Exception:
             pass
 
@@ -49,7 +50,8 @@ with open(SILVER, "a") as out:
                     or s["concrete"] < MIN_CONCRETE
                     or not (MIN_WORDS <= s["words"] <= MAX_WORDS)):
                 continue
-            key = re.sub(r"\s+", " ", script)[:120]
+            import hashlib
+            key = hashlib.sha1(re.sub(r"\s+", " ", script).encode()).hexdigest()
             if key in existing:
                 continue
             existing.add(key)

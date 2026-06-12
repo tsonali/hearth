@@ -151,3 +151,9 @@ when many sessions share one DB (normal single-user cadence should be gentler â€
 ## WORKING STYLE (her explicit direction)
 Act autonomously, don't over-ask, be brutally honest about quality, test test test, keep
 the mini busy. She drives; Claude builds.
+
+## STATE SNAPSHOT 2026-06-12 (pre-relaunch, written by Claude for session continuity)
+- Machines: both RUNNING. Mini flywheel restarted 08:56 on the corrected CLEAN seed 1.203 (all pre-ac7d62e numbers are leakage-era; quarantine + SEED-RESET-NOTE at _train/QUARANTINE-leakage-era-0860/). Laptop rotation healthy through battery 9/11/2b/e2e.
+- Promotion rule unchanged: comparative full-bank READS only; first clean-cycle NEW BEST triggers them.
+- Open: Ask-Your-Files at-scale+PDF battery (task); Apple signing parked (Team ID U3MBG724WA, scripts/apple_setup.py).
+- Law track state lives in "Law Review Articles/QUEUE.md" + the memory file project_state_2026-06-12.md.

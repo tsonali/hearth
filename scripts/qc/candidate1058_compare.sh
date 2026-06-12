@@ -28,7 +28,7 @@ for b in battery11_imagination_bank battery2b_honesty battery10_registers batter
   echo "--- running $b vs candidate $(date)"
   .venv/bin/python "scripts/qc/$b.py" > "logs/qc/queue_$(date +%m%d_%H%M)_CAND1058v2_${b}.log" 2>&1 || echo "WARN: $b nonzero exit"
 done
-.venv/bin/python scripts/qc/product_e2e_test.py > "logs/qc/queue_$(date +%m%d_%H%M)_CAND1058v2_e2e.log" 2>&1 || echo "WARN: e2e nonzero exit"
+.venv/bin/python scripts/product_e2e_test.py > "logs/qc/queue_$(date +%m%d_%H%M)_CAND1058v2_e2e.log" 2>&1 || echo "WARN: e2e nonzero exit"
 
 restore
 trap - EXIT

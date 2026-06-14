@@ -267,3 +267,7 @@ Comparative slice completed (live adapter verified restored by the orchestrator'
 ## 2026-06-14 (Opus) — flywheel reaches honest ceiling; all clean
 - Clean cycle ran 5 turns (1.309–1.317), never beat the 1.203 seed, declared PLATEAU/DONE without collapsing, restarted clean. KEY FINDING: at the honest seed the flywheel plateaus rather than collapses — 1.203 is the real ceiling for the current corpus + base model. Real gains now need the objective fix AND better data / a stronger base model, not more cycles. Gen pool stable at 932 (5-turn plateau cycles add little → re-collapse risk low). Nothing promotable; nothing to fix.
 - All QC batteries clean (honesty/floors/registers/ask/e2e; imagination collapse in-band). No defects.
+
+## 2026-06-14 (wake 3, Opus) — watched cycle resolved benign; steady-state
+- The downward-trending cycle (1.313→1.273) plateaued at 1.273 and declared DONE at 1.203 — never crossed the seed. No improvement candidate, no collapse: the gradual decline stalled honestly above ceiling. Confirms steady-state — clean cycles plateau ~1.27-1.31, never beat 1.203, never collapse (gen pool moderate). Restarted 10:20.
+- All QC batteries clean. BRIDGE2 flake steady ~21% (not worsening). No defects, no promotions.

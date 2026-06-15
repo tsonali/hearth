@@ -43,7 +43,13 @@ while true; do
   # on either machine can't touch ~/Downloads under TCC). If the trainer
   # stopped — plateau or crash — restart it: each fresh run regrows candidates
   # with the current corpus, so restarts are productive, not spinning.
-  if ! ssh -o IdentitiesOnly=yes -o ConnectTimeout=10 smaitra@mac-mini.localdomain       'pgrep -f recursive_flywheel >/dev/null' 2>/dev/null; then
+  # PAUSE GATE (added 2026-06-14): if scripts/FLYWHEEL-PAUSED exists, do NOT restart.
+  # The self-training flywheel was Goodharting its val metric (training on its own
+  # generated output -> imagination collapse). Paused pending the rebuilt read-driven
+  # loop. Resume = delete scripts/FLYWHEEL-PAUSED.
+  if [ -f scripts/FLYWHEEL-PAUSED ]; then
+    say "flywheel PAUSED (scripts/FLYWHEEL-PAUSED present) — not restarting"
+  elif ! ssh -o IdentitiesOnly=yes -o ConnectTimeout=10 smaitra@mac-mini.localdomain       'pgrep -f recursive_flywheel >/dev/null' 2>/dev/null; then
     say "mini flywheel stopped — restarting it"
     ssh -o IdentitiesOnly=yes smaitra@mac-mini.localdomain       'cd ~/imagination-engine && git pull -q origin main; rm -f ~/Downloads/hearth-corpus/_logs/RECURSIVE_DONE; nohup bash scripts/recursive_flywheel.sh > /dev/null 2>&1 & sleep 2; pgrep -f recursive_flywheel >/dev/null && echo restarted'       >> logs/qc/queue.log 2>&1 || say "mini restart FAILED (unreachable?)"
   fi

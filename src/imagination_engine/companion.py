@@ -254,6 +254,8 @@ class Companion:
         self.session_key = session_key
         # Past-conversation summaries (cross-session continuity), loaded once.
         self._past = memory.recent() if memory else []
+        # Track consecutive question-ender replies so we can break the streak.
+        self._q_streak = 0
 
     def _running_context(self) -> str:
         """Compact context: summaries of PAST conversations (cross-session pattern-
@@ -318,12 +320,23 @@ class Companion:
 
     def turn(self, user_message: str, max_tokens: int = 160) -> CompanionTurn:
         ctx = self._running_context()
+        # If we've asked a question 2+ turns in a row, force a statement close.
+        if self._q_streak >= 2:
+            close_instruction = (
+                "This time close with a plain statement that lands — NOT a question. "
+                "You have asked a question the last several turns; let this one sit."
+            )
+        else:
+            close_instruction = (
+                "Close however serves: a question that opens something, or a plain "
+                "statement left to sit."
+            )
         user = (ctx + "\n\n" if ctx else "") + f"User just said: {user_message}\n\n" \
             "Respond in the right register (gravity / lightness / size — judged " \
             "silently, never announced): usually ONE genuinely insightful move — a " \
-            "reframe, a connection, a pattern, a possibility — made to land. Close " \
-            "however serves: a question that opens something, or a plain statement " \
-            "left to sit. Be sharp, not a parrot. Never tell them what to do; never " \
+            f"reframe, a connection, a pattern, a possibility — made to land. " \
+            f"{close_instruction} " \
+            "Be sharp, not a parrot. Never tell them what to do; never " \
             "claim feelings or personhood. Output ONLY the reply itself."
         chunks = []
         for piece in self.engine.stream(
@@ -354,5 +367,6 @@ class Companion:
 
         self.history.append({"role": "user", "content": user_message})
         self.history.append({"role": "assistant", "content": reply})
+        self._q_streak = self._q_streak + 1 if reply.rstrip().endswith("?") else 0
         self._maybe_refresh_memory()
         return CompanionTurn(reply=reply, flagged=flagged)

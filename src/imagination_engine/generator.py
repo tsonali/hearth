@@ -53,6 +53,7 @@ from typing import Callable, Optional
 from imagination_engine.comprehension import Classification, classify_intake
 from imagination_engine.inference import Engine
 from imagination_engine.postcheck import (degeneration_report, drop_collapsed_paragraphs,
+                                          drop_foreign_paragraphs,
                                           find_degeneration_start, trim_degenerate_tail)
 from imagination_engine.scene_bibles import get_bible
 from imagination_engine.structured import extract_array
@@ -563,6 +564,9 @@ def _generate_settling(engine: Engine, transcript: list[dict], emit) -> str:
     body, dropped = drop_collapsed_paragraphs(body)
     if dropped:
         log.warning("[settling] %d collapsed run-on paragraph(s) dropped", dropped)
+    body, foreign = drop_foreign_paragraphs(body)
+    if foreign:
+        log.warning("[settling] %d foreign-language paragraph(s) dropped", foreign)
     emit("writing_return", "Softening the close.", 3, 3, 3.0)
     log.info("[settling] session ready: %d words", len(body.split()))
     return body
@@ -796,6 +800,9 @@ def generate_session(
     full, dropped = drop_collapsed_paragraphs(full)
     if dropped:
         log.warning("[v6] %d collapsed run-on paragraph(s) dropped", dropped)
+    full, foreign = drop_foreign_paragraphs(full)
+    if foreign:
+        log.warning("[v6] %d foreign-language paragraph(s) dropped", foreign)
     # Backstop: if the assembled script STILL reads degenerate after the body
     # trim + collapse drop, log it loudly — that's a case the nets don't cover.
     from imagination_engine.postcheck import phrase_repeat_count

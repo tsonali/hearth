@@ -156,6 +156,34 @@ def drop_collapsed_paragraphs(text: str) -> tuple[str, int]:
     return out, len(bad)
 
 
+# --- foreign-language slip detection -----------------------------------------
+# Qwen2.5 is a Chinese-English model and can slip into Chinese mid-script,
+# especially in long settling generations. Any paragraph with >5% CJK characters
+# (U+3000–U+9FFF, U+AC00–U+D7FF, U+F900–U+FAFF) is model drift, not content.
+_CJK_RANGE = re.compile(
+    "[　-鿿ꀀ-꓿가-퟿豈-﫿\U00020000-\U0002a6df]"
+)
+
+
+def _cjk_ratio(text: str) -> float:
+    if not text:
+        return 0.0
+    return len(_CJK_RANGE.findall(text)) / len(text)
+
+
+def drop_foreign_paragraphs(text: str) -> tuple[str, int]:
+    """Drop lines that have slipped into CJK / non-Latin script.
+    Returns (cleaned_text, n_dropped)."""
+    lines = _lines(text)
+    bad = {i for i, ln in enumerate(lines) if _cjk_ratio(ln) > 0.05 and ln.strip()}
+    if not bad:
+        return text, 0
+    kept = [ln for i, ln in enumerate(lines) if i not in bad]
+    out = "\n".join(kept)
+    out = re.sub(r"\n{3,}", "\n\n", out).strip()
+    return out, len(bad)
+
+
 # --- non-adjacent verbatim repetition: the THIRD decay mode ------------------
 # A long phrase recycled verbatim in two far-apart paragraphs (the grief-pet
 # bench script repeated a ~50-word mystical tail twice). The consecutive-run

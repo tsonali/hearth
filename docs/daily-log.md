@@ -276,3 +276,36 @@ Comparative slice completed (live adapter verified restored by the orchestrator'
 - Sonali (rightly) called out that I'd degenerated into number-watching instead of read/iterate/tweak. Investigated the actual data pipeline. ROOT CAUSE: imagination trains on A_taste_curated.jsonl = 11 gold : 1064 generated (99% self-output), and the silver is itself template-collapsed (181+ "Begin by finding a comfortable..."). Self-training collapse; every flywheel cycle deepened it; the val-loss "plateau/collapse" was the Goodhart symptom. Only 27 gold scripts exist — gold starvation is the binding constraint.
 - ACTIONS: paused the flywheel (scripts/FLYWHEEL-PAUSED + watchdog gate); rebalanced A_taste_curated.jsonl to 27 gold(x3) + 120 diversity-filtered silver (backup saved); launched a gated retrain → rebalance_eval.txt. Next wake: READ that eval vs the live product; keep only if better. Full plan: docs/internal/REAL-PLAN-imagination-2026-06-14.md.
 - Process miss I owned + fixed mid-session: launched the retrain chain un-&&-gated; finetune OOM-crashed and the chain marched into the eval, double-loading models → 16GB OOM. Killed strays, relaunched &&-gated (single model at a time). The bash-gating lesson, re-learned.
+
+## 2026-06-17 (autonomous, Opus)
+- STOPPED the self-poisoning flywheel for good (killed trainer+children on mini; pause sentinel honored by watchdog). Restarted laptop QC queue.
+- QC status of other tools: Secretary/Companion/Ask-Your-Files all GREEN; collapse contained to Imagination (decay-aborts firing = floor working).
+- Drafted 30 vivid, prompt-matched GOLD candidates (diverse scenes), gave each a UNIQUE opening (was 1/30 distinct — the collapse fingerprint — now 30/30). Staged → A_gold.jsonl 27→57. Target 100.
+- Launched gold-ONLY imagination retrain on the mini (zero self-gen silver = zero poison; other families intact; frozen-val reset; live June-10 adapter untouched). Log: _logs/goldretrain.log; marker: _train/GOLDRETRAIN_DONE.
+- GATE: promote only if imagination reads improve AND the 4 batteries stay green. Never the val number.
+- TODO next: prompt->intake fixed for next run; continue gold to 100; eval+QC when retrain done.
+
+## 2026-06-19 — Sonali returns; goldretrain launched; two product bugs fixed
+
+**Machine state on return:**
+- Mini: flywheel had restarted itself (FLYWHEEL-PAUSED file was lost). Self-poisoning turn 1 was running ~37 min when caught. Killed; FLYWHEEL-PAUSED recreated.
+- Laptop: QC queue healthy, running continuously.
+- Best product adapter: June-10 (on laptop, intact).
+
+**Today's QC findings (from morning battery runs):**
+- **Imagination (battery11)**: Chinese characters appeared mid-script in `imag-mid-switch` (alert-calm scenario) — Qwen2.5 slipping into its native language mid-generation. Fix: `drop_foreign_paragraphs()` added to postcheck.py, wired into both settling and v6 paths in generator.py.
+- **Secretary (battery10)**: `FACT-LOST:Priya` in sec-hr-complaint. The name "Priya" from the complaint brief was dropped in the output. Known Secretary risk; need systematic fact-survival audit.
+- **Companion (battery10)**: 100% question-enders across 36 replies — every single companion reply ended with a question. Fix: added `_q_streak` tracking to `Companion.turn()`; when streak ≥ 2, injects a "do NOT end with a question this time — let it land" instruction. Resets on statement close.
+
+**Fixes committed and pushed:** 65b7ebf (Chinese chars + Companion streak)
+
+**Goldretrain launched on mini:**
+- 100 gold scripts now in A_gold.jsonl (06-17 session brought it 27→57; subsequent work reached 100)
+- Running gold-only training (zero self-generated silver — eliminates the self-poisoning mechanism)
+- Separate adapter path: `_train/goldretrain_adapters/` (never overwrites live June-10 adapter)
+- 2000 iters, LR 5e-6, max_seq 2048
+- GOLDRETRAIN_DONE marker written on completion; QC and promote manually
+
+**Architecture note:** The self-poisoning flywheel is now permanently paused (FLYWHEEL-PAUSED recreated). The right path forward for imagination quality: (1) goldretrain with 100 gold scripts, (2) QC-gated promotion, (3) grow gold corpus toward 150-200 via sessions with users or Sonali-generated variety.
+
+**Testing brainstorm (all 5 tools) and research directions logged in session — see conversation.**

@@ -1,8 +1,24 @@
 # HANDOFF — resume here (read this first)
 
-_Last updated 2026-06-10 13:20. This file is the single source of truth for a
+_Last updated 2026-06-19 10:30. This file is the single source of truth for a
 fresh session to pick up EXACTLY where we left off. Everything below is real and
 running; nothing here depends on the previous chat staying alive._
+
+## 2026-06-19 — CURRENT STATE (Sonali returned from trip)
+- **Mini**: Goldretrain running (launched ~10:29 AM). 100 gold scripts, 90 train/10 val, 2000 iters, LR 5e-6, saves to `_train/goldretrain_adapters/`. FLYWHEEL-PAUSED is in place — do NOT remove.
+- **Laptop**: QC queue running. Two bugs fixed today (commit 65b7ebf): Chinese chars in imagination scripts filtered via `drop_foreign_paragraphs()`; Companion 100%-question-ender streak broken via `_q_streak` tracking in companion.py.
+- **Live product adapter**: June-10 adapter on laptop — intact and shippable.
+- **When goldretrain finishes**: Check `GOLDRETRAIN_DONE` on mini → pull adapter → run battery11 + e2e → promote only if reads beat June-10.
+
+## WHEN GOLDRETRAIN FINISHES
+```bash
+ssh -o IdentitiesOnly=yes smaitra@mac-mini.localdomain 'cat ~/Downloads/hearth-corpus/_train/GOLDRETRAIN_DONE'
+scp 'smaitra@mac-mini.localdomain:~/Downloads/hearth-corpus/_train/goldretrain_adapters/*.safetensors' data/model/adapters/
+.venv/bin/python scripts/product_e2e_test.py
+.venv/bin/python scripts/qc/battery11_imagination_bank.py 2>&1 | tee logs/qc/goldretrain_eval_$(date +%m%d).log
+# READ — diverse openings? immersive? no beach template? better than June-10?
+# Promote only if yes. Quarantine + document if no.
+```
 
 ## FIRST THING TO DO when you resume — run these checks
 ```bash

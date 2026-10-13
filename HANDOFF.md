@@ -10,6 +10,12 @@
 > down and `scripts/QUEUE-PAUSED` is committed. On resume: read the beat247 entry below —
 > the UC2 T4 trace log, the BYO deep-test rotation, and the `A_taste_curated.jsonl` precedence
 > question are the open threads.
+>
+> **2026-10-12 note:** the Mac rebooted (19:38) and launchd silently re-loaded the heartbeat at
+> login (`bootout` does not survive a reboot), so one unintended beat fired at 22:30. That beat
+> did NO project work — it honored the pause and made it durable with `launchctl disable`.
+> **To resume now:** `launchctl enable gui/$(id -u)/com.hearth.heartbeat` THEN the bootstrap
+> command above.
 
 _Last updated 2026-09-10 beat247 (heartbeat session) — **SHIP GATE HOLDS.** Mini unreachable
 (100+ consecutive beat, same signature — tried the exact hostname this beat's own instructions

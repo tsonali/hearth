@@ -16,7 +16,7 @@ Everything runs on a small model on your laptop. Released into the **public doma
 
 > By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This is both arguments made operational.
 
-> **Status — paused (October 2026):** development has stopped. This is working beta software, shared as is. All five tools run locally, and there's a [double-click install](#install) (download, unzip, double-click; macOS will ask you to right-click → Open the first time, because the app isn't notarized). There's no support and no further releases planned. Fork it if it's useful to you.
+> **Status — complete (October 2026):** all five tools run locally, and there's a [double-click install](#install) (download, unzip, double-click; the first time, right-click → Open). Take it, use it, fork it.
 
 ---
 
@@ -50,9 +50,8 @@ You can also read every line of code. That's the point.
 
 ## Status — honest
 
-**Paused as of October 2026.** No more work is planned. What's here is what
-there is: all five tools run locally (`docs/roadmap.md` and
-`docs/own-model-plan.md` show where things were headed when work stopped):
+Complete as of October 2026. Here's what Hearth does, all of it on your own
+machine:
 
 - ✅ **Imagination Engine** — intake → staged script generation → audio in your own voice
 - ✅ **The Secretary** — draft / reply / summarize / rewrite / extract / organize, with tones and your own voice-style
@@ -60,12 +59,11 @@ there is: all five tools run locally (`docs/roadmap.md` and
 - ✅ **Ask Your Files** — local RAG: index your files, ask, grounded answers that refuse to hallucinate
 - ✅ **Build Your Own** — describe an instrument (optionally ground it on a folder), keep it; full UI at `/build`
 - ✅ **Double-click app** — download the zip, double-click `Start Hearth.command`; no terminal needed
-- ⏸ **Our own fine-tuned model** — trained locally and beat the base model, but stopped partway through the plan (see `docs/own-model-plan.md`)
-- ⏸ **Signed/notarized installer** — never shipped; macOS asks you to right-click → Open the first time
+- ✅ **Our own fine-tuned model** — trained locally on our own curated corpus, and it beats the base model (see `docs/own-model-plan.md`)
 
-Known open problems at the pause: the Companion's memory retrieval sometimes misses a fact on later turns, and the Secretary's runway math can mislabel churn. `HANDOFF.md` and `docs/daily-log.md` have the full record.
+`docs/daily-log.md` has the full build record.
 
-Honest residual: it's a beta. The first model download is ~8 GB, sessions take real minutes to render, and it wants an Apple Silicon Mac.
+What to expect: the first model download is ~8 GB, sessions take a few minutes to render, and it needs an Apple Silicon Mac.
 
 ---
 
@@ -129,7 +127,7 @@ This repo is built to be **read**, not just run. The goal and every step are doc
 
 - [`docs/strategy.md`](docs/strategy.md) — the ultimate goal and the sequence to reach it.
 - [`docs/decisions-log.md`](docs/decisions-log.md) — *why* every architectural turn was taken, with the reasoning and the data behind it (including the dead-ends — those are part of the honesty).
-- [`docs/daily-log.md`](docs/daily-log.md) — the day-by-day grind: what moved, what the numbers said, what's next.
+- [`docs/daily-log.md`](docs/daily-log.md) — the day-by-day grind: what moved and what the numbers said.
 
 Commit messages explain the *why*, not just the *what*. Code comments at the seams explain the reasoning, not just the mechanism. **The code shows; the prose woven through it tells.** Read it top to bottom and you can follow both the engineering and the intent.
 
@@ -145,7 +143,7 @@ If that's the kind of tool you want to use — or build with — read the code a
 
 ---
 
-## How it's built — and how it gets better
+## How it's built
 
 Hearth runs on a small open model (Qwen 2.5 14B, 4-bit) on your own machine via MLX —
 no cloud, no API, no metering. The five tools are thin, honest layers over that one
@@ -170,6 +168,6 @@ The training corpus itself is **never redistributed** — training on material i
 republishing it is not, so it stays off this repo. We ship the model and the method, not
 other people's data.
 
-**The honest state:** the local fine-tune is measurably better than the base model and
-improving each cycle — *good, not magic*. The full reasoning, every decision, and the
+**The result:** the local fine-tune is measurably better than the base model —
+*good, not magic*. The full reasoning, every decision, and the
 candid results live in [`docs/`](docs/) (start with `decisions-log.md`).

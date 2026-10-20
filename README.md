@@ -16,7 +16,7 @@ Everything runs on a small model on your laptop. Released into the **public doma
 
 > By [Sonali Maitra](https://sonalimaitra.com) — author of *God in the Machine* (on AI claiming an authority over us it hasn't earned) and the in-progress *Unreality* (on the human power to *enter* unreality as one of our greatest gifts — and the danger of AI that won't admit its own). This is both arguments made operational.
 
-> **Status — honest:** real, working software under active development — a beta, not a polished product. All five tools run locally today, and there's a [double-click install](#install) (download, unzip, double-click; macOS will ask you to right-click → Open the first time, because the app isn't notarized yet).
+> **Status — paused (October 2026):** development has stopped. This is working beta software, shared as is. All five tools run locally, and there's a [double-click install](#install) (download, unzip, double-click; macOS will ask you to right-click → Open the first time, because the app isn't notarized). There's no support and no further releases planned. Fork it if it's useful to you.
 
 ---
 
@@ -50,8 +50,9 @@ You can also read every line of code. That's the point.
 
 ## Status — honest
 
-Working software, in active development. All five tools run locally
-today (see `docs/roadmap.md` and `docs/own-model-plan.md` for the live plan):
+**Paused as of October 2026.** No more work is planned. What's here is what
+there is: all five tools run locally (`docs/roadmap.md` and
+`docs/own-model-plan.md` show where things were headed when work stopped):
 
 - ✅ **Imagination Engine** — intake → staged script generation → audio in your own voice
 - ✅ **The Secretary** — draft / reply / summarize / rewrite / extract / organize, with tones and your own voice-style
@@ -59,10 +60,12 @@ today (see `docs/roadmap.md` and `docs/own-model-plan.md` for the live plan):
 - ✅ **Ask Your Files** — local RAG: index your files, ask, grounded answers that refuse to hallucinate
 - ✅ **Build Your Own** — describe an instrument (optionally ground it on a folder), keep it; full UI at `/build`
 - ✅ **Double-click app** — download the zip, double-click `Start Hearth.command`; no terminal needed
-- 🚧 **Our own fine-tuned model** — trains locally, already better than base and improving each cycle (see `docs/own-model-plan.md`)
-- 🚧 **Signed/notarized installer** — today macOS asks you to right-click → Open the first time; a notarized `.dmg` is coming
+- ⏸ **Our own fine-tuned model** — trained locally and beat the base model, but stopped partway through the plan (see `docs/own-model-plan.md`)
+- ⏸ **Signed/notarized installer** — never shipped; macOS asks you to right-click → Open the first time
 
-Honest residual: it's a beta. The first model download is ~8 GB, sessions take real minutes to render, and it wants an Apple Silicon Mac. Everything else works today.
+Known open problems at the pause: the Companion's memory retrieval sometimes misses a fact on later turns, and the Secretary's runway math can mislabel churn. `HANDOFF.md` and `docs/daily-log.md` have the full record.
+
+Honest residual: it's a beta. The first model download is ~8 GB, sessions take real minutes to render, and it wants an Apple Silicon Mac.
 
 ---
 
